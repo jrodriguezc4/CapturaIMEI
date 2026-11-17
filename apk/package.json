@@ -1,0 +1,25 @@
+{
+  "name": "palmas-dispositivos-apk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "APK de asignación de dispositivos - Palmas de Tumaco",
+  "scripts": {
+    "android:add": "cap add android && node scripts/patch-android.js",
+    "sync": "cap sync android",
+    "build:debug": "cd android && ./gradlew assembleDebug",
+    "abrir": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor-mlkit/barcode-scanning": "6.2.0",
+    "@capacitor/android": "6.2.3",
+    "@capacitor/app": "6.0.3",
+    "@capacitor/camera": "6.1.3",
+    "@capacitor/core": "6.2.3",
+    "@capacitor/device": "6.0.3",
+    "@capacitor/network": "6.0.4",
+    "@capacitor/preferences": "6.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.2.3"
+  }
+}

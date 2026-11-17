@@ -1,0 +1,8 @@
+{
+  "appId": "co.com.palmastumaco.dispositivos",
+  "appName": "Dispositivos PT",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}
