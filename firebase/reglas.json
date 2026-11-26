@@ -25,12 +25,16 @@
       ".read": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true",
       "$imei": {
         ".write": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true"
-      }
+      },
+      ".indexOn": [
+        "actualizado_en"
+      ]
     },
     "asignaciones": {
       ".read": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true",
       ".indexOn": [
-        "imei"
+        "imei",
+        "registrado_en"
       ],
       "$id": {
         ".write": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true && !data.exists() && newData.exists()",
@@ -68,6 +72,16 @@
         "$otro": {
           ".validate": false
         }
+      }
+    },
+    "personal": {
+      ".read": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true",
+      ".indexOn": [
+        "actualizado_en"
+      ],
+      "$cedula": {
+        ".write": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true",
+        ".validate": "newData.hasChildren(['nombre','cedula','activo','actualizado_en']) && newData.child('cedula').val() === $cedula && newData.child('nombre').isString() && newData.child('nombre').val().length >= 3 && newData.child('activo').isBoolean() && newData.child('actualizado_en').val() === now"
       }
     }
   }

@@ -3,79 +3,84 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Dispositivos PT</title>
+<title>CapturaIMEI</title>
 <script src="config.js"></script>
 <style>
 :root{
   --palma:#0F5B36; --fronda:#2E7D4F; --fruto:#D9692A; --pacifico:#2479B8;
   --papel:#F1F5EF; --superficie:#FFFFFF; --tinta:#17241C; --suave:#5B6B61; --linea:#D8E0D6;
-  --peligro:#B42318; --ok:#1E7B45;
+  --peligro:#B42318; --ok:#1E7B45; --sel:#E3F0E6;
   color-scheme:light;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){ :root{
   --palma:#4FB37A; --fronda:#3E9A64; --fruto:#F08A4B; --pacifico:#6AB4EA;
-  --papel:#0F1611; --superficie:#18211B; --tinta:#E6EEE7; --suave:#9DB0A3; --linea:#2A372E; --peligro:#F97066; --ok:#4FB37A;
+  --papel:#0F1611; --superficie:#18211B; --tinta:#E6EEE7; --suave:#9DB0A3; --linea:#2A372E; --peligro:#F97066; --ok:#4FB37A; --sel:#21382A;
   color-scheme:dark; } }
 *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{margin:0;background:var(--papel);color:var(--tinta);font:16px/1.45 Roboto,system-ui,sans-serif;font-variant-numeric:tabular-nums}
 button,input,select{font:inherit;color:inherit}
 .oculto{display:none!important}
-h2{font-size:15px;font-weight:600;margin:0 0 10px;color:var(--suave)}
-label{display:block;font-size:13px;font-weight:600;color:var(--suave);margin:14px 0 5px}
-input,select{width:100%;padding:13px 14px;border:1px solid var(--linea);border-radius:10px;background:var(--superficie);font-size:17px}
+h2{font-size:15px;font-weight:600;margin:0 0 6px;color:var(--suave)}
+label{display:block;font-size:13px;font-weight:600;color:var(--suave);margin:12px 0 5px}
+input,select{width:100%;padding:12px 13px;border:1px solid var(--linea);border-radius:10px;background:var(--superficie);font-size:17px}
 input:focus{outline:none;border-color:var(--palma);box-shadow:0 0 0 3px color-mix(in srgb,var(--palma) 25%,transparent)}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:12px;border:1px solid var(--linea);background:var(--superficie);font-weight:600;font-size:16px;margin-top:10px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:12px;border:1px solid var(--linea);background:var(--superficie);font-weight:600;font-size:16px;margin-top:10px}
 .btn:active{transform:scale(.99)}
 .btn.primario{background:var(--palma);border-color:var(--palma);color:#fff}
 .btn.fruto{background:var(--fruto);border-color:var(--fruto);color:#fff}
 @media (prefers-color-scheme:dark){.btn.primario,.btn.fruto{color:#0B1A11}}
 .btn:disabled{opacity:.5}
-.error{color:var(--peligro);font-size:14px;margin-top:10px;min-height:20px}
+.error{color:var(--peligro);font-size:14px;margin-top:8px;min-height:18px}
+.ayuda{color:var(--suave);font-size:14px;margin:4px 0 0}
 
 /* Ingreso */
 #vIngreso{min-height:100%;display:flex;flex-direction:column;justify-content:center;padding:28px 24px}
-#vIngreso .logo{width:220px;margin:0 auto 26px;display:block;background:#fff;border-radius:10px;padding:8px}
-#vIngreso h1{font-size:24px;margin:0 0 4px;text-align:center}
-#vIngreso p{margin:0 0 8px;text-align:center;color:var(--suave)}
-#iCodigo{text-align:center;font-size:24px;letter-spacing:4px}
+#vIngreso .logo{width:210px;margin:0 auto 22px;display:block;background:#fff;border-radius:10px;padding:8px}
+#vIngreso h1{font-size:23px;margin:0 0 4px;text-align:center}
+#vIngreso p{margin:0 0 6px;text-align:center;color:var(--suave)}
 
-/* Cabecera con el trabajador */
-.cabecera{background:var(--palma);color:#fff;padding:14px 18px 18px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+/* Cabecera con el usuario */
+.cabecera{background:var(--palma);color:#fff;padding:12px 18px 16px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--palma)}
 @media (prefers-color-scheme:dark){.cabecera,body::before{background:#0E3A24}}
-.cabecera .fila1{display:flex;align-items:center;gap:10px;font-size:13px;opacity:.9}
+.cabecera .fila1{display:flex;align-items:center;gap:10px;font-size:13px;opacity:.92}
 .cabecera .fila1 .esp{flex:1}
-.cabecera .menu{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:4px 10px;font-size:13px}
-.trabajador{font-size:25px;font-weight:700;line-height:1.15;margin-top:10px;word-break:break-word}
-.trabajador.vacio{opacity:.75;font-weight:500}
-.sub{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px;font-size:14px}
-.chip{background:rgba(255,255,255,.18);border-radius:999px;padding:3px 10px;font-weight:600}
+.cabecera .menu{background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:8px;padding:4px 10px;font-size:13px}
+.usuario{font-size:23px;font-weight:700;line-height:1.15;margin-top:8px;word-break:break-word}
+.chip{display:inline-block;background:rgba(255,255,255,.18);border-radius:999px;padding:2px 10px;font-weight:600;font-size:13px;margin-top:6px}
 
-/* Estado de sincronización */
-.sync{display:flex;align-items:center;gap:10px;padding:10px 18px;background:var(--superficie);border-bottom:1px solid var(--linea);font-size:14px}
+.sync{display:flex;align-items:center;gap:10px;padding:9px 18px;background:var(--superficie);border-bottom:1px solid var(--linea);font-size:14px}
 .sync .punto{width:10px;height:10px;border-radius:50%;background:var(--suave);flex:none}
 .sync.en-linea .punto{background:var(--ok)}
 .sync.pendiente .punto{background:var(--fruto)}
 .sync .txt{flex:1}
 .sync button{border:1px solid var(--linea);background:var(--papel);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600}
 
-main{padding:16px 16px 40px}
+main{padding:14px 14px 40px}
 .tarjeta{background:var(--superficie);border:1px solid var(--linea);border-radius:14px;padding:16px;margin-bottom:14px}
-.modelo{font-size:20px;font-weight:700}
-.modelo small{display:block;font-size:13px;font-weight:400;color:var(--suave)}
-/* Bloques tipo "Información del dispositivo" */
-.dato{margin-top:16px}
-.dato .t{font-size:15px;font-weight:600}
-.dato .v{font-size:15px;color:var(--suave);font-family:ui-monospace,monospace;margin:2px 0 6px}
-.dato svg{display:block;width:100%;height:58px;background:#fff;border-radius:4px}
-.sin-imei{color:var(--suave);font-size:14px;margin:10px 0 0}
+.campo-scan{display:flex;gap:8px;align-items:stretch}
+.campo-scan input{font-family:ui-monospace,monospace;font-size:16px}
+.campo-scan button{flex:none;width:54px;border-radius:10px;border:1px solid var(--palma);background:var(--sel);color:var(--palma);display:grid;place-items:center}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.otros{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.otros button{border:1px dashed var(--linea);background:var(--papel);border-radius:999px;padding:5px 10px;font-size:13px;font-family:ui-monospace,monospace}
+
+/* Ficha del equipo */
+.equipo .modelo{font-size:19px;font-weight:700}
+.equipo .codigos{font-family:ui-monospace,monospace;font-size:14px;color:var(--suave);margin-top:4px;line-height:1.6}
+.asignado{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--sel)}
+.asignado .t{font-size:13px;color:var(--suave);font-weight:600}
+.asignado .n{font-size:20px;font-weight:700;line-height:1.2;margin-top:2px}
+.asignado.libre{background:var(--papel);border:1px dashed var(--linea)}
+.labor{display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;background:var(--palma);color:#fff}
+@media (prefers-color-scheme:dark){.labor{color:#0B1A11}}
 
 .historial{list-style:none;margin:0;padding:0}
 .historial li{padding:10px 0;border-top:1px solid var(--linea);font-size:14px;display:flex;gap:10px}
 .historial li:first-child{border-top:0}
-.historial .q{flex:1}
+.historial .q{flex:1;min-width:0}
 .historial .q b{display:block;font-size:15px}
 .historial .estado{font-size:12px;font-weight:600;white-space:nowrap}
 .historial .estado.p{color:var(--fruto)}
@@ -83,113 +88,131 @@ main{padding:16px 16px 40px}
 
 /* Hojas inferiores */
 .velo{position:fixed;inset:0;background:rgba(5,15,9,.55);z-index:20;display:flex;align-items:flex-end}
-.hoja{background:var(--superficie);width:100%;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px))}
-.hoja h3{margin:0 0 4px;font-size:20px}
-.hoja .ayuda{color:var(--suave);font-size:14px;margin:0 0 6px}
-.pasos{margin:10px 0 0;padding-left:20px;color:var(--suave);font-size:14px}
-.labores{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.labores button{padding:16px 10px;border-radius:12px;border:1px solid var(--linea);background:var(--papel);font-weight:600;font-size:15px}
+.hoja{background:var(--superficie);width:100%;max-height:94vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px))}
+.hoja h3{margin:0 0 2px;font-size:20px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--papel);border-radius:12px;padding:4px;margin-top:12px}
+.tabs button{border:0;background:transparent;padding:10px;border-radius:9px;font-weight:600}
+.tabs button[aria-pressed="true"]{background:var(--superficie);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.resultados{list-style:none;margin:8px 0 0;padding:0;max-height:38vh;overflow:auto;border:1px solid var(--linea);border-radius:10px}
+.resultados li button{width:100%;text-align:left;border:0;border-top:1px solid var(--linea);background:var(--superficie);padding:11px 13px}
+.resultados li:first-child button{border-top:0}
+.resultados li button[aria-pressed="true"]{background:var(--sel)}
+.resultados b{display:block}
+.resultados small{color:var(--suave)}
+.resultados .vacio{padding:14px;color:var(--suave);font-size:14px}
+.elegido{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--sel);font-size:15px}
+.labores{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.labores button{padding:13px 8px;border-radius:12px;border:1px solid var(--linea);background:var(--papel);font-weight:600;font-size:15px}
 .labores button[aria-pressed="true"]{background:var(--palma);border-color:var(--palma);color:#fff}
-.dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* Aviso de versión nueva */
+.actualizar{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:var(--fruto);color:#fff;padding:12px 18px;font-size:15px;font-weight:600;text-decoration:none}
+.actualizar .flecha{font-size:22px;line-height:1}
+.actualizar small{display:block;font-weight:400;opacity:.92}
+@media (prefers-color-scheme:dark){.actualizar{color:#0B1A11}}
+.version{font-size:12px;color:var(--suave);text-align:center;margin-top:18px}
 .aviso{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--tinta);color:var(--papel);padding:12px 16px;border-radius:10px;font-size:15px;z-index:40;text-align:center}
 </style>
 </head>
 <body>
 
-<!-- Ingreso con código -->
+<!-- Aviso de versión nueva (se muestra solo si GitHub tiene una versión más reciente) -->
+<a class="actualizar oculto" id="actualizar" href="#"><span class="flecha">⬇</span><span><span id="actTxt">Hay una versión nueva</span><small>Toca para descargarla e instalarla</small></span></a>
+
+<!-- Ingreso -->
 <section id="vIngreso">
   <img class="logo" src="data:image/jpeg;base64,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" alt="Palmas de Tumaco">
-  <h1>Dispositivos de campo</h1>
-  <p>Escribe el código de ingreso que te asignó el administrador</p>
-  <p class="oculto" id="avisoDemo" style="color:var(--fruto);font-size:14px">Modo demo: usa el código 4521</p>
+  <h1>Escáner de equipos</h1>
+  <p>Ingresa con tu usuario y tu código</p>
+  <p class="oculto" id="avisoDemo" style="color:var(--fruto);font-size:14px">Modo demo: usuario mperez, código 4521</p>
   <form id="fIngreso">
-    <label for="iCodigo">Código de ingreso</label>
-    <input id="iCodigo" type="password" autocomplete="off" required>
+    <label for="iUsuario">Usuario</label>
+    <input id="iUsuario" autocapitalize="none" autocomplete="username" required>
+    <label for="iCodigo">Código (contraseña)</label>
+    <input id="iCodigo" type="password" autocomplete="current-password" required>
     <button class="btn primario" type="submit" id="bIngresar">Ingresar</button>
     <div class="error" id="eIngreso" role="alert"></div>
   </form>
+  <p class="version" id="verIngreso"></p>
 </section>
 
 <!-- Principal -->
 <div id="vPrincipal" class="oculto">
   <header class="cabecera">
-    <div class="fila1"><span>Palmas de Tumaco</span><span class="esp"></span><span id="quienUsa"></span><button class="menu" id="bSalir" type="button">Salir</button></div>
-    <div class="trabajador" id="trabajador"></div>
-    <div class="sub" id="subTrab"></div>
+    <div class="fila1"><span>Palmas de Tumaco · Escáner <span id="verCab"></span></span><span class="esp"></span><button class="menu" id="bSalir" type="button">Salir</button></div>
+    <div class="usuario" id="nomUsuario"></div>
+    <span class="chip" id="rolUsuario"></span>
   </header>
-  <div class="sync" id="sync"><span class="punto"></span><span class="txt" id="syncTxt"></span><button type="button" id="bSync">Sincronizar ahora</button></div>
+  <div class="sync" id="sync"><span class="punto"></span><span class="txt" id="syncTxt"></span><button type="button" id="bSync">Sincronizar</button></div>
 
   <main>
-    <section class="tarjeta">
-      <h2>Información del dispositivo</h2>
-      <div class="modelo" id="modelo"></div>
-      <div id="datos"></div>
-      <button class="btn primario" id="bImei" type="button">Sincronizar IMEI</button>
+    <!-- 1. Escanear -->
+    <section class="tarjeta" id="tEscaneo">
+      <h2>1. Escanear equipo</h2>
+      <button class="btn primario" id="bFoto" type="button">Foto de la etiqueta (lee todos los códigos)</button>
+      <p class="ayuda">O escanea cada código con el botón de cámara, o escríbelo.</p>
+      <label for="cImei1">IMEI 1</label>
+      <div class="campo-scan"><input id="cImei1" inputmode="numeric" maxlength="15" placeholder="15 dígitos"><button type="button" data-scan="cImei1" aria-label="Escanear IMEI 1">📷</button></div>
+      <label for="cImei2">IMEI 2</label>
+      <div class="campo-scan"><input id="cImei2" inputmode="numeric" maxlength="15" placeholder="Opcional"><button type="button" data-scan="cImei2" aria-label="Escanear IMEI 2">📷</button></div>
+      <label for="cSerial">SN (número de serie)</label>
+      <div class="campo-scan"><input id="cSerial" autocapitalize="characters" placeholder="Opcional"><button type="button" data-scan="cSerial" aria-label="Escanear SN">📷</button></div>
+      <div class="otros oculto" id="otros"></div>
+      <div class="dos">
+        <div><label for="cMarca">Marca</label><input id="cMarca" list="dlMarcas" autocapitalize="characters"><datalist id="dlMarcas"></datalist></div>
+        <div><label for="cModelo">Modelo</label><input id="cModelo"></div>
+      </div>
+      <div class="error" id="eEscaneo" role="alert"></div>
+      <button class="btn fruto" id="bConsultar" type="button">Continuar</button>
     </section>
 
-    <section class="tarjeta oculto" id="tAsig">
-      <h2>Asignación</h2>
-      <button class="btn fruto oculto" id="bAsignar" type="button">Asignar dispositivo</button>
-      <button class="btn primario oculto" id="bLabor" type="button">Asignar labor</button>
-      <button class="btn oculto" id="bOtro" type="button">Asignar a otro</button>
+    <!-- 2. Equipo -->
+    <section class="tarjeta equipo oculto" id="tEquipo">
+      <h2>2. Equipo</h2>
+      <div class="modelo" id="eqModelo"></div>
+      <div class="codigos" id="eqCodigos"></div>
+      <div class="asignado" id="eqAsignado"></div>
+      <button class="btn primario oculto" id="bAsignar" type="button">Asignar a trabajador</button>
+      <button class="btn primario oculto" id="bOtro" type="button">Asignar a otro</button>
+      <button class="btn oculto" id="bLabor" type="button">Cambiar labor</button>
+      <button class="btn" id="bNuevo" type="button">Escanear otro equipo</button>
     </section>
 
+    <!-- Historial -->
     <section class="tarjeta oculto" id="tHist">
-      <h2>Movimientos de este equipo</h2>
+      <h2>Mis últimos registros</h2>
       <ul class="historial" id="historial"></ul>
     </section>
   </main>
 </div>
 
-<!-- Hoja: obtener IMEI -->
-<div class="velo oculto" id="hImei"><div class="hoja">
-  <h3>Sincronizar IMEI</h3>
-  <p class="ayuda">Android no deja que las aplicaciones lean el IMEI directamente. Léelo desde la pantalla de información del dispositivo:</p>
-  <ol class="pasos">
-    <li>Toca <b>Abrir *#06#</b> y marca si hace falta. Aparecen los códigos de barras.</li>
-    <li>Toma una captura de pantalla (encendido + bajar volumen).</li>
-    <li>Vuelve aquí y toca <b>Leer captura</b>.</li>
-  </ol>
-  <button class="btn" id="bMarcador" type="button">Abrir *#06#</button>
-  <button class="btn primario" id="bCaptura" type="button">Leer captura</button>
-  <div class="dos"><button class="btn" id="bCamara" type="button">Escanear con cámara</button><button class="btn" id="bManual" type="button">Escribir a mano</button></div>
-  <div class="error" id="eImei" role="alert"></div>
+<!-- Hoja: elegir trabajador + labor -->
+<div class="velo oculto" id="hPersona"><div class="hoja">
+  <h3 id="persTitulo">Asignar a trabajador</h3>
+  <p class="ayuda" id="persAyuda"></p>
+  <div class="tabs" role="group" aria-label="Forma de elegir"><button type="button" data-modo="buscar" aria-pressed="true">Buscar</button><button type="button" data-modo="manual" aria-pressed="false">Manual</button></div>
+  <div id="modoBuscar">
+    <label for="qPersona">Nombre o cédula</label>
+    <input id="qPersona" type="search" autocomplete="off" placeholder="Ej. Delgado o 1087">
+    <ul class="resultados" id="resultados"></ul>
+  </div>
+  <div id="modoManual" class="oculto">
+    <label for="mNombre">NOMBRE (nombre y apellido)</label><input id="mNombre" autocapitalize="characters">
+    <label for="mCedula">CÉDULA</label><input id="mCedula" inputmode="numeric">
+    <p class="ayuda">Se guarda también en la base de personal.</p>
+  </div>
+  <div class="elegido oculto" id="elegido"></div>
+  <label>Labor</label>
+  <div class="labores" id="labores"></div>
+  <div class="error" id="ePersona" role="alert"></div>
+  <button class="btn primario" id="bGuardarAsig" type="button">Guardar asignación</button>
   <button class="btn" data-cerrar type="button">Cancelar</button>
 </div></div>
 
-<!-- Hoja: confirmar códigos -->
-<div class="velo oculto" id="hConf"><div class="hoja">
-  <h3>Confirma la información</h3>
-  <p class="ayuda" id="confAyuda"></p>
-  <form id="fConf">
-    <label for="cImei1">IMEI (ranura de SIM 1) (principal)</label><input id="cImei1" inputmode="numeric" maxlength="15" required>
-    <label for="cImei2">IMEI (ranura de SIM 2)</label><input id="cImei2" inputmode="numeric" maxlength="15">
-    <label for="cIccid">ICCID (ranura de SIM 1)</label><input id="cIccid" inputmode="numeric" maxlength="22">
-    <label for="cMsisdn">MSISDN (número de línea)</label><input id="cMsisdn" inputmode="tel">
-    <div class="error" id="eConf" role="alert"></div>
-    <button class="btn primario" type="submit">Guardar información</button>
-    <button class="btn" data-cerrar type="button">Cancelar</button>
-  </form>
-</div></div>
-
-<!-- Hoja: trabajador -->
-<div class="velo oculto" id="hTrab"><div class="hoja">
-  <h3 id="trabTitulo"></h3>
-  <p class="ayuda" id="trabAyuda"></p>
-  <form id="fTrab">
-    <label for="tNombre">NOMBRE (nombre y apellido)</label><input id="tNombre" autocapitalize="characters" required minlength="5">
-    <label for="tCedula">CÉDULA</label><input id="tCedula" inputmode="numeric" pattern="[0-9]{5,12}" required>
-    <div class="error" id="eTrab" role="alert"></div>
-    <button class="btn primario" type="submit">Guardar</button>
-    <button class="btn" data-cerrar type="button">Cancelar</button>
-  </form>
-</div></div>
-
-<!-- Hoja: labor -->
+<!-- Hoja: cambiar labor -->
 <div class="velo oculto" id="hLabor"><div class="hoja">
-  <h3>Asignar labor</h3>
+  <h3>Cambiar labor</h3>
   <p class="ayuda" id="laborAyuda"></p>
-  <div class="labores" id="labores"></div>
+  <div class="labores" id="labores2"></div>
   <button class="btn primario" id="bGuardarLabor" type="button" disabled>Guardar labor</button>
   <button class="btn" data-cerrar type="button">Cancelar</button>
 </div></div>
@@ -201,46 +224,48 @@ const FBC = CFG.FIREBASE || {};
 const DEMO = !FBC.databaseURL || FBC.databaseURL.includes("TU_PROYECTO");
 const LABORES = ["Aplicador","Sanidad","Mantenimiento","Cosecha","Fertilización","Reubicado","Supervisor","Administrativo"];
 const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor"};
+const MARCAS = ["CUBOT","SAMSUNG","MOTOROLA","XIAOMI","OPPO","HUAWEI","HONOR","TECNO","INFINIX","VIVO","REALME","NOKIA","ZTE","ALCATEL","DOOGEE","ULEFONE","OUKITEL","BLACKVIEW","APPLE"];
 const NAT = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-const P = (window.Capacitor && window.Capacitor.Plugins) || {};
+const Pl = (window.Capacitor && window.Capacitor.Plugins) || {};
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+const ced = v => String(v ?? "").replace(/[^0-9A-Za-z]/g,"").toUpperCase();
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)));
 const fFecha = d => new Date(d).toLocaleString("es-CO",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false});
+$("#dlMarcas").innerHTML = MARCAS.map(m => `<option value="${m}">`).join("");
 
-/* ---------- Almacenamiento local (sobrevive sin internet y al cerrar la app) ---------- */
-const CLAVE = "pt_estado_v1";
-const E = { sesion:null, equipo:{}, dispositivo:null, dispPendiente:false, actual:null, cola:[], historial:[], ultimaSync:null };
-async function leer(){
-  try { const v = NAT && P.Preferences ? (await P.Preferences.get({key:CLAVE})).value : localStorage.getItem(CLAVE); if (v) Object.assign(E, JSON.parse(v)); } catch(_){}
-}
-async function guardar(){
-  const v = JSON.stringify(E);
-  try { if (NAT && P.Preferences) await P.Preferences.set({key:CLAVE, value:v}); else localStorage.setItem(CLAVE, v); } catch(_){}
-}
-async function sha(t){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("palmas-tumaco:" + t.trim())); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""); }
+/* ---------- Estado guardado en el teléfono ---------- */
+const CLAVE = "pt_escaner_v2";
+const E = {
+  cuentas:{}, usuario:null,        // sesiones por usuario (permite entrar sin internet)
+  cola:[],                         // cambios pendientes de enviar
+  personal:{}, disp:{}, vig:{},    // copias locales: personal, equipos y asignación vigente por IMEI
+  marcas:{}, historial:[], ultimaSync:null
+};
+async function leer(){ try { const v = NAT && Pl.Preferences ? (await Pl.Preferences.get({key:CLAVE})).value : localStorage.getItem(CLAVE); if (v) Object.assign(E, JSON.parse(v)); } catch(_){} }
+async function guardar(){ const v = JSON.stringify(E); try { if (NAT && Pl.Preferences) await Pl.Preferences.set({key:CLAVE, value:v}); else localStorage.setItem(CLAVE, v); } catch(_){} }
+async function sha(t){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("palmas-tumaco:" + String(t).trim())); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""); }
+const cuenta = () => E.cuentas[E.usuario];
 
 /* ---------- Red ---------- */
 let enLinea = navigator.onLine;
 async function iniciarRed(){
-  if (NAT && P.Network){
-    try { enLinea = (await P.Network.getStatus()).connected; } catch(_){}
-    P.Network.addListener("networkStatusChange", s => { enLinea = s.connected; pintarSync(); if (enLinea) sincronizar(); });
+  if (NAT && Pl.Network){
+    try { enLinea = (await Pl.Network.getStatus()).connected; } catch(_){}
+    Pl.Network.addListener("networkStatusChange", s => { enLinea = s.connected; pintarSync(); if (enLinea) sincronizar(); });
   } else {
     addEventListener("online", () => { enLinea = true; pintarSync(); sincronizar(); });
     addEventListener("offline", () => { enLinea = false; pintarSync(); });
   }
-  if (NAT && P.App) P.App.addListener("appStateChange", s => { if (s.isActive) sincronizar(); });
+  if (NAT && Pl.App) Pl.App.addListener("appStateChange", s => { if (s.isActive) { sincronizar(); buscarVersion(); } });
   setInterval(() => { if (enLinea) sincronizar(); }, 60000);
 }
 
-/* ---------- Servidor: Firebase Realtime Database (JSON) por REST ---------- */
+/* ---------- Firebase Realtime Database (JSON) por REST ---------- */
 const SV = {".sv":"timestamp"};
 const limpio = o => Object.fromEntries(Object.entries(o).filter(([,v]) => v !== null && v !== undefined && v !== ""));
-async function pedir(url, opciones){
-  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 20000);
-  try { return await fetch(url, {...opciones, signal:ctl.signal}); } finally { clearTimeout(to); }
-}
+async function pedir(url, op){ const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 25000); try { return await fetch(url, {...op, signal:ctl.signal}); } finally { clearTimeout(to); } }
 const FB = {
   async anonimo(){
     const r = await pedir("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + FBC.apiKey, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({returnSecureToken:true})});
@@ -262,308 +287,352 @@ const FB = {
     return j;
   }
 };
-async function rpc(fn, a){
-  if (DEMO) return demo(fn, a);
-  if (fn === "login_apk"){
-    const hash = await sha(a.p_codigo), n = await FB.anonimo();
-    try { await FB.db(n, "PUT", "sesiones/" + n.uid, {hash, creada:SV}); }
-    catch(e){ if (e.message === "PERMISO") throw new Error("CODIGO_INVALIDO"); throw e; }
-    const c = await FB.db(n, "GET", "codigos/" + hash);
-    return {...n, token:n.uid, username:c.username, nombre:c.nombre, rol:c.rol};
-  }
-  const s = E.sesion;
-  try {
-    if (fn === "sincronizar"){
-      for (const d of a.p_dispositivos || []){
-        const {imei, ...resto} = limpio(d);
-        await FB.db(s, "PATCH", "dispositivos/" + imei, {...resto, actualizado_en:SV, actualizado_por:s.username});
-      }
-      for (const r of a.p_registros || []){
-        const {client_uuid, disp, ...datos} = r;
-        try { await FB.db(s, "PUT", "asignaciones/" + client_uuid, limpio({...datos, usuario:s.username, origen:"apk", registrado_en:SV})); }
-        catch(e){
-          // Si ya había llegado en un intento anterior, el historial no deja sobrescribirlo: se da por enviado
-          if (e.message !== "PERMISO" || !(await FB.db(s, "GET", "asignaciones/" + client_uuid))) throw e;
-        }
-      }
-      return null;
-    }
-    if (fn === "estado_dispositivo"){
-      const q = "&orderBy=" + encodeURIComponent('"imei"') + "&equalTo=" + encodeURIComponent('"' + a.p_imei + '"');
-      const filas = Object.entries(await FB.db(s, "GET", "asignaciones", undefined, q) || {}).map(([client_uuid, r]) => ({...r, client_uuid}));
-      filas.sort((x,y) => new Date(y.fecha_ingreso) - new Date(x.fecha_ingreso) || (y.registrado_en||0) - (x.registrado_en||0));
-      return filas[0] || null;
-    }
-  } catch(e){ if (e.message === "PERMISO") throw new Error("SESION_INVALIDA"); throw e; }
-}
-async function demo(fn, a){
-  await new Promise(r => setTimeout(r, 400));
-  if (fn === "login_apk"){ if (a.p_codigo.trim() !== "4521") throw new Error("CODIGO_INVALIDO"); return {token:"demo", username:"mperez", nombre:"MARIA PEREZ", rol:"usuario"}; }
-  if (fn === "sincronizar") return {insertados:(a.p_registros||[]).length};
-  if (fn === "estado_dispositivo") return null;
-  return null;
-}
+
+/* ---------- Datos de demostración ---------- */
+const DEMO_PERSONAL = [["EDISON ANDRES DELGADO","1087007537","Reubicado"],["MARIA FERNANDA QUIÑONES","1087123456","Sanidad"],["LUIS ALBERTO CAICEDO","12993811","Cosecha"],["YURI CAMPAZ ANGULO","1087554210","Aplicador"],["JHON JAIRO RIASCOS","98400321","Mantenimiento"],["ANA LUCIA CORTES","1086999102","Fertilización"],["JOSE ELIAS MONTAÑO","1087900011","Cosecha"]];
 
 /* ---------- Ingreso ---------- */
 $("#fIngreso").addEventListener("submit", async e => {
   e.preventDefault();
-  const cod = $("#iCodigo").value.trim(); $("#eIngreso").textContent = ""; $("#bIngresar").disabled = true;
+  const u = $("#iUsuario").value.trim().toLowerCase(), cod = $("#iCodigo").value.trim();
+  $("#eIngreso").textContent = ""; $("#bIngresar").disabled = true;
   try {
     const h = await sha(cod);
+    if (DEMO){
+      if (!((u === "mperez" && cod === "4521") || (u === "jrodriguezc" && cod === "Palmas2026"))) throw new Error("Usuario o código incorrecto.");
+      E.cuentas[u] = {hash:h, nombre: u === "mperez" ? "MARIA PEREZ" : "JHON MARCO RODRIGUEZ CORREA", rol: u === "mperez" ? "usuario" : "admin", uid:"demo", valida:true};
+      E.usuario = u; await guardar(); entrar(); sincronizar(); return;
+    }
     if (enLinea){
       try {
-        const s = await rpc("login_apk", {p_codigo:cod});
-        E.sesion = {...s, hash:h, valida:true, cerrada:false}; await guardar(); entrar(); sincronizar(); return;
+        const n = await FB.anonimo();
+        try { await FB.db(n, "PUT", "sesiones/" + n.uid, {hash:h, username:u, creada:SV}); }
+        catch(err){ if (err.message === "PERMISO") throw new Error("CREDENCIALES"); throw err; }
+        const c = await FB.db(n, "GET", "codigos/" + h);
+        E.cuentas[u] = {...n, hash:h, nombre:c.nombre || u, rol:c.rol, valida:true};
+        E.usuario = u; await guardar(); entrar(); sincronizar(); return;
       } catch(err){
-        if (String(err.message).includes("CODIGO_INVALIDO")) throw new Error("Código incorrecto o usuario desactivado.");
-        if (!(E.sesion && E.sesion.hash === h)) throw new Error("No se pudo validar el código. Revisa la conexión e intenta de nuevo.");
+        if (err.message === "CREDENCIALES") throw new Error("Usuario o código incorrecto, o usuario desactivado.");
+        // sin respuesta del servidor: se intenta el ingreso sin conexión
       }
     }
-    // Sin internet: solo se permite el último código validado en este teléfono
-    if (E.sesion && E.sesion.hash === h && E.sesion.token){ E.sesion.cerrada = false; await guardar(); entrar(); return; }
-    throw new Error(E.sesion ? "Sin conexión: solo puedes entrar con el último código usado en este teléfono." : "La primera vez necesitas internet para validar el código.");
+    const c = E.cuentas[u];
+    if (c && c.hash === h && c.uid){ E.usuario = u; await guardar(); entrar(); return; }
+    throw new Error(c ? "Sin conexión: el código no coincide con el último usado en este teléfono." : "La primera vez que un usuario entra en este teléfono necesita internet.");
   } catch(err){ $("#eIngreso").textContent = err.message; }
   finally { $("#bIngresar").disabled = false; }
 });
 $("#bSalir").onclick = async () => {
-  const msg = E.cola.length ? `Hay ${E.cola.length} cambios sin sincronizar. Se guardan en el teléfono y se enviarán cuando vuelvas a ingresar. ¿Salir?` : "¿Cerrar sesión?";
+  const msg = E.cola.length ? `Hay ${E.cola.length} cambios sin enviar. Quedan guardados y se envían cuando alguien vuelva a ingresar con internet. ¿Salir?` : "¿Cerrar sesión?";
   if (!confirm(msg)) return;
-  if (E.sesion) E.sesion.cerrada = true; await guardar();
+  E.usuario = null; await guardar();
   $("#iCodigo").value = ""; $("#vPrincipal").classList.add("oculto"); $("#vIngreso").classList.remove("oculto");
 };
-
-async function entrar(){
+function entrar(){
   $("#vIngreso").classList.add("oculto"); $("#vPrincipal").classList.remove("oculto");
-  await leerEquipo(); pintar();
-}
-
-/* ---------- Información del equipo ---------- */
-async function leerEquipo(){
-  try {
-    if (NAT && P.Device){
-      const i = await P.Device.getInfo(); const id = await P.Device.getId();
-      E.equipo = { marca:(i.manufacturer||"").toUpperCase(), modelo:i.model||"", android:i.osVersion||"", android_id:id.identifier||"" };
-    } else if (!E.equipo.modelo){
-      E.equipo = { marca:"NAVEGADOR", modelo:(navigator.userAgentData && navigator.userAgentData.platform) || "Prueba", android:"", android_id:"" };
-    }
-    await guardar();
-  } catch(_){}
-}
-
-/* ---------- Pintar ---------- */
-function pintar(){
-  const a = E.actual, d = E.dispositivo;
-  $("#quienUsa").textContent = E.sesion && E.sesion.username ? E.sesion.username : "";
-  const t = $("#trabajador");
-  t.textContent = a ? a.nombre : (d ? "Sin trabajador asignado" : "Dispositivo sin registrar");
-  t.classList.toggle("vacio", !a);
-  $("#subTrab").innerHTML = a ? `<span>C.C. ${esc(a.cedula)}</span><span class="chip">${esc(a.labor || "Sin labor")}</span>` : "";
-  const m = d || E.equipo;
-  $("#modelo").innerHTML = `${esc([m.marca, m.modelo].filter(Boolean).join(" ") || "Modelo desconocido")}${E.equipo.android ? `<small>Android ${esc(E.equipo.android)}</small>` : ""}`;
-  $("#datos").innerHTML = d ? [
-      ["IMEI (ranura de SIM 1) (principal)", d.imei], ["ICCID (ranura de SIM 1)", d.iccid], ["MSISDN (ranura de SIM 1)", d.msisdn], ["IMEI (ranura de SIM 2)", d.imei2]
-    ].filter(x => x[1]).map(([t,v]) => `<div class="dato"><div class="t">${t}</div><div class="v">${esc(v)}</div>${codigoBarras(v)}</div>`).join("")
-    : `<p class="sin-imei">Toca Sincronizar IMEI para leer los códigos del equipo.</p>`;
-  $("#bImei").textContent = d ? "Volver a sincronizar IMEI" : "Sincronizar IMEI";
-  $("#bImei").className = "btn " + (d ? "" : "primario");
-  $("#tAsig").classList.toggle("oculto", !d);
-  $("#bAsignar").classList.toggle("oculto", !!a);
-  $("#bLabor").classList.toggle("oculto", !a);
-  $("#bOtro").classList.toggle("oculto", !a);
-  $("#bLabor").textContent = a && a.labor ? "Cambiar labor" : "Asignar labor";
-  const h = E.historial.filter(x => !d || x.imei === d.imei).slice(0, 30);
-  $("#tHist").classList.toggle("oculto", !h.length);
-  $("#historial").innerHTML = h.map(x => `<li><div class="q"><b>${esc(MOVS[x.tipo])}${x.labor && x.tipo==="CAMBIO_LABOR" ? ": " + esc(x.labor) : ""}</b>${esc(x.nombre)} · C.C. ${esc(x.cedula)}<br><small>${fFecha(x.fecha_ingreso)}</small></div><span class="estado ${x.sync?"s":"p"}">${x.sync?"Sincronizado":"Pendiente"}</span></li>`).join("");
-  pintarSync();
-}
-function pintarSync(){
-  const pend = E.cola.length + (E.dispPendiente ? 1 : 0), el = $("#sync");
-  el.className = "sync " + (pend ? "pendiente" : enLinea ? "en-linea" : "");
-  let t = enLinea ? "En línea" : "Sin conexión";
-  if (pend) t += `. ${E.cola.length || 1} ${E.cola.length===1||!E.cola.length ? "cambio pendiente" : "cambios pendientes"}`;
-  else if (E.ultimaSync) t += `. Sincronizado ${fFecha(E.ultimaSync)}`;
-  if (E.sesion && E.sesion.valida === false) t = "Tu código ya no es válido. Sal e ingresa con un código nuevo.";
-  $("#syncTxt").textContent = t;
-  $("#bSync").disabled = !enLinea || sincronizando;
+  const c = cuenta();
+  $("#nomUsuario").textContent = c.nombre || E.usuario;
+  $("#rolUsuario").textContent = (c.rol === "admin" ? "Administrador" : "Usuario") + " · " + E.usuario;
+  limpiarEscaneo(); pintarHistorial(); pintarSync();
 }
 
 /* ---------- Sincronización ---------- */
 let sincronizando = false;
+function pintarSync(){
+  const el = $("#sync"), n = E.cola.length, c = cuenta();
+  el.className = "sync " + (n ? "pendiente" : enLinea ? "en-linea" : "");
+  let t = enLinea ? "En línea" : "Sin conexión";
+  if (n) t += `. ${n} ${n === 1 ? "cambio pendiente" : "cambios pendientes"}`;
+  else if (E.ultimaSync) t += `. Actualizado ${fFecha(E.ultimaSync)}`;
+  t += ` · ${Object.keys(E.personal).filter(k => E.personal[k].activo !== false).length} personas`;
+  if (c && c.valida === false) t = "Tu código ya no es válido. Sal e ingresa de nuevo.";
+  $("#syncTxt").textContent = t;
+  $("#bSync").disabled = !enLinea || sincronizando;
+}
 async function sincronizar(manual){
-  if (sincronizando || !enLinea || !E.sesion || !E.sesion.token || E.sesion.cerrada) { if (manual && !enLinea) aviso("Sin conexión. Los cambios quedan guardados en el teléfono."); return; }
+  const s = cuenta();
+  if (sincronizando || !s) return;
+  if (!enLinea){ if (manual) aviso("Sin conexión. Los cambios quedan guardados en el teléfono."); return; }
   sincronizando = true; pintarSync();
   try {
-    const lote = E.cola.slice(0, 200);
-    if (lote.length || E.dispPendiente){
-      // Cada registro lleva la foto del equipo al que pertenece (por si se cambió de IMEI antes de sincronizar)
-      const mapa = {};
-      lote.forEach(r => { if (r.disp) mapa[r.disp.imei] = r.disp; });
-      if (E.dispositivo && E.dispPendiente) mapa[E.dispositivo.imei] = {...E.dispositivo, android_id:E.equipo.android_id};
-      const disp = Object.values(mapa);
-      await rpc("sincronizar", {p_token:E.sesion.token, p_dispositivos:disp, p_registros:lote});
-      const ids = new Set(lote.map(r => r.client_uuid));
-      E.cola = E.cola.filter(r => !ids.has(r.client_uuid));
-      E.historial.forEach(h => { if (ids.has(h.client_uuid)) h.sync = true; });
-      E.dispPendiente = false;
-    }
-    // Traer cambios hechos desde la web (editar / asignar a otro)
-    if (E.dispositivo && !E.cola.length){
-      const s = await rpc("estado_dispositivo", {p_token:E.sesion.token, p_imei:E.dispositivo.imei});
-      if (s && (!E.actual || new Date(s.fecha_ingreso) >= new Date(E.actual.fecha_ingreso))){
-        E.actual = {nombre:s.nombre, cedula:s.cedula, labor:s.labor, fecha_ingreso:s.fecha_ingreso};
-        if (s.origen === "web" && !E.historial.some(h => h.client_uuid === s.client_uuid))
-          E.historial.unshift({client_uuid:s.client_uuid, imei:s.imei, nombre:s.nombre, cedula:s.cedula, labor:s.labor, tipo:s.tipo, fecha_ingreso:s.fecha_ingreso, sync:true});
+    if (DEMO){
+      if (!Object.keys(E.personal).length) DEMO_PERSONAL.forEach(([nombre,cedula,labor]) => E.personal[cedula] = {nombre, cedula, labor, activo:true});
+      E.historial.forEach(h => h.sync = true); E.cola = [];
+    } else {
+      // 1. Enviar lo pendiente, en orden
+      while (E.cola.length){
+        await enviar(s, E.cola[0]);
+        const op = E.cola.shift();
+        if (op.k === "asig"){ const h = E.historial.find(x => x.id === op.id); if (h) h.sync = true; }
+        await guardar();
       }
+      // 2. Traer lo nuevo del servidor (solo lo que cambió desde la última vez)
+      await traer(s, "personal", "actualizado_en", (k,v) => { E.personal[k] = v; });
+      await traer(s, "dispositivos", "actualizado_en", (k,v) => { E.disp[k] = v; });
+      await traer(s, "asignaciones", "registrado_en", (k,v) => aplicarVigente({...v, id:k}));
     }
-    E.ultimaSync = new Date().toISOString(); E.sesion.valida = true;
-    await guardar();
-    if (manual) aviso("Información sincronizada");
-    if (E.cola.length) setTimeout(() => sincronizar(), 500);
+    E.ultimaSync = new Date().toISOString(); s.valida = true; await guardar();
+    if (manual) aviso("Sincronizado");
   } catch(err){
-    if (String(err.message).includes("SESION_INVALIDA")){ E.sesion.valida = false; await guardar(); }
+    if (/PERMISO|SESION_INVALIDA/.test(err.message)){ s.valida = false; await guardar(); }
     else if (manual) aviso("No se pudo sincronizar: " + err.message);
-  } finally { sincronizando = false; pintar(); }
+  } finally { sincronizando = false; pintarSync(); pintarHistorial(); if (eqActual) pintarEquipo(); }
+}
+async function enviar(s, op){
+  if (op.k === "disp") return FB.db(s, "PATCH", "dispositivos/" + op.imei, {...op.datos, actualizado_en:SV, actualizado_por:E.usuario});
+  if (op.k === "pers") return FB.db(s, "PUT", "personal/" + op.datos.cedula, {...op.datos, activo:true, actualizado_en:SV, actualizado_por:E.usuario});
+  if (op.k === "asig"){
+    try { await FB.db(s, "PUT", "asignaciones/" + op.id, limpio({...op.datos, usuario:E.usuario, origen:"apk", registrado_en:SV})); }
+    catch(err){ if (err.message !== "PERMISO" || !(await FB.db(s, "GET", "asignaciones/" + op.id))) throw err; }   // ya había llegado antes
+  }
+}
+async function traer(s, ruta, campo, fn){
+  const desde = E.marcas[ruta];
+  const q = "&orderBy=" + encodeURIComponent('"' + campo + '"') + (desde ? "&startAt=" + desde : "");
+  const datos = await FB.db(s, "GET", ruta, undefined, q) || {};
+  let max = desde || 0;
+  for (const [k,v] of Object.entries(datos)){ fn(k, v); if (v[campo] > max) max = v[campo]; }
+  E.marcas[ruta] = max;
+}
+function aplicarVigente(r){
+  const c = E.vig[r.imei], t = x => new Date(x.fecha_ingreso).getTime(), reg = x => x.registrado_en || Date.now();
+  if (!c || t(r) > t(c) || (t(r) === t(c) && reg(r) >= reg(c)))
+    E.vig[r.imei] = {nombre:r.nombre, cedula:r.cedula, labor:r.labor || null, fecha_ingreso:r.fecha_ingreso, registrado_en:r.registrado_en, tipo:r.tipo, usuario:r.usuario};
 }
 $("#bSync").onclick = () => sincronizar(true);
 
-async function registrar(tipo, datos){
-  const r = { client_uuid:uuid(), imei:E.dispositivo.imei, tipo, fecha_ingreso:new Date().toISOString(),
-              nombre:datos.nombre, cedula:datos.cedula, labor:datos.labor || null };
-  E.cola.push({...r, disp:{...E.dispositivo, android_id:E.equipo.android_id}}); E.historial.unshift({...r, sync:false});
-  E.actual = {nombre:r.nombre, cedula:r.cedula, labor:r.labor, fecha_ingreso:r.fecha_ingreso};
-  await guardar(); pintar(); sincronizar();
-}
-
-/* ---------- Hojas ---------- */
-const abrir = id => $(id).classList.remove("oculto");
-const cerrar = id => $(id).classList.add("oculto");
-document.querySelectorAll("[data-cerrar]").forEach(b => b.onclick = () => b.closest(".velo").classList.add("oculto"));
-
-/* ---------- Sincronizar IMEI ---------- */
-$("#bImei").onclick = () => { $("#eImei").textContent = ""; abrir("#hImei"); };
-$("#bMarcador").onclick = () => { location.href = "tel:" + encodeURIComponent("*#06#"); };
-$("#bCaptura").onclick = async () => {
-  $("#eImei").textContent = "";
-  try {
-    if (!NAT) throw new Error("Esta opción funciona en la APK instalada.");
-    const foto = await P.Camera.getPhoto({source:"PHOTOS", resultType:"uri", quality:100});
-    const { barcodes } = await P.BarcodeScanner.readBarcodesFromImage({path:foto.path});
-    confirmar(clasificar(barcodes), "Leído desde la captura. Revisa que coincida.");
-  } catch(err){ if (!/cancel/i.test(err.message)) $("#eImei").textContent = err.message.includes("Esta opción") ? err.message : "No se pudo leer la captura. " + err.message; }
-};
-$("#bCamara").onclick = async () => {
-  $("#eImei").textContent = "";
-  try {
-    if (!NAT) throw new Error("Esta opción funciona en la APK instalada.");
-    const { available } = await P.BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
-    if (!available){ await P.BarcodeScanner.installGoogleBarcodeScannerModule(); throw new Error("Instalando el lector de códigos (necesita internet una vez). Intenta de nuevo en un minuto."); }
-    const { barcodes } = await P.BarcodeScanner.scan();
-    const prev = E.dispositivo || {};
-    const nuevo = clasificar(barcodes);
-    confirmar({imei1:nuevo.imei1||prev.imei, imei2:nuevo.imei2||prev.imei2, iccid:nuevo.iccid||prev.iccid, msisdn:nuevo.msisdn||prev.msisdn}, "Escanea otro código si falta alguno, o escribe el dato.");
-  } catch(err){ if (!/cancel/i.test(err.message)) $("#eImei").textContent = err.message; }
-};
-$("#bManual").onclick = () => confirmar(E.dispositivo ? {imei1:E.dispositivo.imei, imei2:E.dispositivo.imei2, iccid:E.dispositivo.iccid, msisdn:E.dispositivo.msisdn} : {}, "Copia los números que aparecen al marcar *#06#.");
-
+/* ---------- Escaneo ---------- */
 function luhn(n){ let s = 0; [...n].reverse().forEach((c,i) => { let d = +c; if (i % 2){ d *= 2; if (d > 9) d -= 9; } s += d; }); return s % 10 === 0; }
-function clasificar(barcodes){
-  const r = {imeis:[]};
-  for (const b of barcodes || []){
-    const v = String(b.rawValue || b.displayValue || "").trim(), d = v.replace(/\D/g, "");
-    if (/^89\d{16,20}$/.test(d)) { r.iccid = d; continue; }
-    if (v.startsWith("+") || /^(57)?3\d{9}$/.test(d)) { r.msisdn = "+" + (d.length === 10 ? "57" + d : d); continue; }
-    if (d.length >= 14 && d.length <= 16){ const i = d.slice(0,15); if (!r.imeis.includes(i)) r.imeis.push(i); }
+const esImei = v => /^\d{15}$/.test(v) && luhn(v);
+function clasificar(valores){
+  const imeis = [], otros = [];
+  for (const raw of valores){
+    const v = String(raw || "").trim(); if (!v) continue;
+    const enTexto = (v.match(/\d{15}/g) || []).filter(esImei);   // "IMEI1:865…" o etiquetas con texto
+    if (enTexto.length){ enTexto.forEach(i => { if (!imeis.includes(i)) imeis.push(i); }); continue; }
+    const limpioV = v.replace(/^(S\/?N|SN|SERIAL)[:\s]*/i, "").trim();
+    if (!otros.includes(limpioV)) otros.push(limpioV);
   }
-  return {imei1:r.imeis[0], imei2:r.imeis[1], iccid:r.iccid, msisdn:r.msisdn};
+  const candidatoSN = otros.find(o => /^[A-Z0-9\-]{6,25}$/i.test(o) && /[A-Z]/i.test(o))
+                   || otros.find(o => /^\d{8,20}$/.test(o) && o.length !== 12 && o.length !== 13);
+  return {imei1:imeis[0], imei2:imeis[1], serial:candidatoSN, otros};
 }
-function confirmar(v, ayuda){
-  cerrar("#hImei");
-  $("#cImei1").value = v.imei1 || ""; $("#cImei2").value = v.imei2 || ""; $("#cIccid").value = v.iccid || ""; $("#cMsisdn").value = v.msisdn || "";
-  $("#confAyuda").textContent = (v.imei1 || v.iccid) ? ayuda : "No se encontraron códigos. Escríbelos a mano o intenta con otra captura.";
-  $("#eConf").textContent = ""; abrir("#hConf");
+function aplicarLectura(r){
+  if (r.imei1) $("#cImei1").value = r.imei1;
+  if (r.imei2) $("#cImei2").value = r.imei2;
+  if (r.serial) $("#cSerial").value = r.serial.toUpperCase();
+  const o = (r.otros || []).filter(x => x.toUpperCase() !== $("#cSerial").value);
+  $("#otros").classList.toggle("oculto", !o.length);
+  $("#otros").innerHTML = o.length ? '<span class="ayuda" style="width:100%">Otros códigos leídos (toca uno para usarlo como SN):</span>' + o.map(x => `<button type="button">${esc(x)}</button>`).join("") : "";
 }
-$("#fConf").addEventListener("submit", async e => {
-  e.preventDefault();
+$("#otros").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { $("#cSerial").value = b.textContent.toUpperCase(); } });
+$("#bFoto").onclick = async () => {
+  $("#eEscaneo").textContent = "";
+  try {
+    if (!NAT) throw new Error("La lectura con cámara funciona en la APK instalada. Aquí escribe los códigos.");
+    const foto = await Pl.Camera.getPhoto({source:"PROMPT", resultType:"uri", quality:90, promptLabelHeader:"Etiqueta del equipo", promptLabelPhoto:"Elegir de la galería", promptLabelPicture:"Tomar foto", promptLabelCancel:"Cancelar"});
+    const { barcodes } = await Pl.BarcodeScanner.readBarcodesFromImage({path:foto.path});
+    const r = clasificar(barcodes.map(b => b.rawValue || b.displayValue));
+    if (!r.imei1 && !r.serial && !r.otros.length) throw new Error("No se encontraron códigos de barras. Acerca más la cámara o usa el botón 📷 de cada campo.");
+    aplicarLectura(r);
+    aviso(`Leídos: ${[r.imei1 && "IMEI 1", r.imei2 && "IMEI 2", r.serial && "SN"].filter(Boolean).join(", ") || "otros códigos"}`);
+  } catch(err){ if (!/cancel/i.test(err.message)) $("#eEscaneo").textContent = err.message; }
+};
+document.querySelectorAll("[data-scan]").forEach(b => b.onclick = async () => {
+  $("#eEscaneo").textContent = "";
+  const campo = $("#" + b.dataset.scan);
+  try {
+    if (!NAT) throw new Error("El escáner funciona en la APK instalada. Aquí escribe el código.");
+    const { available } = await Pl.BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+    if (!available){ await Pl.BarcodeScanner.installGoogleBarcodeScannerModule(); throw new Error("Instalando el lector de códigos (necesita internet una sola vez). Intenta de nuevo en un minuto."); }
+    const { barcodes } = await Pl.BarcodeScanner.scan();
+    const v = String((barcodes[0] && (barcodes[0].rawValue || barcodes[0].displayValue)) || "").trim();
+    if (!v) return;
+    if (campo.id === "cSerial") campo.value = v.replace(/^(S\/?N|SN|SERIAL)[:\s]*/i, "").toUpperCase();
+    else { const m = (v.match(/\d{15}/g) || []).find(esImei) || v.replace(/\D/g,"").slice(0,15); campo.value = m; }
+  } catch(err){ if (!/cancel/i.test(err.message)) $("#eEscaneo").textContent = err.message; }
+});
+
+/* ---------- Equipo ---------- */
+let eqActual = null;
+function limpiarEscaneo(){
+  ["cImei1","cImei2","cSerial","cMarca","cModelo"].forEach(id => $("#" + id).value = "");
+  $("#otros").classList.add("oculto"); $("#eEscaneo").textContent = "";
+  eqActual = null; $("#tEquipo").classList.add("oculto"); $("#tEscaneo").classList.remove("oculto");
+}
+$("#cImei1").addEventListener("change", () => {   // si el equipo ya existe, completa lo que falta
+  const d = E.disp[$("#cImei1").value.trim()]; if (!d) return;
+  if (!$("#cImei2").value && d.imei2) $("#cImei2").value = d.imei2;
+  if (!$("#cSerial").value && d.serial) $("#cSerial").value = d.serial;
+  if (!$("#cMarca").value && d.marca) $("#cMarca").value = d.marca;
+  if (!$("#cModelo").value && d.modelo) $("#cModelo").value = d.modelo;
+});
+$("#bConsultar").onclick = async () => {
+  $("#cImei1").dispatchEvent(new Event("change"));
   const i1 = $("#cImei1").value.replace(/\D/g,""), i2 = $("#cImei2").value.replace(/\D/g,"");
-  if (i1.length !== 15 || !luhn(i1)) { $("#eConf").textContent = "El IMEI 1 debe tener 15 dígitos válidos. Revisa el número."; return; }
-  if (i2 && (i2.length !== 15 || !luhn(i2))) { $("#eConf").textContent = "El IMEI 2 no es válido. Corrígelo o déjalo vacío."; return; }
-  const cambio = E.dispositivo && E.dispositivo.imei !== i1;
-  if (cambio && !confirm("El IMEI es distinto al registrado en esta app. Se tratará como otro equipo. ¿Continuar?")) return;
-  E.dispositivo = { imei:i1, imei2:i2 || null, iccid:$("#cIccid").value.replace(/\D/g,"") || null, msisdn:$("#cMsisdn").value.trim() || null, marca:E.equipo.marca, modelo:E.equipo.modelo };
-  if (cambio) E.actual = null;
-  E.dispPendiente = true; await guardar(); cerrar("#hConf"); pintar(); aviso("IMEI registrado"); sincronizar();
-});
-
-/* ---------- Trabajador ---------- */
-let modoTrab = "ASIGNACION";
-function abrirTrab(modo){
-  modoTrab = modo; const otro = modo === "REASIGNACION";
-  $("#trabTitulo").textContent = otro ? "Asignar a otro" : "Asignar dispositivo";
-  $("#trabAyuda").textContent = otro ? `Actualmente lo tiene ${E.actual.nombre}. Se guarda como un movimiento nuevo con la fecha de hoy.` : "Datos del trabajador que recibe el equipo.";
-  $("#tNombre").value = ""; $("#tCedula").value = ""; $("#eTrab").textContent = "";
-  abrir("#hTrab"); setTimeout(() => $("#tNombre").focus(), 50);
+  const sn = $("#cSerial").value.trim().toUpperCase().replace(/\s+/g,"");
+  if (!esImei(i1)) { $("#eEscaneo").textContent = "El IMEI 1 debe tener 15 dígitos válidos. Revisa el número."; return; }
+  if (i2 && !esImei(i2)) { $("#eEscaneo").textContent = "El IMEI 2 no es válido. Corrígelo o déjalo vacío."; return; }
+  if (i2 && i2 === i1) { $("#eEscaneo").textContent = "IMEI 1 e IMEI 2 son iguales."; return; }
+  const datos = limpio({imei2:i2, serial:sn, marca:$("#cMarca").value.trim().toUpperCase(), modelo:$("#cModelo").value.trim()});
+  const previo = E.disp[i1] || {};
+  if (Object.entries(datos).some(([k,v]) => previo[k] !== v)){
+    E.disp[i1] = {...previo, ...datos};
+    E.cola.push({k:"disp", imei:i1, datos}); await guardar(); sincronizar();
+  }
+  eqActual = i1; pintarEquipo();
+  $("#tEscaneo").classList.add("oculto"); $("#tEquipo").classList.remove("oculto"); scrollTo(0,0);
+};
+$("#bNuevo").onclick = () => { limpiarEscaneo(); scrollTo(0,0); };
+function pintarEquipo(){
+  const d = E.disp[eqActual] || {}, a = E.vig[eqActual];
+  $("#eqModelo").textContent = [d.marca, d.modelo].filter(Boolean).join(" ") || "Equipo sin marca/modelo";
+  $("#eqCodigos").innerHTML = `IMEI 1: ${esc(eqActual)}` + (d.imei2 ? `<br>IMEI 2: ${esc(d.imei2)}` : "") + (d.serial ? `<br>SN: ${esc(d.serial)}` : "");
+  const el = $("#eqAsignado");
+  el.className = "asignado" + (a ? "" : " libre");
+  el.innerHTML = a ? `<div class="t">Asignado a</div><div class="n">${esc(a.nombre)}</div><div>C.C. ${esc(a.cedula)} · desde ${fFecha(a.fecha_ingreso)}</div><span class="labor">${esc(a.labor || "Sin labor")}</span>`
+                   : `<div class="t">Sin asignar</div><div>Este equipo no tiene trabajador registrado.</div>`;
+  $("#bAsignar").classList.toggle("oculto", !!a);
+  $("#bOtro").classList.toggle("oculto", !a);
+  $("#bLabor").classList.toggle("oculto", !a);
 }
-$("#bAsignar").onclick = () => abrirTrab("ASIGNACION");
-$("#bOtro").onclick = () => abrirTrab("REASIGNACION");
-$("#fTrab").addEventListener("submit", async e => {
-  e.preventDefault();
-  const nombre = $("#tNombre").value.trim().replace(/\s+/g," ").toUpperCase(), cedula = $("#tCedula").value.replace(/\D/g,"");
-  if (nombre.split(" ").length < 2) { $("#eTrab").textContent = "Escribe nombre y apellido."; return; }
-  if (E.actual && modoTrab === "REASIGNACION" && cedula === E.actual.cedula) { $("#eTrab").textContent = "Esa cédula es la del trabajador actual."; return; }
-  cerrar("#hTrab");
-  await registrar(modoTrab, {nombre, cedula, labor:null});
-  aviso("Dispositivo asignado a " + nombre);
-  abrirLabor();
-});
 
-/* ---------- Labor ---------- */
-let laborSel = null;
-$("#labores").innerHTML = LABORES.map(l => `<button type="button" data-l="${l}" aria-pressed="false">${l}</button>`).join("");
-$("#labores").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; laborSel = b.dataset.l;
-  document.querySelectorAll("#labores button").forEach(x => x.setAttribute("aria-pressed", x === b)); $("#bGuardarLabor").disabled = false; });
-function abrirLabor(){
-  laborSel = E.actual.labor || null;
-  document.querySelectorAll("#labores button").forEach(x => x.setAttribute("aria-pressed", x.dataset.l === laborSel));
-  $("#bGuardarLabor").disabled = !laborSel;
-  $("#laborAyuda").textContent = `Labor de ${E.actual.nombre}`;
-  abrir("#hLabor");
+/* ---------- Elegir trabajador (buscar o manual) ---------- */
+let modo = "buscar", elegido = null, laborSel = null, tipoAsig = "ASIGNACION";
+function pintarLabores(cont, sel){
+  $(cont).innerHTML = LABORES.map(l => `<button type="button" data-l="${l}" aria-pressed="${l === sel}">${l}</button>`).join("");
 }
-$("#bLabor").onclick = abrirLabor;
-$("#bGuardarLabor").onclick = async () => {
-  if (laborSel === E.actual.labor) { cerrar("#hLabor"); return; }
-  cerrar("#hLabor"); await registrar("CAMBIO_LABOR", {...E.actual, labor:laborSel}); aviso("Labor asignada: " + laborSel);
+$("#labores").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; laborSel = b.dataset.l; pintarLabores("#labores", laborSel); });
+function abrirPersona(tipo){
+  tipoAsig = tipo; elegido = null; laborSel = null;
+  const a = E.vig[eqActual];
+  $("#persTitulo").textContent = tipo === "REASIGNACION" ? "Asignar a otro" : "Asignar a trabajador";
+  $("#persAyuda").textContent = tipo === "REASIGNACION" ? `Actualmente lo tiene ${a.nombre}.` : "Busca al trabajador en la base de personal o escríbelo.";
+  $("#qPersona").value = ""; $("#mNombre").value = ""; $("#mCedula").value = "";
+  $("#elegido").classList.add("oculto"); $("#ePersona").textContent = "";
+  cambiarModo(Object.keys(E.personal).length ? "buscar" : "manual");
+  pintarLabores("#labores", null); buscarPersona();
+  $("#hPersona").classList.remove("oculto");
+}
+function cambiarModo(m){
+  modo = m;
+  document.querySelectorAll("[data-modo]").forEach(b => b.setAttribute("aria-pressed", b.dataset.modo === m));
+  $("#modoBuscar").classList.toggle("oculto", m !== "buscar"); $("#modoManual").classList.toggle("oculto", m !== "manual");
+  $("#elegido").classList.toggle("oculto", !(m === "buscar" && elegido));
+}
+document.querySelectorAll("[data-modo]").forEach(b => b.onclick = () => cambiarModo(b.dataset.modo));
+function buscarPersona(){
+  const qs = norm($("#qPersona").value).split(/\s+/).filter(Boolean);
+  const todos = Object.values(E.personal).filter(p => p.activo !== false);
+  const lista = (qs.length ? todos.filter(p => { const t = norm(p.nombre + " " + p.cedula); return qs.every(q => t.includes(q)); }) : todos)
+    .sort((a,b) => a.nombre.localeCompare(b.nombre)).slice(0, 40);
+  $("#resultados").innerHTML = !todos.length ? '<li class="vacio">Aún no hay personal descargado. Sincroniza con internet o usa Manual.</li>'
+    : !lista.length ? '<li class="vacio">Nadie coincide. Revisa o usa Manual.</li>'
+    : lista.map(p => `<li><button type="button" data-c="${esc(p.cedula)}" aria-pressed="${elegido && elegido.cedula === p.cedula}"><b>${esc(p.nombre)}</b><small>C.C. ${esc(p.cedula)}${p.labor ? " · " + esc(p.labor) : ""}</small></button></li>`).join("");
+}
+$("#qPersona").addEventListener("input", buscarPersona);
+$("#resultados").addEventListener("click", e => {
+  const b = e.target.closest("button[data-c]"); if (!b) return;
+  elegido = E.personal[b.dataset.c];
+  $("#elegido").innerHTML = `Trabajador: <b>${esc(elegido.nombre)}</b> · C.C. ${esc(elegido.cedula)}`; $("#elegido").classList.remove("oculto");
+  if (elegido.labor && !laborSel){ laborSel = elegido.labor; pintarLabores("#labores", laborSel); }
+  buscarPersona();
+});
+$("#bAsignar").onclick = () => abrirPersona("ASIGNACION");
+$("#bOtro").onclick = () => abrirPersona("REASIGNACION");
+$("#bGuardarAsig").onclick = async () => {
+  let p;
+  if (modo === "buscar"){ if (!elegido) { $("#ePersona").textContent = "Toca un trabajador de la lista."; return; } p = {nombre:elegido.nombre, cedula:elegido.cedula}; }
+  else {
+    const nombre = $("#mNombre").value.trim().replace(/\s+/g," ").toUpperCase(), cedula = ced($("#mCedula").value);
+    if (nombre.split(" ").length < 2) { $("#ePersona").textContent = "Escribe nombre y apellido."; return; }
+    if (cedula.length < 4) { $("#ePersona").textContent = "Revisa la cédula."; return; }
+    const ya = E.personal[cedula];
+    if (ya && ya.activo !== false && ya.nombre !== nombre && !confirm(`La cédula ${cedula} ya está registrada como ${ya.nombre}. ¿Reemplazar el nombre por ${nombre}?`)) return;
+    p = {nombre, cedula};
+    E.personal[cedula] = {...(ya || {}), nombre, cedula, labor:laborSel || (ya && ya.labor) || null, activo:true};
+    E.cola.push({k:"pers", datos:limpio({nombre, cedula, labor:laborSel || (ya && ya.labor) || null})});
+  }
+  const a = E.vig[eqActual];
+  if (tipoAsig === "REASIGNACION" && a && a.cedula === p.cedula) { $("#ePersona").textContent = "Ese trabajador ya tiene este equipo."; return; }
+  if (!laborSel) { $("#ePersona").textContent = "Elige la labor."; return; }
+  $("#hPersona").classList.add("oculto");
+  await registrar(tipoAsig, {...p, labor:laborSel});
+  aviso("Equipo asignado a " + p.nombre);
 };
 
-/* ---------- Código de barras Code 128 (como en la pantalla *#06#) ---------- */
-const BARS = [11011001100,11001101100,11001100110,10010011000,10010001100,10001001100,10011001000,10011000100,10001100100,11001001000,11001000100,11000100100,10110011100,10011011100,10011001110,10111001100,10011101100,10011100110,11001110010,11001011100,11001001110,11011100100,11001110100,11101101110,11101001100,11100101100,11100100110,11101100100,11100110100,11100110010,11011011000,11011000110,11000110110,10100011000,10001011000,10001000110,10110001000,10001101000,10001100010,11010001000,11000101000,11000100010,10110111000,10110001110,10001101110,10111011000,10111000110,10001110110,11101110110,11010001110,11000101110,11011101000,11011100010,11011101110,11101011000,11101000110,11100010110,11101101000,11101100010,11100011010,11101111010,11001000010,11110001010,10100110000,10100001100,10010110000,10010000110,10000101100,10000100110,10110010000,10110000100,10011010000,10011000010,10000110100,10000110010,11000010010,11001010000,11110111010,11000010100,10001111010,10100111100,10010111100,10010011110,10111100100,10011110100,10011110010,11110100100,11110010100,11110010010,11011011110,11011110110,11110110110,10101111000,10100011110,10001011110,10111101000,10111100010,11110101000,11110100010,10111011110,10111101110,11101011110,11110101110,11010000100,11010010000,11010011100];
-function code128(s){
-  const c = []; let i = 0;
-  if (/^\d+$/.test(s) && s.length % 2 === 0){ c.push(105); for (; i < s.length; i += 2) c.push(+s.substr(i,2)); }
-  else {
-    c.push(104);
-    while (i < s.length){
-      const resto = s.slice(i);
-      if (/^\d+$/.test(resto) && resto.length >= 4 && resto.length % 2 === 0){ c.push(99); for (; i < s.length; i += 2) c.push(+s.substr(i,2)); break; }
-      c.push(s.charCodeAt(i) - 32); i++;
-    }
-  }
-  let suma = c[0]; for (let k = 1; k < c.length; k++) suma += k * c[k];
-  c.push(suma % 103);
-  return c.map(x => String(BARS[x])).join("") + "1100011101011";
+/* ---------- Cambiar labor ---------- */
+let laborNueva = null;
+$("#labores2").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; laborNueva = b.dataset.l; pintarLabores("#labores2", laborNueva); $("#bGuardarLabor").disabled = false; });
+$("#bLabor").onclick = () => {
+  const a = E.vig[eqActual]; laborNueva = a.labor;
+  pintarLabores("#labores2", laborNueva); $("#bGuardarLabor").disabled = true;
+  $("#laborAyuda").textContent = "Labor de " + a.nombre; $("#hLabor").classList.remove("oculto");
+};
+$("#bGuardarLabor").onclick = async () => {
+  const a = E.vig[eqActual]; $("#hLabor").classList.add("oculto");
+  if (laborNueva === a.labor) return;
+  await registrar("CAMBIO_LABOR", {nombre:a.nombre, cedula:a.cedula, labor:laborNueva});
+  aviso("Labor cambiada a " + laborNueva);
+};
+
+/* ---------- Registrar un movimiento ---------- */
+async function registrar(tipo, p){
+  const id = uuid(), datos = {imei:eqActual, tipo, fecha_ingreso:new Date().toISOString(), nombre:p.nombre, cedula:p.cedula, labor:p.labor || null};
+  E.cola.push({k:"asig", id, datos});
+  E.historial.unshift({id, ...datos, usuario:E.usuario, sync:false}); E.historial = E.historial.slice(0, 200);
+  aplicarVigente({...datos, registrado_en:null});
+  await guardar(); pintarEquipo(); pintarHistorial(); pintarSync(); sincronizar();
 }
-function codigoBarras(v){
-  const bits = "0".repeat(10) + code128(String(v)) + "0".repeat(10); let r = "", x = 0;
-  while (x < bits.length){ if (bits[x] === "1"){ let w = 0; while (bits[x+w] === "1") w++; r += `<rect x="${x}" y="0" width="${w}" height="40"/>`; x += w; } else x++; }
-  return `<svg viewBox="0 0 ${bits.length} 40" preserveAspectRatio="none" role="img" aria-label="Código de barras ${esc(v)}"><g fill="#000">${r}</g></svg>`;
+function pintarHistorial(){
+  const h = E.historial.filter(x => x.usuario === E.usuario).slice(0, 25);
+  $("#tHist").classList.toggle("oculto", !h.length);
+  $("#historial").innerHTML = h.map(x => {
+    const d = E.disp[x.imei] || {};
+    return `<li><div class="q"><b>${esc(x.nombre)}</b>${esc(MOVS[x.tipo])}${x.labor ? " · " + esc(x.labor) : ""}<br><small>${esc([d.marca,d.modelo].filter(Boolean).join(" "))} IMEI ${esc(x.imei)} · ${fFecha(x.fecha_ingreso)}</small></div><span class="estado ${x.sync?"s":"p"}">${x.sync?"Enviado":"Pendiente"}</span></li>`;
+  }).join("");
 }
 
-/* ---------- Utilidades ---------- */
+/* ---------- Hojas y utilidades ---------- */
+document.querySelectorAll("[data-cerrar]").forEach(b => b.onclick = () => b.closest(".velo").classList.add("oculto"));
 function aviso(t){ document.querySelectorAll(".aviso").forEach(x => x.remove()); const d = document.createElement("div"); d.className = "aviso"; d.setAttribute("role","status"); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3000); }
+
+/* ---------- Versiones automáticas ----------
+   GitHub Actions publica cada APK nuevo como "Release" (v1.0.N). La APK compara su número
+   con el último publicado y, si hay uno más nuevo, muestra la franja naranja para descargarlo.
+   Sin internet no hace nada: el resto de la app sigue funcionando igual. */
+const REPO = CFG.REPO || "jrodriguezc4/CapturaIMEI";
+let miVersion = { nombre: "", codigo: 0 }, ultimaBusqueda = 0;
+async function leerVersion(){
+  if (NAT && Pl.App){ try { const i = await Pl.App.getInfo(); miVersion = { nombre: i.version, codigo: parseInt(i.build, 10) || 0 }; } catch(_){} }
+  const t = miVersion.nombre ? "Versión " + miVersion.nombre : (NAT ? "" : "Versión web de prueba");
+  $("#verIngreso").textContent = t;
+  $("#verCab").textContent = miVersion.nombre ? "· v" + miVersion.nombre : "";
+}
+async function buscarVersion(){
+  if (!NAT || !enLinea || !miVersion.codigo || Date.now() - ultimaBusqueda < 3600000) return;
+  ultimaBusqueda = Date.now();
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 10000);
+    const r = await fetch("https://api.github.com/repos/" + REPO + "/releases/latest", { headers: { Accept: "application/vnd.github+json" }, signal: ctl.signal });
+    if (!r.ok) return;
+    const rel = await r.json();
+    const codigo = parseInt(String(rel.tag_name || "").split(".").pop(), 10) || 0;
+    const apk = (rel.assets || []).find(a => /\.apk$/i.test(a.name));
+    if (codigo > miVersion.codigo && apk){
+      $("#actTxt").textContent = "Versión nueva disponible: " + String(rel.tag_name).replace(/^v/, "");
+      $("#actualizar").href = apk.browser_download_url;
+      $("#actualizar").classList.remove("oculto");
+    }
+  } catch(_){ ultimaBusqueda = 0; }
+}
 
 (async function(){
   if (DEMO) $("#avisoDemo").classList.remove("oculto");
+  await leerVersion();
   await leer(); await iniciarRed();
-  if (E.sesion && E.sesion.token && !E.sesion.cerrada) { await entrar(); sincronizar(); }
+  buscarVersion();
+  if (E.usuario && cuenta()) { entrar(); sincronizar(); }
 })();
 </script>
 </body>

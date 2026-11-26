@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --palma:#0F5B36; --fronda:#2E7D4F; --fruto:#D9692A; --pacifico:#2479B8;
@@ -132,6 +133,11 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
 .x{border:0;background:transparent;font-size:22px;line-height:1;padding:4px 8px;color:var(--suave)}
 .usuarios td,.usuarios th{font-size:13.5px}
 .aviso{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tinta);color:var(--papel);padding:10px 16px;border-radius:8px;font-size:14px;z-index:50}
+.pestanas{display:flex;gap:4px;padding:0 clamp(12px,3vw,28px);background:var(--superficie);border-bottom:1px solid var(--linea)}
+.pestanas button{border:0;background:transparent;padding:12px 16px;font-weight:600;color:var(--suave);border-bottom:3px solid transparent}
+.pestanas button[aria-pressed="true"]{color:var(--palma);border-bottom-color:var(--palma)}
+.badge{display:inline-block;min-width:22px;padding:0 6px;border-radius:999px;background:var(--sel);color:var(--tinta);font-size:12px;text-align:center}
+.nota{color:var(--suave);font-size:14px;margin:10px 0 4px}
 @media (max-width:640px){
   .barra h1{font-size:18px}.barra .quien{display:none}.rejilla{grid-template-columns:1fr}
   .hoja{max-height:none}
@@ -167,7 +173,12 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
     <button class="btn oculto" id="bUsuarios" type="button">Usuarios</button>
     <button class="btn" id="bSalir" type="button">Salir</button>
   </header>
+  <nav class="pestanas" aria-label="Secciones">
+    <button type="button" data-tab="tabAsig" aria-pressed="true">Asignaciones</button>
+    <button type="button" data-tab="tabPers" aria-pressed="false">Personal de campo <span class="badge" id="nPers"></span></button>
+  </nav>
   <main>
+  <section id="tabAsig">
     <div class="buscador">
       <div class="campo">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -185,14 +196,14 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
         <button type="button" data-vista="historial" aria-pressed="true">Historial completo</button>
         <button type="button" data-vista="vigentes" aria-pressed="false">Solo asignación vigente</button>
       </div>
-      <button class="btn" id="bCsv" type="button">Exportar a Excel (CSV)</button>
+      <button class="btn" id="bCsv" type="button">Exportar a Excel</button>
     </div>
 
     <div class="hoja">
       <table>
         <thead><tr>
           <th class="num">#</th><th>N° acta</th><th>Fecha de ingreso</th><th>Nombre</th><th>Cédula</th><th>Labor</th>
-          <th>Movimiento</th><th>Equipo</th><th>IMEI 1</th><th>IMEI 2</th><th>ICCID</th><th>Línea</th>
+          <th>Movimiento</th><th>Equipo</th><th>IMEI 1</th><th>IMEI 2</th><th>SN</th>
           <th>Registró</th><th>Acta PDF</th><th>Acciones</th>
         </tr></thead>
         <tbody id="filas"></tbody>
@@ -200,6 +211,30 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
       <div class="vacio oculto" id="vacio"></div>
     </div>
     <button class="btn mas oculto" id="bMas" type="button">Mostrar más filas</button>
+  </section>
+
+  <section id="tabPers" class="oculto">
+    <div class="buscador">
+      <div class="campo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="buscaP" type="search" placeholder="Buscar por nombre o cédula" aria-label="Buscar personal">
+      </div>
+      <button class="btn primario" id="bNuevaP" type="button">Agregar persona</button>
+      <button class="btn" id="bSubirP" type="button">Subir Excel</button>
+      <input type="file" id="fileP" accept=".xlsx,.xls,.csv" class="oculto">
+      <button class="btn" id="bPlantilla" type="button">Descargar plantilla</button>
+      <button class="btn" id="bExpP" type="button">Exportar Excel</button>
+    </div>
+    <p class="nota">Esta lista llega sola a la APK cada vez que el celular tiene internet, para buscar al trabajador sin escribirlo. El Excel debe tener las columnas NOMBRE y CEDULA (LABOR es opcional).</p>
+    <div class="herr"><span class="cuenta" id="cuentaP"></span></div>
+    <div class="hoja">
+      <table>
+        <thead><tr><th class="num">#</th><th>Nombre</th><th>Cédula</th><th>Labor</th><th>Equipo asignado</th><th>Actualizado</th><th>Por</th><th>Acciones</th></tr></thead>
+        <tbody id="filasP"></tbody>
+      </table>
+      <div class="vacio oculto" id="vacioP"></div>
+    </div>
+  </section>
   </main>
 </div>
 
@@ -210,21 +245,49 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
     <div class="cuerpo">
       <div class="ficha" id="dRegFicha"></div>
       <div class="rejilla">
-        <div class="full"><label for="rNombre">Nombre y apellido</label><input id="rNombre" required></div>
-        <div><label for="rCedula">Cédula</label><input id="rCedula" inputmode="numeric" pattern="[0-9]{5,12}" required></div>
+        <div class="full"><label for="rNombre">Nombre y apellido</label><input id="rNombre" required list="dlPersonal" autocomplete="off" placeholder="Escribe para buscar en el personal"><datalist id="dlPersonal"></datalist></div>
+        <div><label for="rCedula">Cédula</label><input id="rCedula" inputmode="numeric" pattern="[0-9A-Za-z]{4,15}" required></div>
         <div><label for="rLabor">Labor</label><select id="rLabor"></select></div>
         <div class="full"><label for="rFecha">Fecha de ingreso</label><input id="rFecha" type="datetime-local" required></div>
         <div class="soloEd"><label for="rMarca">Marca</label><input id="rMarca"></div>
         <div class="soloEd"><label for="rModelo">Modelo</label><input id="rModelo"></div>
         <div class="soloEd"><label for="rImei2">IMEI 2</label><input id="rImei2" inputmode="numeric"></div>
-        <div class="soloEd"><label for="rIccid">ICCID</label><input id="rIccid" inputmode="numeric"></div>
-        <div class="soloEd full"><label for="rMsisdn">Línea (MSISDN)</label><input id="rMsisdn"></div>
+        <div class="soloEd full"><label for="rSerial">Número de serie (SN)</label><input id="rSerial"></div>
         <div class="full"><label for="rObs">Observación</label><textarea id="rObs" rows="2"></textarea></div>
       </div>
       <div class="error" id="eReg" role="alert"></div>
     </div>
     <footer><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primario" id="bGuardarReg" value="ok">Guardar</button></footer>
   </form>
+</dialog>
+
+<!-- Persona (agregar / editar) -->
+<dialog id="dPers">
+  <form method="dialog" id="fPers">
+    <header><h2 id="dPersTit">Agregar persona</h2><button class="x" value="cancel" aria-label="Cerrar" formnovalidate>×</button></header>
+    <div class="cuerpo">
+      <div class="rejilla">
+        <div class="full"><label for="pNombre">Nombre y apellido</label><input id="pNombre" required minlength="5"></div>
+        <div><label for="pCedula">Cédula</label><input id="pCedula" required inputmode="numeric" pattern="[0-9A-Za-z.\- ]{4,20}"></div>
+        <div><label for="pLabor">Labor (opcional)</label><select id="pLabor"></select></div>
+      </div>
+      <div class="error" id="ePers" role="alert"></div>
+    </div>
+    <footer><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primario" id="bGuardarP" value="ok">Guardar</button></footer>
+  </form>
+</dialog>
+
+<!-- Importar Excel -->
+<dialog id="dImp" class="grande" style="height:auto">
+  <header><h2>Subir Excel de personal</h2><button class="x" type="button" id="bImpCerrar" aria-label="Cerrar">×</button></header>
+  <div class="cuerpo" style="padding:6px 20px 20px;height:auto">
+    <div class="ficha" id="impResumen"></div>
+    <div class="hoja" style="max-height:320px;min-height:0;margin-top:12px">
+      <table><thead><tr><th>Nombre</th><th>Cédula</th><th>Labor</th><th>Estado</th></tr></thead><tbody id="impFilas"></tbody></table>
+    </div>
+    <div class="error" id="eImp" role="alert"></div>
+  </div>
+  <footer><button class="btn" type="button" id="bImpCancelar">Cancelar</button><button class="btn primario" type="button" id="bImpOk">Importar</button></footer>
 </dialog>
 
 <!-- Ver PDF -->
@@ -308,12 +371,13 @@ const FB = {
 const limpio = o => Object.fromEntries(Object.entries(o).filter(([,v]) => v !== null && v !== undefined && v !== ""));
 function numerar(asig, disp){
   const filas = Object.entries(asig || {}).map(([id, r]) => { const d = (disp || {})[r.imei] || {};
-    return {...r, id, marca:d.marca, modelo:d.modelo, imei2:d.imei2, iccid:d.iccid, msisdn:d.msisdn}; });
+    return {...r, id, marca:d.marca, modelo:d.modelo, imei2:d.imei2, serial:d.serial}; });
   // N° de acta = orden de llegada al servidor (estable: el historial nunca se borra)
   filas.sort((a,b) => (a.registrado_en||0) - (b.registrado_en||0) || a.id.localeCompare(b.id)).forEach((r,i) => r.acta = i + 1);
   return filas.sort((a,b) => new Date(b.fecha_ingreso) - new Date(a.fecha_ingreso) || b.acta - a.acta);
 }
 
+const filaPersona = (p, s) => limpio({nombre:p.nombre, cedula:p.cedula, labor:p.labor || null, activo:p.activo !== false, actualizado_en:SV, actualizado_por:s.username});
 async function api(fn, a){
   if (DEMO) return demo(fn, a);
   try { return await apiFirebase(fn, a); }
@@ -346,7 +410,22 @@ async function apiFirebase(fn, a){
       if (d){ for (const [k,v] of Object.entries(limpio(d))) if (k !== "imei") upd[`dispositivos/${d.imei}/${k}`] = v;
               upd[`dispositivos/${d.imei}/actualizado_en`] = SV; upd[`dispositivos/${d.imei}/actualizado_por`] = s.username; }
       upd["asignaciones/" + client_uuid] = limpio({...r, nombre:r.nombre.toUpperCase(), usuario:s.username, origen:"web", registrado_en:SV});
+      if (a.p_persona) upd["personal/" + a.p_persona.cedula] = filaPersona(a.p_persona, s);
       await FB.db(s, "PATCH", "", upd); return null;
+    }
+    case "listar_personal": {
+      const p = await FB.db(s, "GET", "personal") || {};
+      return Object.values(p).filter(x => x.activo !== false).sort((x,y) => x.nombre.localeCompare(y.nombre));
+    }
+    case "guardar_personal": {
+      const lista = a.p_lista;
+      for (let i = 0; i < lista.length; i += 300){
+        const upd = {};
+        for (const p of lista.slice(i, i + 300)) upd["personal/" + p.cedula] = filaPersona(p, s);
+        await FB.db(s, "PATCH", "", upd);
+        if (a.progreso) a.progreso(Math.min(i + 300, lista.length), lista.length);
+      }
+      return null;
     }
     case "listar_usuarios": {
       const us = await FB.db(s, "GET", "usuarios") || {};
@@ -381,7 +460,7 @@ const D = (() => {
   const disp = {}, reg = []; let id = 1;
   for (let i=0;i<10;i++){
     const imei = String(865327077835000 + i*1000 + i*7); const [marca,modelo] = modelos[i%4];
-    disp[imei] = {imei, imei2:String(+imei+18), iccid:"8957123511406"+String(626557+i), msisdn:"+57318795"+String(2010+i).padStart(4,"0"), marca, modelo};
+    disp[imei] = {imei, imei2:String(+imei+18), serial:"R58T" + (40213 + i*37) + "KXZ", marca, modelo};
     const base = new Date(2026,7,3+i,8+i%5,15);
     reg.push({id:id++,imei,nombre:nombres[i][0],cedula:nombres[i][1],labor:null,tipo:"ASIGNACION",fecha_ingreso:base.toISOString(),usuario:"mperez",origen:"apk"});
     reg.push({id:id++,imei,nombre:nombres[i][0],cedula:nombres[i][1],labor:LABORES[i%8],tipo:"CAMBIO_LABOR",fecha_ingreso:new Date(+base+6e5).toISOString(),usuario:"mperez",origen:"apk"});
@@ -389,17 +468,21 @@ const D = (() => {
   reg.push({id:id++,imei:Object.keys(disp)[2],nombre:"EDISON ANDRES DELGADO",cedula:"1087007537",labor:"Reubicado",tipo:"REASIGNACION",fecha_ingreso:new Date(2026,7,10,9,30).toISOString(),usuario:"jrodriguezc",origen:"web"});
   const usuarios = [{username:"jrodriguezc",nombre:"JHON MARCO RODRIGUEZ CORREA",rol:"admin",activo:true,creado_en:"2026-08-01T12:00:00Z",creado_por:"sistema",codigo:"Palmas2026"},
                     {username:"mperez",nombre:"MARIA PEREZ",rol:"usuario",activo:true,creado_en:"2026-08-02T12:00:00Z",creado_por:"jrodriguezc",codigo:"4521"}];
-  return {disp, reg, usuarios, next:()=>id++};
+  const personal = nombres.map(([nombre,cedula],i) => ({nombre, cedula, labor:LABORES[i%8], activo:true, actualizado_en:Date.now(), actualizado_por:"jrodriguezc"}));
+  personal.push({nombre:"JOSE ELIAS MONTAÑO", cedula:"1087900011", labor:"Cosecha", activo:true, actualizado_en:Date.now(), actualizado_por:"jrodriguezc"});
+  return {disp, reg, usuarios, personal, next:()=>id++};
 })();
 async function demo(fn, a){
   await new Promise(r => setTimeout(r, 150));
-  const fila = r => ({...r, ...(({imei2,iccid,msisdn,marca,modelo}) => ({imei2,iccid,msisdn,marca,modelo}))(D.disp[r.imei]||{})});
+  const fila = r => ({...r, ...(({imei2,serial,marca,modelo}) => ({imei2,serial,marca,modelo}))(D.disp[r.imei]||{})});
   const yo = () => D.usuarios.find(u => u.username === a.p_token);
   switch(fn){
     case "login": { const u = D.usuarios.find(u => u.username === a.p_username.trim().toLowerCase() && u.codigo === a.p_codigo && u.activo); if(!u) throw new Error("CREDENCIALES_INVALIDAS"); return {token:u.username, username:u.username, nombre:u.nombre, rol:u.rol}; }
     case "logout": return null;
     case "listar_registros": return D.reg.map(r => ({...fila(r), acta:r.id})).sort((x,y) => new Date(y.fecha_ingreso)-new Date(x.fecha_ingreso) || y.id-x.id);
-    case "registrar": { const p = a.p_dispositivo; if (p) Object.assign(D.disp[p.imei], Object.fromEntries(Object.entries(p).filter(([,v]) => v))); const r = {...a.p_registro, id:D.next(), nombre:a.p_registro.nombre.toUpperCase(), usuario:a.p_token, origen:"web"}; D.reg.push(r); return fila(r); }
+    case "listar_personal": return D.personal.filter(x => x.activo).sort((x,y) => x.nombre.localeCompare(y.nombre));
+    case "guardar_personal": { for (const p of a.p_lista){ const i = D.personal.findIndex(x => x.cedula === p.cedula); const n = {...p, labor:p.labor||null, activo:p.activo!==false, actualizado_en:Date.now(), actualizado_por:a.p_token}; if (i < 0) D.personal.push(n); else D.personal[i] = n; } if (a.progreso) a.progreso(a.p_lista.length, a.p_lista.length); return null; }
+    case "registrar": { if (a.p_persona) await demo("guardar_personal", {p_token:a.p_token, p_lista:[a.p_persona]}); const p = a.p_dispositivo; if (p) Object.assign(D.disp[p.imei], Object.fromEntries(Object.entries(p).filter(([,v]) => v))); const r = {...a.p_registro, id:D.next(), nombre:a.p_registro.nombre.toUpperCase(), usuario:a.p_token, origen:"web"}; D.reg.push(r); return fila(r); }
     case "listar_usuarios": if (yo().rol!=="admin") throw new Error("SOLO_ADMIN"); return D.usuarios.map(({codigo,...u}) => u);
     case "guardar_usuario": {
       const un = a.p_username.trim().toLowerCase(); let u = D.usuarios.find(x => x.username===un);
@@ -443,6 +526,7 @@ async function cargar(){
     for (const r of S.datos){ r.vigente = !vistos.has(r.imei); vistos.add(r.imei); }
     $("#actualizado").textContent = "Actualizado " + new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
     pintar();
+    await cargarPersonal();
   } catch(err){ aviso(mensaje(err)); }
 }
 $("#bRecargar").onclick = cargar;
@@ -458,7 +542,7 @@ function filtrados(){
     if (!qs.length) return true;
     const iso = new Date(r.fecha_ingreso).toLocaleDateString("en-CA",{timeZone:TZ});
     const larga = new Date(r.fecha_ingreso).toLocaleDateString("es-CO",{timeZone:TZ,day:"numeric",month:"long",year:"numeric"});
-    const texto = norm([r.nombre,r.cedula,r.imei,r.imei2,r.iccid,r.msisdn,r.acta,fDia(r.fecha_ingreso),iso,larga,r.labor,r.modelo,r.marca].join(" "));
+    const texto = norm([r.nombre,r.cedula,r.imei,r.imei2,r.serial,r.acta,fDia(r.fecha_ingreso),iso,larga,r.labor,r.modelo,r.marca].join(" "));
     return qs.every(p => texto.includes(p));
   });
 }
@@ -490,8 +574,7 @@ function pintar(){
       <td>${esc([r.marca,r.modelo].filter(Boolean).join(" "))}</td>
       <td class="mono">${esc(r.imei)}</td>
       <td class="mono">${esc(r.imei2)}</td>
-      <td class="mono">${esc(r.iccid)}</td>
-      <td class="mono">${esc(r.msisdn)}</td>
+      <td class="mono">${esc(r.serial)}</td>
       <td class="mov">${esc(r.usuario)} (${r.origen==="apk"?"APK":"web"})</td>
       <td><div class="acc"><button class="btn" data-a="ver" type="button">Ver</button><button class="btn" data-a="pdf" type="button">Descargar</button></div></td>
       <td><div class="acc">${r.vigente ? '<button class="btn" data-a="editar" type="button">Editar</button><button class="btn" data-a="otro" type="button">Asignar a otro</button>' : '<span class="mov">Histórico</span>'}</div></td>
@@ -523,7 +606,7 @@ function abrirReg(r, tipo){
   document.querySelectorAll(".soloEd").forEach(el => el.classList.toggle("oculto", !ed));
   $("#rNombre").value = ed ? r.nombre : ""; $("#rCedula").value = ed ? r.cedula : "";
   $("#rLabor").value = ed ? (r.labor || "") : ""; $("#rFecha").value = fechaInicial = localISO(ed ? r.fecha_ingreso : new Date());
-  $("#rMarca").value = r.marca||""; $("#rModelo").value = r.modelo||""; $("#rImei2").value = r.imei2||""; $("#rIccid").value = r.iccid||""; $("#rMsisdn").value = r.msisdn||"";
+  $("#rMarca").value = r.marca||""; $("#rModelo").value = r.modelo||""; $("#rImei2").value = r.imei2||""; $("#rSerial").value = r.serial||"";
   $("#rObs").value = ""; $("#eReg").textContent = "";
   $("#dReg").showModal(); $("#rNombre").focus();
 }
@@ -533,9 +616,14 @@ $("#fReg").addEventListener("submit", async e => {
   const ed = tipoActual === "EDICION";
   const registro = { imei:regActual.imei, nombre:$("#rNombre").value.trim(), cedula:$("#rCedula").value.trim(), labor:$("#rLabor").value || null,
     tipo:tipoActual, fecha_ingreso:($("#rFecha").value !== fechaInicial ? new Date($("#rFecha").value).toISOString() : ed ? regActual.fecha_ingreso : new Date().toISOString()), observacion:$("#rObs").value.trim(), client_uuid:crypto.randomUUID() };
-  const disp = ed ? { imei:regActual.imei, marca:$("#rMarca").value.trim(), modelo:$("#rModelo").value.trim(), imei2:$("#rImei2").value.trim(), iccid:$("#rIccid").value.trim(), msisdn:$("#rMsisdn").value.trim() } : null;
+  const disp = ed ? { imei:regActual.imei, marca:$("#rMarca").value.trim(), modelo:$("#rModelo").value.trim(), imei2:$("#rImei2").value.trim(), serial:$("#rSerial").value.trim().toUpperCase() } : null;
+  registro.nombre = registro.nombre.replace(/\s+/g," ").toUpperCase(); registro.cedula = ced(registro.cedula);
+  // La persona queda guardada (o actualizada) en la base de personal
+  const previa = P.lista.find(x => x.cedula === registro.cedula);
+  const persona = (!previa || previa.nombre !== registro.nombre || (registro.labor && previa.labor !== registro.labor))
+    ? {nombre:registro.nombre, cedula:registro.cedula, labor:registro.labor || (previa && previa.labor) || null} : null;
   $("#bGuardarReg").disabled = true;
-  try { await api("registrar", {p_token:S.sesion.token, p_registro:registro, p_dispositivo:disp}); $("#dReg").close(); aviso(ed ? "Cambios guardados" : "Dispositivo asignado a " + registro.nombre.toUpperCase()); await cargar(); }
+  try { await api("registrar", {p_token:S.sesion.token, p_registro:registro, p_dispositivo:disp, p_persona:persona}); $("#dReg").close(); aviso(ed ? "Cambios guardados" : "Dispositivo asignado a " + registro.nombre.toUpperCase()); await cargar(); }
   catch(err){ $("#eReg").textContent = mensaje(err); }
   finally { $("#bGuardarReg").disabled = false; }
 });
@@ -562,7 +650,7 @@ function acta(r){
   const nombre = (r.nombre||"").toUpperCase(), equipo = [r.marca,r.modelo].filter(Boolean).join(" ").toUpperCase() || "—";
   const adic = CFG.ADICIONALES || [], totalAdic = adic.reduce((s,[,v]) => s+v, 0);
   const P = [
-    [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],[" serial número "],[r.imei,1],[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
+    [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(r.serial ? [[" serial número "],[r.serial,1],[" e IMEI "],[r.imei,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
     [["Los bienes que acaban de ser entregados por la empresa y recibidos por el trabajador, es un medio e instrumento de trabajo y será utilizado única y exclusivamente para tal fin, quedándole expresamente prohibido al trabajador su utilización para fines u objetos diferentes a aquellos para los cuales se le entrega. Haciéndose responsable de su custodia, conservación, cuidado y aseo, además de cualquier daño, pérdida o avería que sufra el celular."]],
     [["En cualquier momento Palmas de Tumaco S.A.S podrá solicitar la devolución del celular, caso en el cual será devuelta en el mismo estado que fue recibido, salvo el deterioro normal por el paso del tiempo y por su uso racional. Su no devolución, a solicitud de la empresa, se considera falta grave. De la misma manera, será devuelto a la terminación del contrato laboral existente entre las partes."]],
     [["El bien está avaluado en la suma de "],[pesos(CFG.VALOR_EQUIPO||0),1],[" y los adicionales la suma de "],[pesos(totalAdic),1],[" ("],
@@ -617,16 +705,153 @@ function verPdf(r){
 $("#bPdfDesc").onclick = () => acta(pdfReg).save(nombrePdf(pdfReg));
 $("#bPdfCerrar").onclick = () => $("#dPdf").close();
 
-/* ---------------- CSV ---------------- */
+/* ---------------- Exportar a Excel ---------------- */
+function guardarExcel(filas, hoja, archivo, anchos){
+  const ws = XLSX.utils.aoa_to_sheet(filas);
+  ws["!cols"] = (anchos || filas[0].map(() => 18)).map(w => ({wch:w}));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, hoja);
+  XLSX.writeFile(wb, archivo);
+}
 $("#bCsv").onclick = () => {
-  const cols = [["N° acta","acta"],["Fecha ingreso",r=>fFecha(r.fecha_ingreso)],["Nombre","nombre"],["Cédula","cedula"],["Labor","labor"],["Movimiento",r=>MOVS[r.tipo]],["Marca","marca"],["Modelo","modelo"],["IMEI 1","imei"],["IMEI 2","imei2"],["ICCID","iccid"],["Línea","msisdn"],["Registró","usuario"],["Origen","origen"],["Vigente",r=>r.vigente?"Sí":"No"],["Observación","observacion"]];
+  const cols = [["N° acta","acta"],["Fecha ingreso",r=>fFecha(r.fecha_ingreso)],["Nombre","nombre"],["Cédula","cedula"],["Labor","labor"],["Movimiento",r=>MOVS[r.tipo]],["Marca","marca"],["Modelo","modelo"],["IMEI 1","imei"],["IMEI 2","imei2"],["SN","serial"],["Registró","usuario"],["Origen","origen"],["Vigente",r=>r.vigente?"Sí":"No"],["Observación","observacion"]];
   const val = (r,c) => typeof c === "function" ? c(r) : r[c];
-  const celda = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
-  const lineas = [cols.map(c => celda(c[0])).join(";"), ...filtrados().map(r => cols.map(c => { const v = val(r,c[1]); return /^\d{9,}$/.test(v||"") ? celda("\t"+v) : celda(v); }).join(";"))];
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob(["\ufeff" + lineas.join("\r\n")], {type:"text/csv;charset=utf-8"}));
-  a.download = `dispositivos_${new Date().toLocaleDateString("en-CA")}.csv`; a.click();
+  guardarExcel([cols.map(c => c[0]), ...filtrados().map(r => cols.map(c => { const v = val(r,c[1]); return v == null ? "" : String(v); }))],
+    "Asignaciones", `dispositivos_${new Date().toLocaleDateString("en-CA")}.xlsx`, [9,17,30,13,15,16,12,14,18,18,16,14,8,8,30]);
 };
+
+/* ---------------- Personal de campo ---------------- */
+const P = { lista:[], q:"", importar:[] };
+const ced = v => String(v ?? "").replace(/[^0-9A-Za-z]/g,"").toUpperCase();
+const laborValida = v => { const n = norm(v).trim(); return n ? (LABORES.find(l => norm(l) === n) || null) : null; };
+async function cargarPersonal(){
+  try { P.lista = await api("listar_personal", {p_token:S.sesion.token}) || []; pintarPersonal(); }
+  catch(err){ aviso(mensaje(err)); }
+}
+document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => {
+  document.querySelectorAll("[data-tab]").forEach(x => { x.setAttribute("aria-pressed", x === b); $("#" + x.dataset.tab).classList.toggle("oculto", x !== b); });
+});
+function pintarPersonal(){
+  $("#nPers").textContent = P.lista.length;
+  $("#dlPersonal").innerHTML = P.lista.map(p => `<option value="${esc(p.nombre)} · ${esc(p.cedula)}"></option>`).join("");
+  const equipo = {};
+  for (const r of S.datos) if (r.vigente && r.cedula) equipo[r.cedula] = [r.marca, r.modelo].filter(Boolean).join(" ") + " · " + r.imei;
+  const qs = norm(P.q).split(/\s+/).filter(Boolean);
+  const lista = P.lista.filter(p => { const t = norm(p.nombre + " " + p.cedula + " " + (p.labor||"")); return qs.every(q => t.includes(q)); });
+  $("#cuentaP").textContent = `${lista.length} ${lista.length === 1 ? "persona" : "personas"}`;
+  $("#filasP").innerHTML = lista.slice(0, 1000).map((p,i) => `<tr data-c="${esc(p.cedula)}">
+    <td class="num">${i+1}</td><td class="nombre">${esc(p.nombre)}</td><td>${esc(p.cedula)}</td>
+    <td>${p.labor ? `<span class="labor" style="--c:${COLORES[p.labor]||"#5B6B61"}">${esc(p.labor)}</span>` : '<span class="mov">—</span>'}</td>
+    <td class="mono">${esc(equipo[p.cedula] || "")}</td>
+    <td class="mov">${p.actualizado_en ? fFecha(p.actualizado_en) : ""}</td><td class="mov">${esc(p.actualizado_por)}</td>
+    <td><div class="acc"><button class="btn" data-a="ed" type="button">Editar</button><button class="btn" data-a="del" type="button">Quitar</button></div></td></tr>`).join("");
+  $("#vacioP").classList.toggle("oculto", lista.length > 0);
+  $("#vacioP").textContent = P.lista.length ? "Nadie coincide con la búsqueda." : "Aún no hay personal. Agrega personas una por una o sube un Excel.";
+}
+let tBuscaP; $("#buscaP").addEventListener("input", () => { clearTimeout(tBuscaP); tBuscaP = setTimeout(() => { P.q = $("#buscaP").value; pintarPersonal(); }, 150); });
+
+// Autocompletar en "Asignar a otro" / "Editar"
+$("#rNombre").addEventListener("input", () => {
+  const v = $("#rNombre").value, i = v.lastIndexOf(" · "); if (i < 0) return;
+  const p = P.lista.find(x => x.cedula === v.slice(i + 3).trim()); if (!p) return;
+  $("#rNombre").value = p.nombre; $("#rCedula").value = p.cedula; if (p.labor) $("#rLabor").value = p.labor;
+});
+
+// Agregar / editar una persona
+$("#pLabor").innerHTML = '<option value="">Sin labor</option>' + LABORES.map(l => `<option>${l}</option>`).join("");
+let persEditando = null;
+function abrirPersona(p){
+  persEditando = p || null;
+  $("#dPersTit").textContent = p ? "Editar persona" : "Agregar persona";
+  $("#pNombre").value = p ? p.nombre : ""; $("#pCedula").value = p ? p.cedula : ""; $("#pLabor").value = p && p.labor || "";
+  $("#pCedula").readOnly = !!p; $("#ePers").textContent = "";
+  $("#dPers").showModal(); $("#pNombre").focus();
+}
+$("#bNuevaP").onclick = () => abrirPersona(null);
+$("#fPers").addEventListener("submit", async e => {
+  if (e.submitter && e.submitter.value !== "ok") return;
+  e.preventDefault();
+  const nombre = $("#pNombre").value.trim().replace(/\s+/g," ").toUpperCase(), cedula = ced($("#pCedula").value);
+  if (nombre.split(" ").length < 2) { $("#ePers").textContent = "Escribe nombre y apellido."; return; }
+  if (cedula.length < 4) { $("#ePers").textContent = "Revisa la cédula."; return; }
+  if (!persEditando && P.lista.some(x => x.cedula === cedula)) { $("#ePers").textContent = "Ya existe una persona con esa cédula. Búscala y usa Editar."; return; }
+  $("#bGuardarP").disabled = true;
+  try { await api("guardar_personal", {p_token:S.sesion.token, p_lista:[{nombre, cedula, labor:$("#pLabor").value || null}]}); $("#dPers").close(); aviso("Guardado: " + nombre); await cargarPersonal(); }
+  catch(err){ $("#ePers").textContent = mensaje(err); }
+  finally { $("#bGuardarP").disabled = false; }
+});
+$("#filasP").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-a]"); if (!b) return;
+  const p = P.lista.find(x => x.cedula === b.closest("tr").dataset.c);
+  if (b.dataset.a === "ed") return abrirPersona(p);
+  if (!confirm(`¿Quitar a ${p.nombre} de la lista de personal? Su historial de asignaciones no se borra.`)) return;
+  try { await api("guardar_personal", {p_token:S.sesion.token, p_lista:[{...p, activo:false}]}); aviso("Quitado de la lista"); await cargarPersonal(); }
+  catch(err){ aviso(mensaje(err)); }
+});
+
+// Plantilla y exportación
+$("#bPlantilla").onclick = () => guardarExcel([["NOMBRE","CEDULA","LABOR"],["EDISON ANDRES DELGADO","1087007537","Cosecha"],["MARIA FERNANDA QUIÑONES","1087123456","Sanidad"]],
+  "Personal", "plantilla_personal.xlsx", [36,16,18]);
+$("#bExpP").onclick = () => guardarExcel([["NOMBRE","CEDULA","LABOR"], ...P.lista.map(p => [p.nombre, p.cedula, p.labor || ""])],
+  "Personal", `personal_${new Date().toLocaleDateString("en-CA")}.xlsx`, [36,16,18]);
+
+// Subir Excel
+$("#bSubirP").onclick = () => { $("#fileP").value = ""; $("#fileP").click(); };
+$("#fileP").addEventListener("change", async () => {
+  const f = $("#fileP").files[0]; if (!f) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+    const filas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:"", raw:false});
+    P.importar = interpretarExcel(filas);
+    mostrarImportacion(f.name);
+  } catch(err){ aviso("No se pudo leer el archivo: " + err.message); }
+});
+function interpretarExcel(filas){
+  const esNombre = h => /nombre|apellido|trabajador|empleado|colaborador/.test(h);
+  const esCedula = h => /cedula|documento|identificacion|^c\.?c\.?$|^id$|^nit$|^numero$/.test(h);
+  const esLabor = h => /labor|cargo|area|oficio/.test(h);
+  let fila0 = -1, colN = [], colC = -1, colL = -1;
+  for (let i = 0; i < Math.min(filas.length, 15) && fila0 < 0; i++){
+    const h = filas[i].map(x => norm(x).trim());
+    const n = h.map((x,j) => esNombre(x) ? j : -1).filter(j => j >= 0), c = h.findIndex(esCedula);
+    if (n.length && c >= 0){ fila0 = i; colN = n; colC = c; colL = h.findIndex(esLabor); }
+  }
+  if (fila0 < 0){ fila0 = -1; colN = [0]; colC = 1; colL = 2; }   // sin encabezados: A=nombre, B=cédula, C=labor
+  const porCedula = new Map(), errores = [];
+  filas.slice(fila0 + 1).forEach((f, k) => {
+    const nombre = colN.map(j => String(f[j] || "").trim()).filter(Boolean).join(" ").replace(/\s+/g," ").toUpperCase();
+    const cedula = ced(f[colC]);
+    if (!nombre && !cedula) return;
+    if (nombre.length < 3 || cedula.length < 4) { errores.push(fila0 + k + 2); return; }
+    porCedula.set(cedula, {nombre, cedula, labor: colL >= 0 ? laborValida(f[colL]) : null});
+  });
+  const actual = new Map(P.lista.map(p => [p.cedula, p]));
+  const lista = [...porCedula.values()].map(p => {
+    const a = actual.get(p.cedula);
+    if (a && !p.labor) p.labor = a.labor || null;
+    p.estado = !a ? "Nuevo" : (a.nombre !== p.nombre || (a.labor||null) !== p.labor) ? "Se actualiza" : "Sin cambios";
+    return p;
+  });
+  lista.errores = errores;
+  return lista;
+}
+function mostrarImportacion(archivo){
+  const L = P.importar, n = k => L.filter(p => p.estado === k).length;
+  $("#impResumen").innerHTML = `<b>${esc(archivo)}</b>: ${L.length} personas leídas. <b>${n("Nuevo")}</b> nuevas, <b>${n("Se actualiza")}</b> se actualizan y ${n("Sin cambios")} ya estaban iguales.` +
+    (L.errores.length ? `<br>Se omiten ${L.errores.length} filas sin nombre o cédula válidos (filas ${L.errores.slice(0,12).join(", ")}${L.errores.length > 12 ? "…" : ""}).` : "");
+  $("#impFilas").innerHTML = L.slice(0, 300).map(p => `<tr><td>${esc(p.nombre)}</td><td>${esc(p.cedula)}</td><td>${esc(p.labor || "")}</td><td class="mov">${p.estado}</td></tr>`).join("");
+  $("#eImp").textContent = ""; $("#bImpOk").disabled = !L.some(p => p.estado !== "Sin cambios");
+  $("#bImpOk").textContent = "Importar";
+  $("#dImp").showModal();
+}
+$("#bImpOk").onclick = async () => {
+  const lista = P.importar.filter(p => p.estado !== "Sin cambios").map(({estado, ...p}) => p);
+  $("#bImpOk").disabled = true;
+  try {
+    await api("guardar_personal", {p_token:S.sesion.token, p_lista:lista, progreso:(h,t) => $("#bImpOk").textContent = `Subiendo ${h} de ${t}…`});
+    $("#dImp").close(); aviso(`${lista.length} personas guardadas. La APK las recibe en su próxima sincronización.`); await cargarPersonal();
+  } catch(err){ $("#eImp").textContent = mensaje(err); $("#bImpOk").disabled = false; $("#bImpOk").textContent = "Importar"; }
+};
+$("#bImpCancelar").onclick = $("#bImpCerrar").onclick = () => $("#dImp").close();
 
 /* ---------------- Usuarios ---------------- */
 $("#bUsuarios").onclick = async () => { $("#eUsr").textContent = ""; $("#dUsr").showModal(); await pintarUsuarios(); };

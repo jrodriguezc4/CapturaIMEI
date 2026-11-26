@@ -25,6 +25,14 @@ let g = fs.readFileSync(gradle, "utf8");
 if (!g.includes("dataBinding")) {
   g = g.replace(/android\s*\{/, "android {\n    buildFeatures {\n        dataBinding true\n    }");
 }
+// Número de versión: GitHub Actions lo pasa en APP_VERSION_CODE (1, 2, 3...) y APP_VERSION_NAME (1.0.N).
+// La APK lo usa para saber si hay una versión más nueva publicada.
+const vCodigo = parseInt(process.env.APP_VERSION_CODE || "", 10);
+if (vCodigo > 0) {
+  const vNombre = process.env.APP_VERSION_NAME || "1.0." + vCodigo;
+  g = g.replace(/versionCode\s+\d+/, "versionCode " + vCodigo).replace(/versionName\s+"[^"]*"/, 'versionName "' + vNombre + '"');
+  console.log("Versión " + vNombre + " (" + vCodigo + ")");
+}
 fs.writeFileSync(gradle, g);
 
 // Ícono con la palma de Palmas de Tumaco

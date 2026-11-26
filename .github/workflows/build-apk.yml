@@ -1,12 +1,30 @@
 name: Construir APK
 
+# Se ejecuta solo cuando cambia algo de la APK (carpeta apk/ o este archivo).
+# Cada ejecución en main publica una versión nueva (v1.0.N) en "Releases" con el archivo CapturaIMEI.apk.
+# Enlace fijo a la última versión (el que usa el código QR):
+#   https://github.com/jrodriguezc4/CapturaIMEI/releases/latest/download/CapturaIMEI.apk
 on:
   push:
+    branches: [main]
+    paths:
+      - "apk/**"
+      - ".github/workflows/build-apk.yml"
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: construir-apk
+  cancel-in-progress: false
 
 jobs:
   apk:
     runs-on: ubuntu-latest
+    env:
+      APP_VERSION_CODE: ${{ github.run_number }}
+      APP_VERSION_NAME: 1.0.${{ github.run_number }}
     defaults:
       run:
         working-directory: apk
@@ -19,12 +37,39 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+
+      # Firma fija: así cada APK nuevo se instala ENCIMA del anterior sin desinstalar.
+      # La llave está guardada como secreto del repositorio (ANDROID_DEBUG_KEYSTORE).
+      - name: Firma fija del APK
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_DEBUG_KEYSTORE }}
+        run: |
+          if [ -n "$KEYSTORE" ]; then
+            mkdir -p ~/.android
+            echo "$KEYSTORE" | base64 -d > ~/.android/debug.keystore
+            echo "Firma fija cargada."
+          else
+            echo "::warning::Falta el secreto ANDROID_DEBUG_KEYSTORE: este APK no se podrá instalar encima del anterior."
+          fi
+
       - run: npm install
       - run: npx cap add android
       - run: node scripts/patch-android.js
       - run: npx cap sync android
       - run: chmod +x android/gradlew && cd android && ./gradlew assembleDebug --no-daemon
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk CapturaIMEI.apk
+
       - uses: actions/upload-artifact@v4
         with:
           name: CapturaIMEI-apk
-          path: apk/android/app/build/outputs/apk/debug/app-debug.apk
+          path: apk/CapturaIMEI.apk
+
+      - name: Publicar versión
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$APP_VERSION_NAME" CapturaIMEI.apk \
+            --title "CapturaIMEI $APP_VERSION_NAME" \
+            --notes "$(git log -1 --pretty=%B)" \
+            --latest

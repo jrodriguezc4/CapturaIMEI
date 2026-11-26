@@ -11,6 +11,18 @@ Asignación de celulares a trabajadores de campo: APK Android + página web + ba
 | `firebase/` | Reglas y datos iniciales de la base de datos (se usan solo en la etapa 3). |
 | `.github/workflows/build-apk.yml` | Las instrucciones que GitHub sigue para construir el APK. |
 
+## Descargar la APK (código QR)
+![QR de descarga](docs/qr-descarga.png)
+
+- Enlace fijo, siempre a la última versión: https://github.com/jrodriguezc4/CapturaIMEI/releases/latest/download/CapturaIMEI.apk
+- Página para compartir con el QR: https://jrodriguezc4.github.io/CapturaIMEI/descargar.html
+
+## Versiones automáticas
+- Cada cambio en la carpeta `apk/` que llega a `main` construye un APK nuevo y lo publica en **Releases** como `v1.0.N` (N sube solo).
+- La APK muestra su versión (abajo en el ingreso y arriba junto al nombre) y, con internet, revisa si hay una más nueva: aparece una franja naranja **"Versión nueva disponible"**; al tocarla se descarga e instala encima, sin perder datos.
+- Todos los APK se firman con la misma llave (secreto `ANDROID_DEBUG_KEYSTORE` del repositorio; copia de respaldo en `Documentos\CapturaIMEI-firma`, que **no** se sube a GitHub). Si esa llave cambia, hay que desinstalar la app una vez.
+- Diseños propuestos para próximas mejoras: [`docs/mejoras-futuras.png`](docs/mejoras-futuras.png).
+
 ## Etapa 1: el APK en el celular (modo demo)
 1. Pestaña **Actions** → **Construir APK** → espera el círculo verde (unos 8 minutos).
 2. Entra a esa ejecución → al final, en **Artifacts**, descarga **CapturaIMEI-apk**.
@@ -34,7 +46,15 @@ En 1 o 2 minutos queda en `https://TU-USUARIO.github.io/CapturaIMEI/`. Usuario d
 
 Valor del equipo, adicionales y quien entrega en el acta PDF se cambian en `config.js`.
 
-## Cómo funciona en el celular
-- **Sincronizar IMEI**: marca y modelo salen solos. Para IMEI, ICCID y línea: *Abrir \*#06#* → captura de pantalla → *Leer captura*. Android 10 o superior no deja leer el IMEI directamente a ninguna app que no sea del sistema.
-- **Asignar dispositivo** (NOMBRE y CÉDULA) → **Asignar labor** → **Asignar a otro**. Cada cambio queda como una fila nueva con su fecha.
-- Sin internet todo se guarda en el teléfono y se envía solo cuando hay WiFi o datos.
+## Cómo funciona la APK (escáner del equipo de trabajo)
+- Se ingresa con **usuario y código** (los que crea jrodriguezc en la web, botón Usuarios). El administrador también puede entrar. Arriba aparece el nombre de quien está usando el escáner.
+- **1. Escanear equipo**: *Foto de la etiqueta* lee de una vez los códigos de barras de la caja o etiqueta (IMEI 1, IMEI 2 y SN). También se puede escanear cada código con el botón 📷 o escribirlo. Marca y modelo se escriben (o se completan solos si el equipo ya estaba registrado).
+- **2. Equipo**: muestra a quién está asignado. Botones *Asignar a trabajador*, *Asignar a otro* y *Cambiar labor*.
+- Para elegir al trabajador hay dos opciones: **Buscar** (en la base de personal, por nombre o cédula) o **Manual** (nombre y cédula; la persona queda agregada a la base de personal).
+- Sin internet todo se guarda en el teléfono y se envía solo cuando hay WiFi o datos. Al sincronizar, la APK también descarga el personal y las asignaciones nuevas.
+
+## Base de personal (web → pestaña "Personal de campo")
+- **Agregar persona** una por una, **Editar** o **Quitar** (quitar no borra su historial).
+- **Subir Excel**: columnas NOMBRE y CEDULA (LABOR opcional). Acepta "Nombres" y "Apellidos" separados y cédulas con puntos. Antes de importar muestra cuántas personas son nuevas o se actualizan.
+- **Descargar plantilla** y **Exportar Excel** para compartir la lista.
+- Cuando cambias las reglas de Firebase (`firebase/reglas.json`), hay que pegarlas de nuevo en la consola de Firebase → Realtime Database → Reglas → Publicar.

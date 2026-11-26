@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Descargar CapturaIMEI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--palma:#0F5B36;--fruto:#D9692A;--papel:#F1F5EF;--superficie:#FFFFFF;--tinta:#17241C;--suave:#5B6B61;--linea:#D8E0D6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--palma:#4FB37A;--fruto:#F08A4B;--papel:#0F1611;--superficie:#18211B;--tinta:#E6EEE7;--suave:#9DB0A3;--linea:#2A372E}}
+:root[data-theme="light"]{color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);font:16px/1.5 Roboto,"Segoe UI",system-ui,sans-serif;display:flex;justify-content:center;padding:24px 16px}
+.tarjeta{background:var(--superficie);border:1px solid var(--linea);border-radius:20px;max-width:440px;width:100%;overflow:hidden}
+.cab{background:var(--palma);color:#fff;padding:20px 24px}
+.cab small{opacity:.9;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+.cab h1{margin:2px 0 0;font-size:26px;line-height:1.2}
+.cuerpo{padding:22px 24px 26px;text-align:center}
+#qr{display:inline-block;padding:14px;background:#fff;border-radius:14px;border:1px solid var(--linea)}
+#qr img,#qr canvas{display:block;width:240px;height:240px}
+.ver{margin:12px 0 0;color:var(--suave);font-size:14px}
+.btn{display:block;margin:16px 0 0;padding:14px;border-radius:12px;background:var(--fruto);color:#fff;font-weight:700;text-decoration:none}
+ol{text-align:left;margin:20px 0 0;padding-left:22px;color:var(--tinta)}
+ol li{margin:6px 0}
+.nota{font-size:13px;color:var(--suave);margin-top:14px;text-align:left}
+</style>
+</head>
+<body>
+<main class="tarjeta">
+  <div class="cab"><small>Palmas de Tumaco</small><h1>CapturaIMEI · Escáner de equipos</h1></div>
+  <div class="cuerpo">
+    <div id="qr" role="img" aria-label="Código QR para descargar la APK"></div>
+    <p class="ver" id="ver">Escanea con la cámara del celular</p>
+    <a class="btn" id="enlace" href="#">Descargar APK</a>
+    <ol>
+      <li>Escanea el código o toca <b>Descargar APK</b>.</li>
+      <li>Abre el archivo <b>CapturaIMEI.apk</b> descargado.</li>
+      <li>Si Android lo pide, permite <b>Instalar apps desconocidas</b>.</li>
+      <li>Toca <b>Instalar</b>. Las versiones nuevas se avisan solas dentro de la app.</li>
+    </ol>
+    <p class="nota">Siempre descarga la última versión publicada.</p>
+  </div>
+</main>
+<script>
+const REPO = "jrodriguezc4/CapturaIMEI";
+const URL_APK = "https://github.com/" + REPO + "/releases/latest/download/CapturaIMEI.apk";
+document.getElementById("enlace").href = URL_APK;
+new QRCode(document.getElementById("qr"), { text: URL_APK, width: 480, height: 480, colorDark: "#0F3D26", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+fetch("https://api.github.com/repos/" + REPO + "/releases/latest").then(r => r.ok ? r.json() : null).then(rel => {
+  if (rel && rel.tag_name) document.getElementById("ver").textContent = "Última versión: " + rel.tag_name.replace(/^v/, "") + " · escanea con la cámara del celular";
+}).catch(() => {});
+</script>
+</body>
+</html>
