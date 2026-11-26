@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>CapturaIMEI</title>
 <script src="config.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
 <style>
 :root{
   --palma:#0F5B36; --fronda:#2E7D4F; --fruto:#D9692A; --pacifico:#2479B8;
@@ -104,6 +105,59 @@ main{padding:14px 14px 40px}
 .labores{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 .labores button{padding:13px 8px;border-radius:12px;border:1px solid var(--linea);background:var(--papel);font-weight:600;font-size:15px}
 .labores button[aria-pressed="true"]{background:var(--palma);border-color:var(--palma);color:#fff}
+/* Resumen del día */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{border:1px solid var(--linea);border-radius:12px;padding:9px 11px;background:var(--papel)}
+.kpi small{display:block;color:var(--suave);font-size:12px}
+.kpi b{font-size:24px;line-height:1.2}
+.kpi b.p{color:var(--fruto)}
+.barras{margin-top:10px}
+.barras .f{display:flex;align-items:center;gap:8px;font-size:13px;margin:5px 0}
+.barras .f span:first-child{width:96px;color:var(--suave);flex:none}
+.barras .b{height:10px;border-radius:5px;background:var(--fronda);min-width:4px}
+.barras .f em{font-style:normal;font-weight:600}
+
+/* Lote */
+.contador{display:flex;justify-content:space-between;align-items:baseline}
+.contador b{font-size:26px;color:var(--palma)}
+.lote{list-style:none;margin:6px 0 0;padding:0}
+.lote li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--linea);font-size:14px}
+.lote li:first-child{border-top:0}
+.lote .n{width:26px;height:26px;border-radius:50%;background:var(--sel);color:var(--palma);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.lote .q{flex:1;min-width:0}
+.lote .q b{display:block}
+.lote .q span{color:var(--suave);font-size:12.5px;font-family:ui-monospace,monospace}
+.lote .x{border:0;background:transparent;color:var(--suave);font-size:20px;padding:4px 8px}
+
+/* Firma, adicionales y alertas */
+.firma{position:relative;border:1.5px dashed var(--linea);border-radius:12px;background:#FBFCFA;touch-action:none}
+.firma canvas{display:block;width:100%;height:150px}
+.firma .borrar{position:absolute;right:8px;top:8px;border:1px solid var(--linea);background:var(--superficie);border-radius:8px;padding:4px 10px;font-size:13px;color:#17241C}
+.firma small{position:absolute;left:10px;bottom:6px;color:#5B6B61;font-size:12px;pointer-events:none}
+.chk{display:flex;align-items:center;gap:10px;font-size:15px;margin:8px 0;font-weight:500;color:var(--tinta)}
+.chk input{width:20px;height:20px;accent-color:var(--palma);flex:none}
+.alerta{display:flex;gap:8px;background:#FDF0E7;border:1px solid #F3C9AC;color:#5A2A0C;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px}
+.alerta b{color:#9A3F0F}
+
+/* Estado del equipo e historial */
+.estados{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.estados button{padding:12px 4px;border-radius:12px;border:1px solid var(--linea);background:var(--papel);font-weight:600;font-size:15px}
+.estados button[aria-pressed="true"]{background:var(--peligro);border-color:var(--peligro);color:#fff}
+.estados button[data-e="Devuelto"][aria-pressed="true"]{background:var(--palma);border-color:var(--palma)}
+.evidencia{margin-top:8px;max-width:100%;border-radius:10px;display:block}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--palma);color:#fff;margin-left:4px;vertical-align:middle}
+.tag.r{background:var(--peligro)}
+.tag.g{background:var(--suave)}
+@media (prefers-color-scheme:dark){.tag,.estados button[aria-pressed="true"]{color:#0B1A11}}
+.linea-t{position:relative;padding-left:20px;margin:4px 0 0;list-style:none}
+.linea-t::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--linea)}
+.linea-t li{position:relative;padding:6px 0 8px;font-size:14px}
+.linea-t li::before{content:"";position:absolute;left:-19px;top:10px;width:12px;height:12px;border-radius:50%;background:var(--superficie);border:2px solid var(--fronda)}
+.linea-t li.mal::before{border-color:var(--peligro);background:var(--peligro)}
+.linea-t li.libre::before{border-color:var(--suave)}
+.linea-t li b{display:block}
+.linea-t li span{color:var(--suave);font-size:12.5px}
+
 /* Aviso de versión nueva */
 .actualizar{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:var(--fruto);color:#fff;padding:12px 18px;font-size:15px;font-weight:600;text-decoration:none}
 .actualizar .flecha{font-size:22px;line-height:1}
@@ -145,6 +199,18 @@ main{padding:14px 14px 40px}
   <div class="sync" id="sync"><span class="punto"></span><span class="txt" id="syncTxt"></span><button type="button" id="bSync">Sincronizar</button></div>
 
   <main>
+    <!-- Resumen del día -->
+    <section class="tarjeta" id="tResumen">
+      <h2>Resumen de hoy</h2>
+      <div class="kpis">
+        <div class="kpi"><small>Asignados hoy (tú)</small><b id="kHoy">0</b></div>
+        <div class="kpi"><small>Pendientes por enviar</small><b id="kPend">0</b></div>
+        <div class="kpi"><small>Equipos en campo</small><b id="kCampo">0</b></div>
+        <div class="kpi"><small>En bodega</small><b id="kBodega">0</b></div>
+      </div>
+      <div class="barras" id="barras"></div>
+    </section>
+
     <!-- 1. Escanear -->
     <section class="tarjeta" id="tEscaneo">
       <h2>1. Escanear equipo</h2>
@@ -163,6 +229,20 @@ main{padding:14px 14px 40px}
       </div>
       <div class="error" id="eEscaneo" role="alert"></div>
       <button class="btn fruto" id="bConsultar" type="button">Continuar</button>
+      <div class="dos">
+        <button class="btn" id="bAgregarLote" type="button">Agregar al lote</button>
+        <button class="btn" id="bLoteRapido" type="button">Escanear varios</button>
+      </div>
+      <p class="ayuda">Lote: escanea varios equipos seguidos y asígnalos todos de una vez.</p>
+    </section>
+
+    <!-- Lote de equipos -->
+    <section class="tarjeta oculto" id="tLote">
+      <div class="contador"><h2>Lote en curso</h2><b id="loteN">0</b></div>
+      <ul class="lote" id="loteLista"></ul>
+      <button class="btn primario" id="bLoteAsignar" type="button">Asignar los equipos</button>
+      <button class="btn" id="bLoteDevolver" type="button">Devolver a bodega</button>
+      <button class="btn" id="bLoteVaciar" type="button">Vaciar lote</button>
     </section>
 
     <!-- 2. Equipo -->
@@ -174,7 +254,15 @@ main{padding:14px 14px 40px}
       <button class="btn primario oculto" id="bAsignar" type="button">Asignar a trabajador</button>
       <button class="btn primario oculto" id="bOtro" type="button">Asignar a otro</button>
       <button class="btn oculto" id="bLabor" type="button">Cambiar labor</button>
+      <button class="btn oculto" id="bEstado" type="button">Reportar devolución, daño o pérdida</button>
+      <button class="btn oculto" id="bActa" type="button">Acta de entrega (PDF)</button>
       <button class="btn" id="bNuevo" type="button">Escanear otro equipo</button>
+    </section>
+
+    <!-- Historial del equipo -->
+    <section class="tarjeta oculto" id="tEqHist">
+      <h2>Historial del equipo</h2>
+      <ul class="linea-t" id="eqHist"></ul>
     </section>
 
     <!-- Historial -->
@@ -201,10 +289,38 @@ main{padding:14px 14px 40px}
     <p class="ayuda">Se guarda también en la base de personal.</p>
   </div>
   <div class="elegido oculto" id="elegido"></div>
+  <div class="alerta oculto" id="alertaOtro" role="status"></div>
   <label>Labor</label>
   <div class="labores" id="labores"></div>
+  <label>Adicionales que recibe</label>
+  <div id="adicionales"></div>
+  <label>Firma del trabajador (para el acta)</label>
+  <div class="firma"><canvas id="cFirma" aria-label="Espacio para firmar con el dedo"></canvas><button type="button" class="borrar" id="bBorrarFirma">Borrar</button><small id="firmaAyuda">Firma aquí con el dedo</small></div>
   <div class="error" id="ePersona" role="alert"></div>
   <button class="btn primario" id="bGuardarAsig" type="button">Guardar asignación</button>
+  <button class="btn" data-cerrar type="button">Cancelar</button>
+</div></div>
+
+<!-- Hoja: acta lista -->
+<div class="velo oculto" id="hActa"><div class="hoja">
+  <h3>Acta de entrega lista</h3>
+  <p class="ayuda" id="actaAyuda"></p>
+  <button class="btn primario" id="bCompartirActa" type="button">Compartir acta (WhatsApp, correo…)</button>
+  <button class="btn" data-cerrar type="button">Cerrar</button>
+</div></div>
+
+<!-- Hoja: estado del equipo -->
+<div class="velo oculto" id="hEstado"><div class="hoja">
+  <h3>Reportar estado</h3>
+  <p class="ayuda" id="estadoAyuda"></p>
+  <div class="estados" id="estados"><button type="button" data-e="Devuelto" aria-pressed="false">Devuelto</button><button type="button" data-e="Dañado" aria-pressed="false">Dañado</button><button type="button" data-e="Perdido" aria-pressed="false">Perdido</button></div>
+  <p class="ayuda" id="estadoNota"></p>
+  <label for="estObs">Observación</label>
+  <input id="estObs" placeholder="Ej. pantalla rota, se cayó al canal">
+  <button class="btn" id="bFotoEvid" type="button">📷 Foto de evidencia</button>
+  <img class="evidencia oculto" id="imgEvid" alt="Foto de evidencia">
+  <div class="error" id="eEstado" role="alert"></div>
+  <button class="btn primario" id="bGuardarEstado" type="button" disabled>Guardar reporte</button>
   <button class="btn" data-cerrar type="button">Cancelar</button>
 </div></div>
 
@@ -223,7 +339,15 @@ const CFG = window.APP_CONFIG || {};
 const FBC = CFG.FIREBASE || {};
 const DEMO = !FBC.databaseURL || FBC.databaseURL.includes("TU_PROYECTO");
 const LABORES = ["Aplicador","Sanidad","Mantenimiento","Cosecha","Fertilización","Reubicado","Supervisor","Administrativo"];
-const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor"};
+const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor",DEVOLUCION:"Devolución",DANO:"Daño reportado",PERDIDA:"Pérdida"};
+const ESTADOS = {"Devuelto":"DEVOLUCION","Dañado":"DANO","Perdido":"PERDIDA"};
+const LIBERA = t => t === "DEVOLUCION" || t === "PERDIDA";        // después de estos, el equipo queda sin trabajador
+// Datos del acta (los mismos de la web; se pueden cambiar en apk/www/config.js)
+const ACTA = {
+  ENTREGA: CFG.ENTREGA || {nombre:"JHON MARCO RODRIGUEZ CORREA", cargo:"Analista de ingenieria de datos"},
+  VALOR: CFG.VALOR_EQUIPO || 1000000,
+  ADICIONALES: CFG.ADICIONALES || [["Forro Carcaza",5000],["Vidrio templado",2000],["Estuche antilluvia",10000]]
+};
 const MARCAS = ["CUBOT","SAMSUNG","MOTOROLA","XIAOMI","OPPO","HUAWEI","HONOR","TECNO","INFINIX","VIVO","REALME","NOKIA","ZTE","ALCATEL","DOOGEE","ULEFONE","OUKITEL","BLACKVIEW","APPLE"];
 const NAT = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
 const Pl = (window.Capacitor && window.Capacitor.Plugins) || {};
@@ -241,9 +365,15 @@ const E = {
   cuentas:{}, usuario:null,        // sesiones por usuario (permite entrar sin internet)
   cola:[],                         // cambios pendientes de enviar
   personal:{}, disp:{}, vig:{},    // copias locales: personal, equipos y asignación vigente por IMEI
-  marcas:{}, historial:[], ultimaSync:null
+  marcas:{}, historial:[], ultimaSync:null,
+  hist:{},                         // últimos movimientos de cada equipo (para la línea de tiempo)
+  lote:[]                          // IMEI del lote en curso
 };
-async function leer(){ try { const v = NAT && Pl.Preferences ? (await Pl.Preferences.get({key:CLAVE})).value : localStorage.getItem(CLAVE); if (v) Object.assign(E, JSON.parse(v)); } catch(_){} }
+async function leer(){
+  try { const v = NAT && Pl.Preferences ? (await Pl.Preferences.get({key:CLAVE})).value : localStorage.getItem(CLAVE); if (v) Object.assign(E, JSON.parse(v)); } catch(_){}
+  // Una sola vez: volver a descargar las asignaciones para armar el historial de cada equipo
+  if (!E.histV){ E.histV = 1; if (E.marcas) E.marcas.asignaciones = 0; }
+}
 async function guardar(){ const v = JSON.stringify(E); try { if (NAT && Pl.Preferences) await Pl.Preferences.set({key:CLAVE, value:v}); else localStorage.setItem(CLAVE, v); } catch(_){} }
 async function sha(t){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("palmas-tumaco:" + String(t).trim())); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""); }
 const cuenta = () => E.cuentas[E.usuario];
@@ -333,7 +463,23 @@ function entrar(){
   const c = cuenta();
   $("#nomUsuario").textContent = c.nombre || E.usuario;
   $("#rolUsuario").textContent = (c.rol === "admin" ? "Administrador" : "Usuario") + " · " + E.usuario;
-  limpiarEscaneo(); pintarHistorial(); pintarSync();
+  limpiarEscaneo(); pintarHistorial(); pintarSync(); pintarResumen(); pintarLote();
+}
+
+/* ---------- Resumen del día ---------- */
+function pintarResumen(){
+  const hoy = new Date().toDateString();
+  const mios = E.historial.filter(x => x.usuario === E.usuario && (x.tipo === "ASIGNACION" || x.tipo === "REASIGNACION") && new Date(x.fecha_ingreso).toDateString() === hoy).length;
+  const enCampo = Object.values(E.vig).filter(v => !v.libre);
+  const bodega = Object.keys(E.disp).filter(i => !E.vig[i] || (E.vig[i].libre && E.vig[i].estado !== "Perdido")).length;
+  $("#kHoy").textContent = mios;
+  $("#kPend").textContent = E.cola.length; $("#kPend").className = E.cola.length ? "p" : "";
+  $("#kCampo").textContent = enCampo.length;
+  $("#kBodega").textContent = bodega;
+  const porLabor = {}; enCampo.forEach(v => { const l = v.labor || "Sin labor"; porLabor[l] = (porLabor[l] || 0) + 1; });
+  const filas = Object.entries(porLabor).sort((a,b) => b[1] - a[1]), max = filas.length ? filas[0][1] : 1;
+  $("#barras").innerHTML = filas.length ? '<h2 style="margin-top:4px">Equipos por labor</h2>' + filas.map(([l,n]) => `<div class="f"><span>${esc(l)}</span><span class="b" style="width:${Math.round(n / max * 55)}%"></span><em>${n}</em></div>`).join("")
+                                        : '<p class="ayuda">Aún no hay equipos asignados en este teléfono. Se llenará al sincronizar.</p>';
 }
 
 /* ---------- Sincronización ---------- */
@@ -376,15 +522,19 @@ async function sincronizar(manual){
   } catch(err){
     if (/PERMISO|SESION_INVALIDA/.test(err.message)){ s.valida = false; await guardar(); }
     else if (manual) aviso("No se pudo sincronizar: " + err.message);
-  } finally { sincronizando = false; pintarSync(); pintarHistorial(); if (eqActual) pintarEquipo(); }
+  } finally { sincronizando = false; pintarSync(); pintarHistorial(); pintarResumen(); pintarLote(); if (eqActual) pintarEquipo(); }
 }
 async function enviar(s, op){
   if (op.k === "disp") return FB.db(s, "PATCH", "dispositivos/" + op.imei, {...op.datos, actualizado_en:SV, actualizado_por:E.usuario});
   if (op.k === "pers") return FB.db(s, "PUT", "personal/" + op.datos.cedula, {...op.datos, activo:true, actualizado_en:SV, actualizado_por:E.usuario});
-  if (op.k === "asig"){
-    try { await FB.db(s, "PUT", "asignaciones/" + op.id, limpio({...op.datos, usuario:E.usuario, origen:"apk", registrado_en:SV})); }
-    catch(err){ if (err.message !== "PERMISO" || !(await FB.db(s, "GET", "asignaciones/" + op.id))) throw err; }   // ya había llegado antes
-  }
+  if (op.k === "asig") return unaVez(s, "asignaciones/" + op.id, limpio({...op.datos, usuario:E.usuario, origen:"apk", registrado_en:SV}));
+  if (op.k === "firma") return unaVez(s, "firmas/" + op.id, {imagen:op.imagen, usuario:E.usuario, registrado_en:SV});
+  if (op.k === "evid") return unaVez(s, "evidencias/" + op.id, {imagen:op.imagen, usuario:E.usuario, registrado_en:SV});
+}
+// Registros que no se pueden sobrescribir: si ya habían llegado antes, se dan por enviados
+async function unaVez(s, ruta, cuerpo){
+  try { await FB.db(s, "PUT", ruta, cuerpo); }
+  catch(err){ if (err.message !== "PERMISO" || !(await FB.db(s, "GET", ruta, undefined, "&shallow=true"))) throw err; }
 }
 async function traer(s, ruta, campo, fn){
   const desde = E.marcas[ruta];
@@ -395,10 +545,20 @@ async function traer(s, ruta, campo, fn){
   E.marcas[ruta] = max;
 }
 function aplicarVigente(r){
+  agregarHist(r);
   const c = E.vig[r.imei], t = x => new Date(x.fecha_ingreso).getTime(), reg = x => x.registrado_en || Date.now();
   if (!c || t(r) > t(c) || (t(r) === t(c) && reg(r) >= reg(c)))
-    E.vig[r.imei] = {nombre:r.nombre, cedula:r.cedula, labor:r.labor || null, fecha_ingreso:r.fecha_ingreso, registrado_en:r.registrado_en, tipo:r.tipo, usuario:r.usuario};
+    E.vig[r.imei] = limpio({id:r.id, nombre:r.nombre, cedula:r.cedula, labor:r.labor || null, fecha_ingreso:r.fecha_ingreso, registrado_en:r.registrado_en, tipo:r.tipo, usuario:r.usuario,
+                            estado:r.estado, libre:LIBERA(r.tipo) || null, adicionales:r.adicionales, firma:r.firma});
 }
+function agregarHist(r){
+  const l = E.hist[r.imei] || [];
+  if (r.id && l.some(x => x.id === r.id)) return;
+  l.push(limpio({id:r.id, tipo:r.tipo, nombre:r.nombre, labor:r.labor, fecha:r.fecha_ingreso, estado:r.estado, obs:r.observacion, usuario:r.usuario}));
+  l.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  E.hist[r.imei] = l.slice(0, 15);
+}
+const asignado = imei => { const a = E.vig[imei]; return a && !a.libre ? a : null; };
 $("#bSync").onclick = () => sincronizar(true);
 
 /* ---------- Escaneo ---------- */
@@ -458,7 +618,10 @@ let eqActual = null;
 function limpiarEscaneo(){
   ["cImei1","cImei2","cSerial","cMarca","cModelo"].forEach(id => $("#" + id).value = "");
   $("#otros").classList.add("oculto"); $("#eEscaneo").textContent = "";
-  eqActual = null; $("#tEquipo").classList.add("oculto"); $("#tEscaneo").classList.remove("oculto");
+  eqActual = null;
+  ["#tEquipo","#tEqHist"].forEach(s => $(s).classList.add("oculto"));
+  ["#tEscaneo","#tResumen"].forEach(s => $(s).classList.remove("oculto"));
+  pintarLote();
 }
 $("#cImei1").addEventListener("change", () => {   // si el equipo ya existe, completa lo que falta
   const d = E.disp[$("#cImei1").value.trim()]; if (!d) return;
@@ -467,35 +630,148 @@ $("#cImei1").addEventListener("change", () => {   // si el equipo ya existe, com
   if (!$("#cMarca").value && d.marca) $("#cMarca").value = d.marca;
   if (!$("#cModelo").value && d.modelo) $("#cModelo").value = d.modelo;
 });
-$("#bConsultar").onclick = async () => {
+// Valida los campos del formulario y guarda el equipo. Devuelve el IMEI 1 o null si hay un error.
+async function equipoDelFormulario(){
   $("#cImei1").dispatchEvent(new Event("change"));
   const i1 = $("#cImei1").value.replace(/\D/g,""), i2 = $("#cImei2").value.replace(/\D/g,"");
   const sn = $("#cSerial").value.trim().toUpperCase().replace(/\s+/g,"");
-  if (!esImei(i1)) { $("#eEscaneo").textContent = "El IMEI 1 debe tener 15 dígitos válidos. Revisa el número."; return; }
-  if (i2 && !esImei(i2)) { $("#eEscaneo").textContent = "El IMEI 2 no es válido. Corrígelo o déjalo vacío."; return; }
-  if (i2 && i2 === i1) { $("#eEscaneo").textContent = "IMEI 1 e IMEI 2 son iguales."; return; }
+  if (!esImei(i1)) { $("#eEscaneo").textContent = "El IMEI 1 debe tener 15 dígitos válidos. Revisa el número."; return null; }
+  if (i2 && !esImei(i2)) { $("#eEscaneo").textContent = "El IMEI 2 no es válido. Corrígelo o déjalo vacío."; return null; }
+  if (i2 && i2 === i1) { $("#eEscaneo").textContent = "IMEI 1 e IMEI 2 son iguales."; return null; }
+  $("#eEscaneo").textContent = "";
   const datos = limpio({imei2:i2, serial:sn, marca:$("#cMarca").value.trim().toUpperCase(), modelo:$("#cModelo").value.trim()});
   const previo = E.disp[i1] || {};
-  if (Object.entries(datos).some(([k,v]) => previo[k] !== v)){
+  if (!E.disp[i1] || Object.entries(datos).some(([k,v]) => previo[k] !== v)){
     E.disp[i1] = {...previo, ...datos};
-    E.cola.push({k:"disp", imei:i1, datos}); await guardar(); sincronizar();
+    if (Object.keys(datos).length) E.cola.push({k:"disp", imei:i1, datos});
+    await guardar(); sincronizar();
   }
+  return i1;
+}
+$("#bConsultar").onclick = async () => {
+  const i1 = await equipoDelFormulario(); if (!i1) return;
   eqActual = i1; pintarEquipo();
-  $("#tEscaneo").classList.add("oculto"); $("#tEquipo").classList.remove("oculto"); scrollTo(0,0);
+  ["#tEscaneo","#tResumen","#tLote"].forEach(s => $(s).classList.add("oculto"));
+  $("#tEquipo").classList.remove("oculto"); scrollTo(0,0);
 };
 $("#bNuevo").onclick = () => { limpiarEscaneo(); scrollTo(0,0); };
+const nomEquipo = imei => { const d = E.disp[imei] || {}; return [d.marca, d.modelo].filter(Boolean).join(" ") || "Equipo sin marca/modelo"; };
 function pintarEquipo(){
-  const d = E.disp[eqActual] || {}, a = E.vig[eqActual];
-  $("#eqModelo").textContent = [d.marca, d.modelo].filter(Boolean).join(" ") || "Equipo sin marca/modelo";
+  const d = E.disp[eqActual] || {}, v = E.vig[eqActual], a = asignado(eqActual);
+  $("#eqModelo").textContent = nomEquipo(eqActual);
   $("#eqCodigos").innerHTML = `IMEI 1: ${esc(eqActual)}` + (d.imei2 ? `<br>IMEI 2: ${esc(d.imei2)}` : "") + (d.serial ? `<br>SN: ${esc(d.serial)}` : "");
   const el = $("#eqAsignado");
   el.className = "asignado" + (a ? "" : " libre");
-  el.innerHTML = a ? `<div class="t">Asignado a</div><div class="n">${esc(a.nombre)}</div><div>C.C. ${esc(a.cedula)} · desde ${fFecha(a.fecha_ingreso)}</div><span class="labor">${esc(a.labor || "Sin labor")}</span>`
-                   : `<div class="t">Sin asignar</div><div>Este equipo no tiene trabajador registrado.</div>`;
+  el.innerHTML = a ? `<div class="t">Asignado a</div><div class="n">${esc(a.nombre)}</div><div>C.C. ${esc(a.cedula)} · desde ${fFecha(a.fecha_ingreso)}</div><span class="labor">${esc(a.labor || "Sin labor")}</span>${a.estado === "Dañado" ? '<span class="tag r">Dañado</span>' : ""}`
+           : v && v.estado === "Perdido" ? `<div class="t">Reportado como perdido</div><div>Lo tenía ${esc(v.nombre)} · ${fFecha(v.fecha_ingreso)}</div>`
+           : v ? `<div class="t">En bodega</div><div>Devuelto por ${esc(v.nombre)} · ${fFecha(v.fecha_ingreso)}</div>`
+           : `<div class="t">Sin asignar</div><div>Este equipo no tiene trabajador registrado.</div>`;
   $("#bAsignar").classList.toggle("oculto", !!a);
-  $("#bOtro").classList.toggle("oculto", !a);
-  $("#bLabor").classList.toggle("oculto", !a);
+  ["#bOtro","#bLabor","#bEstado","#bActa"].forEach(s => $(s).classList.toggle("oculto", !a));
+  // Línea de tiempo del equipo
+  const h = E.hist[eqActual] || [];
+  $("#tEqHist").classList.toggle("oculto", !h.length);
+  $("#eqHist").innerHTML = h.map(x => {
+    const mal = x.tipo === "DANO" || x.tipo === "PERDIDA", libre = x.tipo === "DEVOLUCION";
+    const titulo = mal || libre ? esc(MOVS[x.tipo]) : esc(x.nombre) + (x.labor ? ` <span class="tag">${esc(x.labor)}</span>` : "");
+    const detalle = mal || libre ? esc(x.nombre) + (x.obs ? " · " + esc(x.obs) : "") : esc(MOVS[x.tipo]);
+    return `<li class="${mal ? "mal" : libre ? "libre" : ""}"><b>${titulo}</b><span>${detalle} · ${fFecha(x.fecha)}${x.usuario ? " · " + esc(x.usuario) : ""}</span></li>`;
+  }).join("");
 }
+
+/* ---------- Lote: varios equipos seguidos ---------- */
+function pintarLote(){
+  const n = E.lote.length;
+  $("#tLote").classList.toggle("oculto", !n || !!eqActual);
+  $("#loteN").textContent = n;
+  $("#loteLista").innerHTML = E.lote.map((i, k) => { const a = asignado(i);
+    return `<li><span class="n">${k + 1}</span><span class="q"><b>${esc(nomEquipo(i))}</b><span>IMEI ${esc(i)}</span>${a ? `<br><small class="ayuda">Lo tiene ${esc(a.nombre)}</small>` : ""}</span><button type="button" class="x" data-quitar="${esc(i)}" aria-label="Quitar del lote">×</button></li>`; }).join("");
+  $("#bLoteAsignar").textContent = `Asignar ${n === 1 ? "el equipo" : "los " + n + " equipos"}`;
+  const conDueno = E.lote.filter(asignado).length;
+  $("#bLoteDevolver").classList.toggle("oculto", !conDueno);
+  $("#bLoteDevolver").textContent = `Devolver a bodega (${conDueno})`;
+}
+async function agregarLote(imei){
+  if (E.lote.includes(imei)) return false;
+  E.lote.push(imei); await guardar(); pintarLote(); return true;
+}
+$("#loteLista").addEventListener("click", async e => { const b = e.target.closest("[data-quitar]"); if (!b) return; E.lote = E.lote.filter(i => i !== b.dataset.quitar); await guardar(); pintarLote(); });
+$("#bAgregarLote").onclick = async () => {
+  const i1 = await equipoDelFormulario(); if (!i1) return;
+  const nuevo = await agregarLote(i1);
+  limpiarEscaneo(); aviso(nuevo ? `Agregado al lote (${E.lote.length})` : "Ese equipo ya estaba en el lote");
+};
+$("#bLoteRapido").onclick = async () => {
+  $("#eEscaneo").textContent = "";
+  try {
+    if (!NAT) throw new Error("El escaneo seguido funciona en la APK instalada. Aquí llena los campos y usa \"Agregar al lote\".");
+    const { available } = await Pl.BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+    if (!available){ await Pl.BarcodeScanner.installGoogleBarcodeScannerModule(); throw new Error("Instalando el lector de códigos (necesita internet una sola vez). Intenta de nuevo en un minuto."); }
+    // La cámara se vuelve a abrir sola después de cada código; se termina con "Atrás"
+    let agregados = 0;
+    for (;;){
+      let res; try { res = await Pl.BarcodeScanner.scan(); } catch(_){ break; }
+      const v = String((res.barcodes[0] && (res.barcodes[0].rawValue || res.barcodes[0].displayValue)) || "");
+      if (!v) break;
+      const imei = (v.match(/\d{15}/g) || []).find(esImei);
+      if (!imei){ aviso("Ese código no es un IMEI. Escanea el IMEI 1 de la etiqueta."); continue; }
+      if (!E.disp[imei]) E.disp[imei] = {};
+      if (await agregarLote(imei)){ agregados++; aviso(`Agregado (${E.lote.length} en el lote)`); } else aviso("Ya estaba en el lote");
+    }
+    if (agregados) aviso(`${agregados} ${agregados === 1 ? "equipo agregado" : "equipos agregados"} al lote`);
+  } catch(err){ if (!/cancel/i.test(err.message)) $("#eEscaneo").textContent = err.message; }
+};
+$("#bLoteVaciar").onclick = async () => { if (!confirm("¿Quitar todos los equipos del lote? No se borra ninguna asignación.")) return; E.lote = []; await guardar(); pintarLote(); };
+$("#bLoteAsignar").onclick = () => abrirPersona("LOTE");
+$("#bLoteDevolver").onclick = async () => {
+  const lista = E.lote.filter(asignado);
+  if (!confirm(`¿Registrar la devolución a bodega de ${lista.length} ${lista.length === 1 ? "equipo" : "equipos"}?`)) return;
+  for (const i of lista){ const a = asignado(i); await registrar("DEVOLUCION", {nombre:a.nombre, cedula:a.cedula, labor:a.labor, estado:"Devuelto"}, i, true); }
+  E.lote = E.lote.filter(i => !lista.includes(i)); await guardar(); pintarLote(); sincronizar();
+  aviso(`${lista.length} ${lista.length === 1 ? "equipo devuelto" : "equipos devueltos"} a bodega`);
+};
+
+/* ---------- Estado del equipo: devolución, daño o pérdida ---------- */
+let estadoSel = null, fotoEvid = null;
+const NOTAS = {Devuelto:"El equipo queda en bodega, sin trabajador.", "Dañado":"El equipo sigue asignado al trabajador, marcado como dañado.", Perdido:"El equipo queda sin trabajador y marcado como perdido."};
+$("#bEstado").onclick = () => {
+  const a = asignado(eqActual); estadoSel = null; fotoEvid = null;
+  $("#estadoAyuda").textContent = `${nomEquipo(eqActual)} · lo tiene ${a.nombre}`;
+  document.querySelectorAll("#estados button").forEach(b => b.setAttribute("aria-pressed", "false"));
+  $("#estadoNota").textContent = ""; $("#estObs").value = ""; $("#eEstado").textContent = "";
+  $("#imgEvid").classList.add("oculto"); $("#bGuardarEstado").disabled = true;
+  $("#hEstado").classList.remove("oculto");
+};
+$("#estados").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  estadoSel = b.dataset.e; document.querySelectorAll("#estados button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("#estadoNota").textContent = NOTAS[estadoSel]; $("#bGuardarEstado").disabled = false; });
+$("#bFotoEvid").onclick = async () => {
+  $("#eEstado").textContent = "";
+  try {
+    if (!NAT) throw new Error("La foto de evidencia funciona en la APK instalada.");
+    const f = await Pl.Camera.getPhoto({source:"PROMPT", resultType:"dataUrl", quality:50, width:900, correctOrientation:true, promptLabelHeader:"Foto de evidencia", promptLabelPhoto:"Elegir de la galería", promptLabelPicture:"Tomar foto", promptLabelCancel:"Cancelar"});
+    fotoEvid = await achicar(f.dataUrl, 900, 0.55);
+    $("#imgEvid").src = fotoEvid; $("#imgEvid").classList.remove("oculto");
+  } catch(err){ if (!/cancel/i.test(err.message)) $("#eEstado").textContent = err.message; }
+};
+// Reduce la foto para que pese poco (se envía por datos móviles)
+function achicar(src, max, calidad){
+  return new Promise(ok => { const im = new Image(); im.onload = () => {
+    const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas");
+    c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL("image/jpeg", calidad)); };
+    im.onerror = () => ok(src); im.src = src; });
+}
+$("#bGuardarEstado").onclick = async () => {
+  if (!estadoSel) return;
+  const a = asignado(eqActual), obs = $("#estObs").value.trim();
+  if (estadoSel !== "Devuelto" && !obs && !fotoEvid){ $("#eEstado").textContent = "Escribe qué pasó o toma una foto de evidencia."; return; }
+  $("#hEstado").classList.add("oculto");
+  const id = await registrar(ESTADOS[estadoSel], {nombre:a.nombre, cedula:a.cedula, labor:a.labor, estado:estadoSel, observacion:obs, con_foto:fotoEvid ? true : null}, eqActual, true);
+  if (fotoEvid) E.cola.push({k:"evid", id, imagen:fotoEvid});
+  await guardar(); pintarSync(); sincronizar();
+  aviso(estadoSel === "Devuelto" ? "Equipo devuelto a bodega" : "Reporte guardado: " + estadoSel.toLowerCase());
+};
 
 /* ---------- Elegir trabajador (buscar o manual) ---------- */
 let modo = "buscar", elegido = null, laborSel = null, tipoAsig = "ASIGNACION";
@@ -503,17 +779,52 @@ function pintarLabores(cont, sel){
   $(cont).innerHTML = LABORES.map(l => `<button type="button" data-l="${l}" aria-pressed="${l === sel}">${l}</button>`).join("");
 }
 $("#labores").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; laborSel = b.dataset.l; pintarLabores("#labores", laborSel); });
+const destinos = () => tipoAsig === "LOTE" ? E.lote.slice() : [eqActual];
 function abrirPersona(tipo){
   tipoAsig = tipo; elegido = null; laborSel = null;
-  const a = E.vig[eqActual];
-  $("#persTitulo").textContent = tipo === "REASIGNACION" ? "Asignar a otro" : "Asignar a trabajador";
-  $("#persAyuda").textContent = tipo === "REASIGNACION" ? `Actualmente lo tiene ${a.nombre}.` : "Busca al trabajador en la base de personal o escríbelo.";
+  const a = asignado(eqActual);
+  $("#persTitulo").textContent = tipo === "LOTE" ? `Asignar ${E.lote.length === 1 ? "1 equipo" : E.lote.length + " equipos"}` : tipo === "REASIGNACION" ? "Asignar a otro" : "Asignar a trabajador";
+  $("#persAyuda").textContent = tipo === "LOTE" ? "Todos los equipos del lote quedan con el mismo trabajador y la misma labor."
+                              : tipo === "REASIGNACION" ? `Actualmente lo tiene ${a.nombre}.` : "Busca al trabajador en la base de personal o escríbelo.";
   $("#qPersona").value = ""; $("#mNombre").value = ""; $("#mCedula").value = "";
-  $("#elegido").classList.add("oculto"); $("#ePersona").textContent = "";
+  $("#elegido").classList.add("oculto"); $("#ePersona").textContent = ""; $("#alertaOtro").classList.add("oculto");
+  $("#adicionales").innerHTML = ACTA.ADICIONALES.map(([n], k) => `<label class="chk"><input type="checkbox" data-adic="${k}" checked> ${esc(n)}</label>`).join("");
   cambiarModo(Object.keys(E.personal).length ? "buscar" : "manual");
   pintarLabores("#labores", null); buscarPersona();
   $("#hPersona").classList.remove("oculto");
+  prepararFirma();
 }
+// Avisa (sin bloquear) si el trabajador ya tiene otro equipo asignado
+function revisarOtroEquipo(cedula){
+  const ds = destinos();
+  const otros = cedula ? Object.entries(E.vig).filter(([i,v]) => !v.libre && v.cedula === cedula && !ds.includes(i)) : [];
+  $("#alertaOtro").classList.toggle("oculto", !otros.length);
+  if (otros.length) $("#alertaOtro").innerHTML = `<span>⚠</span><span><b>Atención:</b> ${esc(otros[0][1].nombre)} ya tiene asignado ${otros.length === 1 ? "otro equipo" : otros.length + " equipos más"}: ${otros.slice(0,3).map(([i]) => esc(nomEquipo(i)) + " …" + esc(i.slice(-3))).join(", ")}.</span>`;
+}
+$("#mCedula").addEventListener("input", () => revisarOtroEquipo(ced($("#mCedula").value)));
+
+/* Firma con el dedo */
+let firmaHecha = false;
+const lienzo = $("#cFirma"), pincel = lienzo.getContext("2d");
+function prepararFirma(){
+  const r = lienzo.getBoundingClientRect(), k = window.devicePixelRatio || 1;
+  lienzo.width = Math.round(r.width * k); lienzo.height = Math.round(r.height * k);
+  pincel.setTransform(k, 0, 0, k, 0, 0); pincel.lineWidth = 2.6; pincel.lineCap = "round"; pincel.lineJoin = "round"; pincel.strokeStyle = "#17241C";
+  pincel.clearRect(0, 0, lienzo.width, lienzo.height); firmaHecha = false; $("#firmaAyuda").classList.remove("oculto");
+}
+let trazando = false;
+const punto = e => { const r = lienzo.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+lienzo.addEventListener("pointerdown", e => { trazando = true; lienzo.setPointerCapture(e.pointerId); const [x,y] = punto(e); pincel.beginPath(); pincel.moveTo(x, y); e.preventDefault(); });
+lienzo.addEventListener("pointermove", e => { if (!trazando) return; const [x,y] = punto(e); pincel.lineTo(x, y); pincel.stroke(); if (!firmaHecha){ firmaHecha = true; $("#firmaAyuda").classList.add("oculto"); } e.preventDefault(); });
+["pointerup","pointercancel","pointerleave"].forEach(t => lienzo.addEventListener(t, () => { trazando = false; }));
+$("#bBorrarFirma").onclick = prepararFirma;
+// Firma recortada en blanco y negro, liviana para enviar
+function firmaPNG(){
+  const c = document.createElement("canvas"); c.width = 600; c.height = Math.round(600 * lienzo.height / lienzo.width);
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(lienzo, 0, 0, c.width, c.height);
+  return c.toDataURL("image/png");
+}
+const firmasMem = {};   // firmas de esta sesión (para volver a generar el acta sin internet)
 function cambiarModo(m){
   modo = m;
   document.querySelectorAll("[data-modo]").forEach(b => b.setAttribute("aria-pressed", b.dataset.modo === m));
@@ -535,6 +846,7 @@ $("#resultados").addEventListener("click", e => {
   const b = e.target.closest("button[data-c]"); if (!b) return;
   elegido = E.personal[b.dataset.c];
   $("#elegido").innerHTML = `Trabajador: <b>${esc(elegido.nombre)}</b> · C.C. ${esc(elegido.cedula)}`; $("#elegido").classList.remove("oculto");
+  revisarOtroEquipo(elegido.cedula);
   if (elegido.labor && !laborSel){ laborSel = elegido.labor; pintarLabores("#labores", laborSel); }
   buscarPersona();
 });
@@ -553,13 +865,35 @@ $("#bGuardarAsig").onclick = async () => {
     E.personal[cedula] = {...(ya || {}), nombre, cedula, labor:laborSel || (ya && ya.labor) || null, activo:true};
     E.cola.push({k:"pers", datos:limpio({nombre, cedula, labor:laborSel || (ya && ya.labor) || null})});
   }
-  const a = E.vig[eqActual];
-  if (tipoAsig === "REASIGNACION" && a && a.cedula === p.cedula) { $("#ePersona").textContent = "Ese trabajador ya tiene este equipo."; return; }
+  const ds = destinos().filter(i => { const a = asignado(i); return !(a && a.cedula === p.cedula); });
+  if (!ds.length) { $("#ePersona").textContent = tipoAsig === "LOTE" ? "Ese trabajador ya tiene todos los equipos del lote." : "Ese trabajador ya tiene este equipo."; return; }
   if (!laborSel) { $("#ePersona").textContent = "Elige la labor."; return; }
+  const adic = [...document.querySelectorAll("[data-adic]")].filter(x => x.checked).map(x => ACTA.ADICIONALES[+x.dataset.adic][0]);
+  const firma = firmaHecha ? firmaPNG() : null;
   $("#hPersona").classList.add("oculto");
-  await registrar(tipoAsig, {...p, labor:laborSel});
-  aviso("Equipo asignado a " + p.nombre);
+  const regs = [];
+  for (const i of ds){
+    const tipo = asignado(i) ? "REASIGNACION" : "ASIGNACION";
+    const datos = {...p, labor:laborSel, adicionales:adic.join(", ") || null};
+    const id = await registrar(tipo, datos, i, true);
+    regs.push({...datos, id, imei:i, tipo, fecha_ingreso:new Date().toISOString(), usuario:E.usuario, adic});
+  }
+  if (firma){
+    const clave = regs[0].id;                       // en un lote, todas las actas comparten la misma firma
+    firmasMem[clave] = firma;
+    E.cola.push({k:"firma", id:clave, imagen:firma});
+    for (const r of regs){ r.firma = clave; marcarFirma(r.id, clave); }
+  }
+  if (tipoAsig === "LOTE"){ E.lote = []; }
+  await guardar(); pintarSync(); pintarLote(); pintarResumen(); if (eqActual) pintarEquipo(); sincronizar();
+  aviso(ds.length === 1 ? "Equipo asignado a " + p.nombre : `${ds.length} equipos asignados a ${p.nombre}`);
+  if (firma) mostrarActa(regs);
 };
+// Anota en el registro pendiente (y en la asignación vigente) cuál es la firma
+function marcarFirma(id, clave){
+  const op = E.cola.find(o => o.k === "asig" && o.id === id); if (op) op.datos.firma = clave;
+  const v = Object.values(E.vig).find(x => x.id === id); if (v) v.firma = clave;
+}
 
 /* ---------- Cambiar labor ---------- */
 let laborNueva = null;
@@ -577,12 +911,103 @@ $("#bGuardarLabor").onclick = async () => {
 };
 
 /* ---------- Registrar un movimiento ---------- */
-async function registrar(tipo, p){
-  const id = uuid(), datos = {imei:eqActual, tipo, fecha_ingreso:new Date().toISOString(), nombre:p.nombre, cedula:p.cedula, labor:p.labor || null};
+// Guarda un movimiento en la cola. "sinSync" = el que llama se encarga de guardar y sincronizar al final.
+async function registrar(tipo, p, imei = eqActual, sinSync = false){
+  const id = uuid();
+  const datos = limpio({imei, tipo, fecha_ingreso:new Date().toISOString(), nombre:p.nombre, cedula:p.cedula, labor:p.labor || null,
+                        estado:p.estado, observacion:p.observacion, adicionales:p.adicionales, con_foto:p.con_foto});
   E.cola.push({k:"asig", id, datos});
   E.historial.unshift({id, ...datos, usuario:E.usuario, sync:false}); E.historial = E.historial.slice(0, 200);
-  aplicarVigente({...datos, registrado_en:null});
-  await guardar(); pintarEquipo(); pintarHistorial(); pintarSync(); sincronizar();
+  aplicarVigente({...datos, id, usuario:E.usuario, registrado_en:null});
+  if (!sinSync){ await guardar(); if (eqActual) pintarEquipo(); pintarHistorial(); pintarSync(); pintarResumen(); sincronizar(); }
+  else { if (eqActual) pintarEquipo(); pintarHistorial(); }
+  return id;
+}
+
+/* ---------- Acta de entrega en el celular (mismo texto que la web) ---------- */
+let actaActual = null;
+function mostrarActa(regs){
+  actaActual = regs;
+  $("#actaAyuda").textContent = regs.length === 1 ? `Acta de ${regs[0].nombre} · ${nomEquipo(regs[0].imei)}.` : `${regs.length} actas (una página por equipo) de ${regs[0].nombre}.`;
+  $("#hActa").classList.remove("oculto");
+}
+$("#bActa").onclick = () => {
+  const a = asignado(eqActual);
+  mostrarActa([{...a, imei:eqActual, adic:a.adicionales ? a.adicionales.split(", ") : null}]);
+};
+$("#bCompartirActa").onclick = async () => {
+  const regs = actaActual; if (!regs) return;
+  const nombre = `Acta_${regs[0].nombre.replace(/\s+/g,"_")}_${regs[0].id ? regs[0].id.slice(0,8) : "copia"}.pdf`;
+  try {
+    const doc = generarActa(regs);
+    if (NAT && Pl.Filesystem && Pl.Share){
+      const f = await Pl.Filesystem.writeFile({path:nombre, data:doc.output("datauristring").split(",")[1], directory:"CACHE"});
+      await Pl.Share.share({title:nombre, text:"Acta de entrega de equipo", files:[f.uri], dialogTitle:"Compartir acta"});
+    } else doc.save(nombre);
+  } catch(err){ if (!/cancel/i.test(err.message)) aviso("No se pudo generar el acta: " + err.message); }
+};
+const pesos = n => "$" + Number(n).toLocaleString("es-CO");
+function generarActa(regs){
+  const { jsPDF } = window.jspdf, LOGO = document.querySelector(".logo").src;
+  const doc = new jsPDF({unit:"mm", format:"letter"});
+  regs.forEach((r, k) => {
+    if (k) doc.addPage();
+    const d = E.disp[r.imei] || {};
+    const W = 215.9, M = 25, ancho = W - 2*M; let y = 14;
+    doc.addImage(LOGO, "JPEG", M, y, 48, 17.6);
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(70);
+    ["NIT: 860.051.534-1","Conmutador: 6515760   Fax: 6515797","Plantación: Tumaco – Nariño","e-mail: tumaco@palmares.com.co","Cra 11 No. 82-01 Piso 5, Bogotá, D.C., Colombia","e-mail: ofbogota@palmares.com.co"]
+      .forEach((t,i) => doc.text(t, W-M, y+2.5+i*3.3, {align:"right"}));
+    y += 22; doc.setDrawColor(15,91,54); doc.setLineWidth(.6); doc.line(M, y, W-M, y); doc.setTextColor(20);
+    y += 12; doc.setFont("helvetica","bold"); doc.setFontSize(12.5);
+    doc.text(`ACTA DE ENTREGA${r.labor ? " - " + r.labor.toUpperCase() : ""}`, W/2, y, {align:"center"});
+    y += 10;
+    const nombre = (r.nombre||"").toUpperCase(), equipo = [d.marca,d.modelo].filter(Boolean).join(" ").toUpperCase() || "—";
+    const adic = r.adic ? ACTA.ADICIONALES.filter(([n]) => r.adic.includes(n)) : ACTA.ADICIONALES, totalAdic = adic.reduce((s,[,v]) => s+v, 0);
+    const P = [
+      [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(d.serial ? [[" serial número "],[d.serial,1],[" e IMEI "],[r.imei,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
+      [["Los bienes que acaban de ser entregados por la empresa y recibidos por el trabajador, es un medio e instrumento de trabajo y será utilizado única y exclusivamente para tal fin, quedándole expresamente prohibido al trabajador su utilización para fines u objetos diferentes a aquellos para los cuales se le entrega. Haciéndose responsable de su custodia, conservación, cuidado y aseo, además de cualquier daño, pérdida o avería que sufra el celular."]],
+      [["En cualquier momento Palmas de Tumaco S.A.S podrá solicitar la devolución del celular, caso en el cual será devuelta en el mismo estado que fue recibido, salvo el deterioro normal por el paso del tiempo y por su uso racional. Su no devolución, a solicitud de la empresa, se considera falta grave. De la misma manera, será devuelto a la terminación del contrato laboral existente entre las partes."]],
+      [["El bien está avaluado en la suma de "],[pesos(ACTA.VALOR),1],[" y los adicionales la suma de "],[pesos(totalAdic),1],...(adic.length ? [[" ("], ...adic.flatMap(([n,v],i) => [[n+": "],[pesos(v),1],[i<adic.length-1?", ":""]]), [")"]] : []),
+        [" y en caso de pérdida, hurto y/o extravío, daño o avería, el trabajador autoriza expresamente a Palmas de Tumaco S.A.S, el descuento del costo del arreglo o del valor del avalúo, de su salario, prestaciones sociales, vacaciones y demás acreencias laborales. En caso de retiro, el trabajador autoriza expresamente a la misma empresa para que descuente el mencionado valor, de los salarios y de las prestaciones sociales, tales como cesantías, intereses a las mismas, primas legales, compensación de vacaciones, bonificaciones, indemnizaciones, pagos por mera liberalidad y lo aplique a la cancelación del arreglo o a la reposición del equipo."]],
+      [["Se hace la entrega del equipo el "],[new Date(r.fecha_ingreso).toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"}) + "."]]
+    ];
+    doc.setFontSize(10.5);
+    for (const p of P){ y = parrafo(doc, p, M, y, ancho, 5.2) + 4.5; }
+    y = Math.max(y + 22, 222);
+    const col = ancho/2, cx = [M + col/2, M + col + col/2];
+    const img = r.firma && firmasMem[r.firma];
+    if (img){ const pr = doc.getImageProperties(img), alto = Math.min(20, 64 * pr.height / pr.width); doc.addImage(img, "PNG", cx[1] - (alto * pr.width / pr.height) / 2, y - alto - 1, alto * pr.width / pr.height, alto); }
+    doc.setFont("helvetica","bold"); doc.setFontSize(10);
+    doc.text("QUIEN ENTREGA", cx[0], y-24, {align:"center"}); doc.text("QUIEN RECIBE", cx[1], y-24, {align:"center"});
+    doc.setDrawColor(40); doc.setLineWidth(.3); cx.forEach(c => doc.line(c-34, y, c+34, y));
+    doc.text(ACTA.ENTREGA.nombre || "", cx[0], y+5, {align:"center"});
+    doc.text(nombre, cx[1], y+5, {align:"center", maxWidth:col-6});
+    doc.setFont("helvetica","normal");
+    doc.text(ACTA.ENTREGA.cargo || "", cx[0], y+10, {align:"center"});
+    doc.text("C.C. " + (r.cedula||""), cx[1], y+10, {align:"center"});
+    doc.setFontSize(7.5); doc.setTextColor(120);
+    doc.text(`Ref. ${r.id ? r.id.slice(0,8).toUpperCase() : "—"} · ${MOVS[r.tipo]||r.tipo||""} · registrado por ${r.usuario||E.usuario} (APK)${img ? " · firmada en el celular" : ""}`, M, 268);
+  });
+  return doc;
+}
+// Párrafo justificado con fragmentos en negrita (igual que en la web)
+function parrafo(doc, segs, x, y, w, lh){
+  const tok = []; let esp = false;
+  for (const [t,b] of segs) for (const p of String(t).split(/(\s+)/)) { if (!p) continue; if (/^\s+$/.test(p)) { esp = true; continue; } tok.push({t:p, b:!!b, esp: esp && tok.length>0}); esp = false; }
+  tok.forEach(k => { doc.setFont("helvetica", k.b ? "bold" : "normal"); k.w = doc.getTextWidth(k.t); });
+  doc.setFont("helvetica","normal"); const sp = doc.getTextWidth(" ");
+  const lineas = []; let lin = [], lw = 0;
+  for (const k of tok){ const add = (lin.length && k.esp ? sp : 0) + k.w; if (lin.length && lw + add > w){ lineas.push(lin); lin = [{...k, esp:false}]; lw = k.w; } else { lin.push(lin.length ? k : {...k, esp:false}); lw += add; } }
+  if (lin.length) lineas.push(lin);
+  lineas.forEach((l,i) => {
+    if (y > 262){ doc.addPage(); y = 25; }
+    const huecos = l.filter(k => k.esp).length, total = l.reduce((s,k) => s + k.w + (k.esp?sp:0), 0);
+    const extra = (i < lineas.length-1 && huecos) ? (w-total)/huecos : 0; let cx = x;
+    for (const k of l){ if (k.esp) cx += sp + extra; doc.setFont("helvetica", k.b ? "bold" : "normal"); doc.text(k.t, cx, y); cx += k.w; }
+    y += lh;
+  });
+  return y;
 }
 function pintarHistorial(){
   const h = E.historial.filter(x => x.usuario === E.usuario).slice(0, 25);

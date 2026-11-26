@@ -49,7 +49,19 @@
           ".validate": "newData.isString()"
         },
         "tipo": {
-          ".validate": "newData.val() === 'ASIGNACION' || newData.val() === 'REASIGNACION' || newData.val() === 'EDICION' || newData.val() === 'CAMBIO_LABOR'"
+          ".validate": "newData.val() === 'ASIGNACION' || newData.val() === 'REASIGNACION' || newData.val() === 'EDICION' || newData.val() === 'CAMBIO_LABOR' || newData.val() === 'DEVOLUCION' || newData.val() === 'DANO' || newData.val() === 'PERDIDA'"
+        },
+        "estado": {
+          ".validate": "newData.val() === 'Devuelto' || newData.val() === 'Dañado' || newData.val() === 'Perdido'"
+        },
+        "adicionales": {
+          ".validate": "newData.isString() && newData.val().length <= 300"
+        },
+        "firma": {
+          ".validate": "newData.isString() && newData.val().length <= 60"
+        },
+        "con_foto": {
+          ".validate": "newData.isBoolean()"
         },
         "labor": {
           ".validate": "newData.val() === 'Aplicador' || newData.val() === 'Sanidad' || newData.val() === 'Mantenimiento' || newData.val() === 'Cosecha' || newData.val() === 'Fertilización' || newData.val() === 'Reubicado' || newData.val() === 'Supervisor' || newData.val() === 'Administrativo'"
@@ -72,6 +84,20 @@
         "$otro": {
           ".validate": false
         }
+      }
+    },
+    "firmas": {
+      "$id": {
+        ".read": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true",
+        ".write": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['imagen','usuario','registrado_en']) && newData.child('imagen').isString() && newData.child('imagen').val().beginsWith('data:image/png;base64,') && newData.child('imagen').val().length <= 300000 && newData.child('registrado_en').val() === now && newData.child('usuario').val() === root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('username').val()"
+      }
+    },
+    "evidencias": {
+      "$id": {
+        ".read": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true",
+        ".write": "auth != null && root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('activo').val() === true && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['imagen','usuario','registrado_en']) && newData.child('imagen').isString() && newData.child('imagen').val().beginsWith('data:image/jpeg;base64,') && newData.child('imagen').val().length <= 600000 && newData.child('registrado_en').val() === now && newData.child('usuario').val() === root.child('codigos').child(root.child('sesiones').child(auth.uid).child('hash').val()).child('username').val()"
       }
     },
     "personal": {

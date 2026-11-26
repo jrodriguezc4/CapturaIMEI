@@ -21,7 +21,13 @@ Asignación de celulares a trabajadores de campo: APK Android + página web + ba
 - Cada cambio en la carpeta `apk/` que llega a `main` construye un APK nuevo y lo publica en **Releases** como `v1.0.N` (N sube solo).
 - La APK muestra su versión (abajo en el ingreso y arriba junto al nombre) y, con internet, revisa si hay una más nueva: aparece una franja naranja **"Versión nueva disponible"**; al tocarla se descarga e instala encima, sin perder datos.
 - Todos los APK se firman con la misma llave (secreto `ANDROID_DEBUG_KEYSTORE` del repositorio; copia de respaldo en `Documentos\CapturaIMEI-firma`, que **no** se sube a GitHub). Si esa llave cambia, hay que desinstalar la app una vez.
-- Diseños propuestos para próximas mejoras: [`docs/mejoras-futuras.png`](docs/mejoras-futuras.png).
+- Diseños de las mejoras (ya aplicadas en la APK): [`docs/mejoras-futuras.png`](docs/mejoras-futuras.png).
+
+## Funciones de la APK (versión con mejoras)
+- **Resumen de hoy**: al entrar se ven los equipos asignados hoy, los pendientes por enviar, los equipos en campo, los que están en bodega y el reparto por labor.
+- **Lote**: *Agregar al lote* (equipo por equipo) o *Escanear varios* (la cámara se vuelve a abrir sola después de cada IMEI; se termina con Atrás). Luego *Asignar los N equipos* a un trabajador o *Devolver a bodega*.
+- **Firma y acta**: al asignar, se marcan los adicionales que recibe y el trabajador firma con el dedo. Se genera el acta PDF en el celular (sin internet) y se comparte por WhatsApp o correo. La firma también aparece en el acta que se descarga desde la web.
+- **Estado del equipo**: *Reportar devolución, daño o pérdida*, con observación y foto de evidencia. Devuelto y Perdido dejan el equipo sin trabajador; Dañado lo deja asignado pero marcado. La ficha muestra la línea de tiempo del equipo y avisa si el trabajador ya tiene otro equipo.
 
 ## Etapa 1: el APK en el celular (modo demo)
 1. Pestaña **Actions** → **Construir APK** → espera el círculo verde (unos 8 minutos).

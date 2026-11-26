@@ -322,7 +322,9 @@ const FBC = CFG.FIREBASE || {};
 const DEMO = !FBC.databaseURL || FBC.databaseURL.includes("TU_PROYECTO");
 const LABORES = ["Aplicador","Sanidad","Mantenimiento","Cosecha","Fertilización","Reubicado","Supervisor","Administrativo"];
 const COLORES = {"Aplicador":"#2479B8","Sanidad":"#B4235A","Mantenimiento":"#7A5AF8","Cosecha":"#D9692A","Fertilización":"#2E8B3F","Reubicado":"#0E8A8A","Supervisor":"#A15C07","Administrativo":"#5B6B61"};
-const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor"};
+const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor",DEVOLUCION:"Devolución a bodega",DANO:"Daño reportado",PERDIDA:"Pérdida"};
+const LIBERA = t => t === "DEVOLUCION" || t === "PERDIDA";   // después de estos, el equipo queda sin trabajador
+const ES_ESTADO = t => LIBERA(t) || t === "DANO";
 const LOGO = document.querySelector(".logo").src;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -523,7 +525,7 @@ async function cargar(){
   try {
     S.datos = await api("listar_registros", {p_token:S.sesion.token}) || [];
     const vistos = new Set();
-    for (const r of S.datos){ r.vigente = !vistos.has(r.imei); vistos.add(r.imei); }
+    for (const r of S.datos){ r.vigente = !vistos.has(r.imei); vistos.add(r.imei); r.libre = LIBERA(r.tipo); }
     $("#actualizado").textContent = "Actualizado " + new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
     pintar();
     await cargarPersonal();
@@ -548,7 +550,7 @@ function filtrados(){
 }
 
 function pintarAreas(){
-  const vig = S.datos.filter(r => r.vigente);
+  const vig = S.datos.filter(r => r.vigente && !r.libre);
   const cuenta = l => vig.filter(r => l === "__sin" ? !r.labor : r.labor === l).length;
   const tiles = [["", "Todas las áreas", vig.length, "todas"], ...LABORES.map(l => [l, l, cuenta(l), ""])];
   const sin = cuenta("__sin"); if (sin) tiles.push(["__sin","Sin labor",sin,""]);
@@ -570,14 +572,14 @@ function pintar(){
       <td class="nombre">${esc(r.nombre)}</td>
       <td>${esc(r.cedula)}</td>
       <td>${r.labor ? `<span class="labor" style="--c:${COLORES[r.labor]||"#5B6B61"}">${esc(r.labor)}</span>` : '<span class="mov">Sin labor</span>'}</td>
-      <td class="mov">${esc(MOVS[r.tipo]||r.tipo)}</td>
+      <td class="mov">${r.tipo === "DANO" || r.tipo === "PERDIDA" ? `<b style="color:#B42318">${esc(MOVS[r.tipo])}</b>` : esc(MOVS[r.tipo]||r.tipo)}${r.observacion ? `<br><small>${esc(r.observacion)}</small>` : ""}${r.firma ? "<br><small>✍ Firmada en el celular</small>" : ""}</td>
       <td>${esc([r.marca,r.modelo].filter(Boolean).join(" "))}</td>
       <td class="mono">${esc(r.imei)}</td>
       <td class="mono">${esc(r.imei2)}</td>
       <td class="mono">${esc(r.serial)}</td>
       <td class="mov">${esc(r.usuario)} (${r.origen==="apk"?"APK":"web"})</td>
-      <td><div class="acc"><button class="btn" data-a="ver" type="button">Ver</button><button class="btn" data-a="pdf" type="button">Descargar</button></div></td>
-      <td><div class="acc">${r.vigente ? '<button class="btn" data-a="editar" type="button">Editar</button><button class="btn" data-a="otro" type="button">Asignar a otro</button>' : '<span class="mov">Histórico</span>'}</div></td>
+      <td><div class="acc">${ES_ESTADO(r.tipo) ? (r.con_foto ? '<button class="btn" data-a="foto" type="button">Ver foto</button>' : '<span class="mov">Sin acta</span>') : '<button class="btn" data-a="ver" type="button">Ver</button><button class="btn" data-a="pdf" type="button">Descargar</button>'}</div></td>
+      <td><div class="acc">${!r.vigente ? '<span class="mov">Histórico</span>' : r.libre ? `<span class="mov">${r.tipo === "PERDIDA" ? "Perdido" : "En bodega"}</span><button class="btn" data-a="otro" type="button">Asignar</button>` : '<button class="btn" data-a="editar" type="button">Editar</button><button class="btn" data-a="otro" type="button">Asignar a otro</button>'}</div></td>
     </tr>`).join("");
   const v = $("#vacio");
   v.classList.toggle("oculto", lista.length > 0);
@@ -592,8 +594,18 @@ document.querySelectorAll("[data-vista]").forEach(b => b.onclick = () => {
 $("#filas").addEventListener("click", e => {
   const b = e.target.closest("button[data-a]"); if(!b) return;
   const r = S.datos.find(x => String(x.id) === b.closest("tr").dataset.id);
-  ({ver:()=>verPdf(r), pdf:()=>acta(r).save(nombrePdf(r)), editar:()=>abrirReg(r,"EDICION"), otro:()=>abrirReg(r,"REASIGNACION")})[b.dataset.a]();
+  ({ver:()=>verPdf(r), pdf:async()=>(await acta(r)).save(nombrePdf(r)), foto:()=>verFoto(r), editar:()=>abrirReg(r,"EDICION"), otro:()=>abrirReg(r,"REASIGNACION")})[b.dataset.a]();
 });
+// Imágenes guardadas desde la APK (firma del trabajador y foto de evidencia)
+async function imagen(nodo, id){
+  if (DEMO || !id) return null;
+  try { const x = await FB.db(S.sesion, "GET", nodo + "/" + id); return x && x.imagen; } catch(_){ return null; }
+}
+async function verFoto(r){
+  const src = await imagen("evidencias", r.id);
+  if (!src) { aviso(DEMO ? "En modo demo no hay fotos guardadas." : "La foto aún no ha llegado desde el celular."); return; }
+  const blob = await (await fetch(src)).blob(); window.open(URL.createObjectURL(blob), "_blank");
+}
 
 /* ---------------- Editar / Asignar a otro ---------------- */
 $("#rLabor").innerHTML = '<option value="">Sin labor</option>' + LABORES.map(l => `<option>${l}</option>`).join("");
@@ -630,7 +642,8 @@ $("#fReg").addEventListener("submit", async e => {
 
 /* ---------------- Acta PDF ---------------- */
 const nombrePdf = r => `Acta_${r.acta}_${(r.nombre||"").replace(/\s+/g,"_")}.pdf`;
-function acta(r){
+async function acta(r){
+  const firma = await imagen("firmas", r.firma);
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:"mm", format:"letter"});
   const W = 215.9, M = 25, ancho = W - 2*M; let y = 14;
@@ -648,7 +661,8 @@ function acta(r){
   doc.text(`ACTA DE ENTREGA N° ${r.acta}${r.labor ? " - " + r.labor.toUpperCase() : ""}`, W/2, y, {align:"center"});
   y += 10;
   const nombre = (r.nombre||"").toUpperCase(), equipo = [r.marca,r.modelo].filter(Boolean).join(" ").toUpperCase() || "—";
-  const adic = CFG.ADICIONALES || [], totalAdic = adic.reduce((s,[,v]) => s+v, 0);
+  const todos = CFG.ADICIONALES || [], recibidos = r.adicionales ? r.adicionales.split(", ") : null;
+  const adic = recibidos ? todos.filter(([n]) => recibidos.includes(n)) : todos, totalAdic = adic.reduce((s,[,v]) => s+v, 0);
   const P = [
     [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(r.serial ? [[" serial número "],[r.serial,1],[" e IMEI "],[r.imei,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
     [["Los bienes que acaban de ser entregados por la empresa y recibidos por el trabajador, es un medio e instrumento de trabajo y será utilizado única y exclusivamente para tal fin, quedándole expresamente prohibido al trabajador su utilización para fines u objetos diferentes a aquellos para los cuales se le entrega. Haciéndose responsable de su custodia, conservación, cuidado y aseo, además de cualquier daño, pérdida o avería que sufra el celular."]],
@@ -663,6 +677,7 @@ function acta(r){
   // Firmas
   y = Math.max(y + 22, 222);
   const col = ancho/2, cx = [M + col/2, M + col + col/2];
+  if (firma){ try { const pr = doc.getImageProperties(firma), alto = Math.min(20, 64 * pr.height / pr.width), an = alto * pr.width / pr.height; doc.addImage(firma, "PNG", cx[1] - an/2, y - alto - 1, an, alto); } catch(_){} }
   doc.setFont("helvetica","bold"); doc.setFontSize(10);
   doc.text("QUIEN ENTREGA", cx[0], y-24, {align:"center"}); doc.text("QUIEN RECIBE", cx[1], y-24, {align:"center"});
   doc.setDrawColor(40); doc.setLineWidth(.3);
@@ -696,13 +711,13 @@ function parrafo(doc, segs, x, y, w, lh){
   return y;
 }
 let pdfUrl = null, pdfReg = null;
-function verPdf(r){
+async function verPdf(r){
   pdfReg = r; if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-  pdfUrl = URL.createObjectURL(acta(r).output("blob"));
+  pdfUrl = URL.createObjectURL((await acta(r)).output("blob"));
   $("#dPdfTitulo").textContent = `Acta N° ${r.acta}, ${r.nombre}`;
   $("#pdfMarco").src = pdfUrl; $("#dPdf").showModal();
 }
-$("#bPdfDesc").onclick = () => acta(pdfReg).save(nombrePdf(pdfReg));
+$("#bPdfDesc").onclick = async () => (await acta(pdfReg)).save(nombrePdf(pdfReg));
 $("#bPdfCerrar").onclick = () => $("#dPdf").close();
 
 /* ---------------- Exportar a Excel ---------------- */
@@ -713,7 +728,7 @@ function guardarExcel(filas, hoja, archivo, anchos){
   XLSX.writeFile(wb, archivo);
 }
 $("#bCsv").onclick = () => {
-  const cols = [["N° acta","acta"],["Fecha ingreso",r=>fFecha(r.fecha_ingreso)],["Nombre","nombre"],["Cédula","cedula"],["Labor","labor"],["Movimiento",r=>MOVS[r.tipo]],["Marca","marca"],["Modelo","modelo"],["IMEI 1","imei"],["IMEI 2","imei2"],["SN","serial"],["Registró","usuario"],["Origen","origen"],["Vigente",r=>r.vigente?"Sí":"No"],["Observación","observacion"]];
+  const cols = [["N° acta","acta"],["Fecha ingreso",r=>fFecha(r.fecha_ingreso)],["Nombre","nombre"],["Cédula","cedula"],["Labor","labor"],["Movimiento",r=>MOVS[r.tipo]],["Marca","marca"],["Modelo","modelo"],["IMEI 1","imei"],["IMEI 2","imei2"],["SN","serial"],["Registró","usuario"],["Origen","origen"],["Vigente",r=>r.vigente?"Sí":"No"],["Estado","estado"],["Adicionales","adicionales"],["Firmada",r=>r.firma?"Sí":""],["Observación","observacion"]];
   const val = (r,c) => typeof c === "function" ? c(r) : r[c];
   guardarExcel([cols.map(c => c[0]), ...filtrados().map(r => cols.map(c => { const v = val(r,c[1]); return v == null ? "" : String(v); }))],
     "Asignaciones", `dispositivos_${new Date().toLocaleDateString("en-CA")}.xlsx`, [9,17,30,13,15,16,12,14,18,18,16,14,8,8,30]);
