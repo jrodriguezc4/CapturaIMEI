@@ -25,8 +25,9 @@ Los archivos Excel (`*.xlsx`) **nunca** se suben a este repositorio (es público
    - *Permissions* → *Repository permissions* → **Contents: Read and write**.
    - Vencimiento: el más largo que permita. Cuando venza, se crea otro y se repite el paso 2.
 2. **Configuración inicial** en la web: *Configuración inicial (administrador)* → pega el token, tu usuario (`jrodriguezc`), tu nombre y tu contraseña (la del Excel). El token queda cifrado con tu contraseña.
-3. Entra a la web → **Usuarios** → **Crear usuarios desde Excel** → sube `Credenciales Usuarios.xlsx`. Se abre una hoja con el **QR de activación** de cada persona (sin contraseñas). Imprímela o envía a cada uno su QR.
-4. Cada persona instala la APK (QR de arriba) → **Activar este teléfono** → escanea su QR → entra con su usuario y contraseña.
+3. Entra a la web → **Usuarios** → **Crear usuarios desde Excel** → sube `Credenciales Usuarios.xlsx` (reconoce por cédula a los usuarios que ya existen). Al terminar aparece el **QR para preparar celulares**.
+4. En cada uno de los 7 celulares autorizados (una sola vez): instala la APK → **toca 5 veces el logo** → **Escanear QR** → escanea ese QR. Desde ahí cada persona entra solo con su **usuario y contraseña**.
+   - Cambiar una contraseña, crear o desactivar un usuario se hace en la web; los celulares se actualizan solos al sincronizar.
 
 El personal de campo (347 personas de `Personal Palmaco.xlsx`) ya está cargado. Para actualizarlo: web → *Personal de campo* → *Subir Excel*.
 

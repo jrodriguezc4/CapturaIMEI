@@ -122,7 +122,7 @@ async function traerCambios(repo, estado, alArchivo){
   estado.shas = estado.shas || {};
   const a = await repo.arbol(estado.etag);
   if (!a) return false;
-  const rutas = Object.keys(a.archivos).filter(r => r === "usuarios.json" || /^registros\/.+\.json$/.test(r) || /^firmas\/usuarios\/[^/]+\.png$/.test(r)).sort();
+  const rutas = Object.keys(a.archivos).filter(r => r === "usuarios.json" || r === "accesos.json" || /^registros\/.+\.json$/.test(r) || /^firmas\/usuarios\/[^/]+\.png$/.test(r)).sort();
   for (const ruta of rutas){
     const sha = a.archivos[ruta];
     if (estado.shas[ruta] === sha) continue;
@@ -198,9 +198,11 @@ function limpiarFirma(img, anchoMax = 900){
 }
 
 /* Códigos de activación: el token de GitHub cifrado con el código de ingreso del usuario */
-const PREFIJO = "CIMEI1.";
+const PREFIJO = "CIMEI1.";            // acceso de un usuario
+const PREFIJO_EQUIPO = "CIMEIE1.";    // "QR para preparar celulares": accesos de todos los usuarios autorizados
 const b64url = t => t.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const desdeB64url = t => { t = t.replace(/-/g, "+").replace(/_/g, "/"); return t + "===".slice((t.length + 3) % 4); };
+const repoConfig = () => (window.APP_CONFIG && window.APP_CONFIG.DATOS && window.APP_CONFIG.DATOS.repo) || "jrodriguezc4/CapturaIMEI-datos";
 async function clave(codigo, sal){
   const base = await crypto.subtle.importKey("raw", new TextEncoder().encode("palmas-tumaco:" + String(codigo).trim()), "PBKDF2", false, ["deriveKey"]);
   return crypto.subtle.deriveKey({name:"PBKDF2", salt:sal, iterations:150000, hash:"SHA-256"}, base, {name:"AES-GCM", length:256}, false, ["encrypt", "decrypt"]);
@@ -208,7 +210,9 @@ async function clave(codigo, sal){
 const Acceso = {
   async crear({usuario, nombre, rol, codigo, repo, token}){
     const sal = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
-    const c = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv}, await clave(codigo, sal), new TextEncoder().encode(JSON.stringify({repo, token}))));
+    // Solo se cifra el token (el repositorio de datos ya está en la configuración): así el QR de preparación es pequeño
+    const extra = repo && repo !== repoConfig() ? {repo} : {};
+    const c = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv}, await clave(codigo, sal), new TextEncoder().encode(JSON.stringify({t:token, ...extra}))));
     const p = {v:1, u:usuario, n:nombre || "", r:rol || "usuario", s:bytesAb64(sal), i:bytesAb64(iv), c:bytesAb64(c)};
     return PREFIJO + b64url(textoAb64(JSON.stringify(p)));
   },
@@ -218,10 +222,31 @@ const Acceso = {
     try { const p = JSON.parse(b64aTexto(desdeB64url(t.slice(PREFIJO.length)))); if (!p.u || !p.c) throw 0; return p; }
     catch(_){ throw new Error("ACTIVACION_INVALIDA"); }
   },
+  // Lee un QR de preparación (todos los usuarios) o el de un solo usuario. Devuelve {usuario: acceso}
+  leerVarios(texto){
+    const t = String(texto || "").trim().replace(/\s/g, "");
+    if (t.startsWith(PREFIJO_EQUIPO)){
+      try {
+        const d = JSON.parse(String(texto).trim().slice(PREFIJO_EQUIPO.length)), out = {};
+        for (const [u, x] of Object.entries(d.u || {})) out[u] = {v:1, u, s:x.s, i:x.i, c:x.c};
+        if (!Object.keys(out).length) throw 0;
+        return out;
+      } catch(_){ throw new Error("ACTIVACION_INVALIDA"); }
+    }
+    const p = Acceso.leer(t); return {[p.u]: p};
+  },
+  // Arma el QR de preparación a partir de accesos.json (solo lo indispensable de cada acceso, para que quepa en un QR)
+  equipo(usuarios){
+    const u = {}; for (const [k, p] of Object.entries(usuarios)) u[k] = {s:p.s, i:p.i, c:p.c};
+    return PREFIJO_EQUIPO + JSON.stringify({v:1, u});
+  },
+  // Acceso (objeto) a partir del texto CIMEI1.
+  objeto(texto){ return Acceso.leer(texto); },
   async abrir(p, codigo){
     try {
       const plano = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64aBytes(p.i)}, await clave(codigo, b64aBytes(p.s)), b64aBytes(p.c));
-      return JSON.parse(new TextDecoder().decode(plano));
+      const x = JSON.parse(new TextDecoder().decode(plano));
+      return {repo:x.repo || repoConfig(), token:x.token || x.t};
     } catch(_){ throw new Error("CODIGO_INCORRECTO"); }
   }
 };
@@ -233,7 +258,7 @@ const MENSAJES = {
   TOKEN_SIN_ESCRITURA:"El token puede leer pero no guardar. En GitHub dale permiso \"Contents: Read and write\".",
   CONFLICTO_GITHUB:"Muchos cambios al mismo tiempo. Se volverá a intentar en la próxima sincronización.",
   ACTIVACION_INVALIDA:"Ese código de activación no es válido. Pide uno nuevo al administrador.",
-  CODIGO_INCORRECTO:"Usuario o código incorrecto.", USUARIO_INACTIVO:"Tu usuario fue desactivado. Habla con el administrador."
+  CODIGO_INCORRECTO:"Usuario o contraseña incorrectos.", USUARIO_INACTIVO:"Tu usuario fue desactivado. Habla con el administrador."
 };
 const mensaje = e => { const m = String(e && e.message || e); return MENSAJES[m] || m; };
 

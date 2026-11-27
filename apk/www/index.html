@@ -188,18 +188,19 @@ main{padding:14px 14px 40px}
   <form id="fIngreso">
     <label for="iUsuario">Usuario</label>
     <input id="iUsuario" autocapitalize="none" autocomplete="username" required>
-    <label for="iCodigo">Código (contraseña)</label>
+    <label for="iCodigo">Contraseña</label>
     <input id="iCodigo" type="password" autocomplete="current-password" required>
     <button class="btn primario" type="submit" id="bIngresar">Ingresar</button>
     <div class="error" id="eIngreso" role="alert"></div>
   </form>
-  <button class="btn" type="button" id="bMostrarAct">Activar este teléfono</button>
+  <!-- Solo para el administrador: se abre tocando 5 veces el logo. Prepara el celular una sola vez para los usuarios autorizados. -->
   <div id="activar" class="oculto">
-    <p class="ayuda">La primera vez, cada usuario activa el teléfono con el código de activación que le da el administrador (código QR o texto).</p>
-    <button class="btn primario" type="button" id="bEscanearAct">📷 Escanear QR de activación</button>
-    <label for="tAct">O pega el código de activación</label>
-    <textarea id="tAct" rows="3" placeholder="CIMEI1...." autocapitalize="none" spellcheck="false"></textarea>
-    <button class="btn" type="button" id="bActivar">Activar</button>
+    <h2 style="margin-top:18px">Preparar este celular (administrador)</h2>
+    <p class="ayuda">Escanea el "QR para preparar celulares" de la web (Usuarios). Después cada persona entra con su usuario y contraseña.</p>
+    <button class="btn primario" type="button" id="bEscanearAct">📷 Escanear QR</button>
+    <label for="tAct">O pega el código</label>
+    <textarea id="tAct" rows="3" placeholder="CIMEIE1...." autocapitalize="none" spellcheck="false"></textarea>
+    <button class="btn" type="button" id="bActivar">Preparar</button>
     <div class="error" id="eAct" role="alert"></div>
   </div>
   <p class="version" id="verIngreso"></p>
@@ -469,15 +470,22 @@ const limpio = o => Object.fromEntries(Object.entries(o).filter(([,v]) => v !== 
 /* ---------- Activación del teléfono ----------
    El administrador crea el usuario en la web y le entrega un código de activación (QR o texto).
    Ese código lleva el acceso al repositorio de datos, cifrado con el código de ingreso del usuario. */
-$("#bMostrarAct").onclick = () => { $("#activar").classList.toggle("oculto"); $("#eAct").textContent = ""; };
+// Opción oculta del administrador: tocar 5 veces el logo
+let toquesLogo = 0, tiempoLogo = 0;
+$("#vIngreso .logo").addEventListener("click", () => {
+  const ahora = Date.now(); toquesLogo = ahora - tiempoLogo < 1500 ? toquesLogo + 1 : 1; tiempoLogo = ahora;
+  if (toquesLogo >= 5){ toquesLogo = 0; $("#activar").classList.toggle("oculto"); $("#eAct").textContent = ""; }
+});
 async function activar(texto){
   $("#eAct").textContent = "";
   try {
-    const p = Datos.Acceso.leer(texto);
-    E.accesos[p.u] = p; await guardar();
-    $("#iUsuario").value = p.u; $("#tAct").value = ""; $("#activar").classList.add("oculto");
-    $("#eIngreso").textContent = ""; aviso(`Teléfono activado para ${p.n || p.u}. Escribe tu código para entrar.`);
-    $("#iCodigo").focus();
+    const varios = Datos.Acceso.leerVarios(texto), nombres = Object.keys(varios);
+    if (!nombres.length) throw new Error("ACTIVACION_INVALIDA");
+    Object.assign(E.accesos, varios); await guardar();
+    $("#tAct").value = ""; $("#activar").classList.add("oculto"); $("#eIngreso").textContent = "";
+    if (nombres.length === 1) $("#iUsuario").value = nombres[0];
+    aviso(`Celular preparado para ${nombres.length} ${nombres.length === 1 ? "usuario" : "usuarios"}. Ya pueden entrar con su usuario y contraseña.`);
+    $("#iUsuario").focus();
   } catch(err){ $("#eAct").textContent = Datos.mensaje(err); }
 }
 $("#bActivar").onclick = () => activar($("#tAct").value);
@@ -500,7 +508,7 @@ $("#fIngreso").addEventListener("submit", async e => {
   $("#eIngreso").textContent = ""; $("#bIngresar").disabled = true;
   try {
     const p = E.accesos[u];
-    if (!p){ $("#activar").classList.remove("oculto"); throw new Error("Este teléfono aún no está activado para " + u + ". Escanea o pega tu código de activación."); }
+    if (!p) throw new Error(Object.keys(E.accesos).length ? "Usuario o contraseña incorrectos." : "Este celular aún no está preparado. Pide al administrador que lo prepare (una sola vez).");
     const acc = await Datos.Acceso.abrir(p, cod);
     const {inactivo, error, ...previa} = E.cuentas[u] || {};
     E.cuentas[u] = {...previa, nombre:previa.nombre || p.n || u, rol:previa.rol || p.r, repo:acc.repo, token:acc.token, valida:true};
@@ -610,6 +618,11 @@ async function sincronizar(manual){
     //    Si el teléfono no tiene la lista de usuarios/responsables, se vuelve a pedir aunque no haya cambios.
     if (!E.usuarios || !Object.keys(E.usuarios).length){ E.gh.etag = null; delete E.gh.shas["usuarios.json"]; }
     await Datos.traerCambios(repo, E.gh, async (ruta, datos) => {
+      if (ruta === "accesos.json"){   // accesos de los usuarios autorizados: contraseñas nuevas, usuarios nuevos o desactivados
+        const nuevos = (datos && datos.usuarios) || null;
+        if (nuevos && Object.keys(nuevos).length){ E.accesos = {...nuevos}; }
+        return;
+      }
       if (ruta.startsWith("firmas/usuarios/")){       // firma guardada de un responsable (se usa sola en el acta)
         E.firmasUsuarios = E.firmasUsuarios || {};
         E.firmasUsuarios[ruta.slice(16, -4)] = datos.png;

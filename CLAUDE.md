@@ -16,7 +16,7 @@ Registro de qué celular de la empresa tiene cada trabajador de campo. Sin Fireb
 - `firmas/<id>.png`, `evidencias/<id>.jpg`, `firmas/usuarios/<usuario>.png` (firma guardada de un responsable; sale sola en sus actas).
 - Tipos: ASIGNACION, REASIGNACION, EDICION, CAMBIO_LABOR, DEVOLUCION, DANO, PERDIDA, REPARACION (DEVOLUCION, PERDIDA y REPARACION dejan el equipo libre; cedula "-" = BODEGA). Estado de inventario: `Datos.estadoInventario` (activo, bodega, danado, perdido, reparacion). Novedades: tablas NOVEDADES / NOVEDADES_POR_ESTADO en los dos HTML.
 - Pueden entregar actas: `Datos.PUEDE_ENTREGAR(cargo)` (JEFE, COORDINADOR, ANALISTA, INGENIERO) o `entrega:true`.
-- Acceso: el token fine-grained (solo ese repo, Contents RW) va cifrado con la contraseña de cada usuario en su código de activación (QR). Nunca poner un token en el código ni en `config.js`.
+- Acceso: el token fine-grained (solo ese repo, Contents RW) va cifrado con la contraseña de cada usuario (AES-GCM/PBKDF2). `accesos.json` (repo privado) guarda los accesos cifrados de todos; la web lo actualiza al crear/cambiar/desactivar usuarios y los celulares lo descargan al sincronizar. Un celular nuevo se prepara una vez: 5 toques al logo → QR "CIMEIE1." (web → Usuarios → QR para preparar celulares). La APK solo muestra usuario y contraseña. Nunca publicar accesos fuera del repo privado ni poner un token en el código.
 
 ## Reglas importantes
 - NUNCA subir Excel ni datos personales a este repositorio (es público). `*.xlsx` está en `.gitignore`. Nunca mostrar contraseñas en la conversación.

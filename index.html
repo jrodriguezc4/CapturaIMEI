@@ -167,7 +167,7 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
       <textarea id="tActWeb" rows="3" spellcheck="false" placeholder="CIMEI1...." style="width:100%;font:13px ui-monospace,monospace;padding:8px;border-radius:8px;border:1px solid var(--linea)"></textarea>
       <button class="btn ancho" type="button" id="bActWeb">Activar este navegador</button>
     </div>
-    <p style="font-size:13px;margin-top:14px;text-align:center"><a href="#" id="lActWeb">Tengo un código de activación</a> · <a href="#" id="lConfig">Configuración inicial (administrador)</a></p>
+    <p style="font-size:13px;margin-top:14px;text-align:center"><a href="#" id="lActWeb">Preparar este navegador</a> · <a href="#" id="lConfig">Configuración inicial (administrador)</a></p>
   </form>
 </section>
 
@@ -359,7 +359,7 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
 <dialog id="dUsr" class="grande" style="height:auto">
   <header><h2>Usuarios y códigos de ingreso</h2><button class="x" type="button" id="bUsrCerrar" aria-label="Cerrar">×</button></header>
   <div class="cuerpo" style="padding:6px 20px 20px;height:auto">
-    <p style="color:var(--suave);font-size:14px;margin:8px 0 0">Al crear un usuario (o cambiarle el código) se muestra su <b>código de activación</b> con QR: el trabajador lo escanea en la APK una sola vez y luego entra con su usuario y su código. El código de ingreso no se guarda en ningún lado: anótalo y entrégalo a la persona.</p>
+    <p style="color:var(--suave);font-size:14px;margin:8px 0 0">Cada persona entra a la APK y a la web solo con su <b>usuario y contraseña</b>. Un celular nuevo se prepara <b>una sola vez</b>: en la APK toca 5 veces el logo y escanea el <b>QR para preparar celulares</b>. Si cambias una contraseña, creas o desactivas un usuario, los celulares se actualizan solos al sincronizar. Las contraseñas no se guardan en ningún lado.</p>
     <form id="fUsr" class="rejilla" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-items:end">
       <div><label for="uUser">Usuario</label><input id="uUser" required autocapitalize="none" pattern="[A-Za-z0-9_\-]{3,30}"></div>
       <div><label for="uNombre">Nombre</label><input id="uNombre"></div>
@@ -368,6 +368,7 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
       <div><button class="btn primario" style="width:100%;padding:10px" type="submit">Guardar usuario</button></div>
     </form>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <button class="btn primario" type="button" id="bQrEquipo">QR para preparar celulares</button>
       <button class="btn" type="button" id="bUsrExcel">Crear usuarios desde Excel</button>
       <span style="color:var(--suave);font-size:13px;align-self:center">Columnas: NOMBRE, CEDULA, CARGO, USUARIO, CONTRASEÑA. Las contraseñas no se guardan: solo se usan en este navegador para crear los códigos de activación.</span>
       <input type="file" id="fileU" accept=".xlsx,.xls,.csv" class="oculto">
@@ -497,9 +498,25 @@ async function apiGitHub(fn, a){
         n.actualizado_en = ahora; doc.usuarios[un] = final = n;
         return doc;
       }, `${s.username}: usuario ${un}`);
+      // Acceso cifrado con la contraseña (accesos.json, repositorio privado): los celulares preparados lo reciben al sincronizar
+      let activacion = null;
+      if (cod) activacion = await Datos.Acceso.crear({usuario:un, nombre:final.nombre, rol:final.rol, codigo:cod, repo:s.repo, token:s.token});
+      if (activacion || final.activo === false){
+        await repoActual().guardarJSON("accesos.json", actual => {
+          const doc = actual && actual.usuarios ? actual : {usuarios:{}};
+          if (final.activo === false) delete doc.usuarios[un];      // desactivado: ya no puede entrar
+          else doc.usuarios[un] = Datos.Acceso.objeto(activacion);
+          return doc;
+        }, `${s.username}: acceso de ${un}`);
+      }
       G.estado.etag = null;      // volver a leer usuarios.json en la próxima consulta
-      if (!cod) return null;
-      return {usuario:un, nombre:final.nombre, activacion: await Datos.Acceso.crear({usuario:un, nombre:final.nombre, rol:final.rol, codigo:cod, repo:s.repo, token:s.token})};
+      return activacion ? {usuario:un, nombre:final.nombre, activacion} : null;
+    }
+    case "qr_equipo": {          // QR para preparar celulares: accesos de todos los usuarios activos
+      const a2 = await repoActual().leerArchivo("accesos.json");
+      const doc = a2 ? JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(a2.b64.replace(/\s/g, "")), c => c.charCodeAt(0)))) : {usuarios:{}};
+      const activos = usuariosJSON(), usuarios = Object.fromEntries(Object.entries(doc.usuarios || {}).filter(([u]) => activos[u] && activos[u].activo !== false));
+      return {total:Object.keys(usuarios).length, sin:Object.keys(activos).filter(u => activos[u].activo !== false && !usuarios[u]), texto:Datos.Acceso.equipo(usuarios)};
     }
   }
 }
@@ -511,9 +528,11 @@ const guardarAcceso = p => { const a = leerAccesos(); a[p.u] = p; try { localSto
 $("#lActWeb").onclick = e => { e.preventDefault(); $("#activarWeb").classList.toggle("oculto"); };
 $("#bActWeb").onclick = () => {
   try {
-    const p = Datos.Acceso.leer($("#tActWeb").value); guardarAcceso(p);
-    $("#iUser").value = p.u; $("#tActWeb").value = ""; $("#activarWeb").classList.add("oculto"); $("#eIngreso").textContent = "";
-    aviso("Navegador activado para " + (p.n || p.u) + ". Escribe tu código."); $("#iCod").focus();
+    const varios = Datos.Acceso.leerVarios($("#tActWeb").value), nombres = Object.keys(varios);
+    nombres.forEach(u => guardarAcceso(varios[u]));
+    if (nombres.length === 1) $("#iUser").value = nombres[0];
+    $("#tActWeb").value = ""; $("#activarWeb").classList.add("oculto"); $("#eIngreso").textContent = "";
+    aviso(`Navegador preparado para ${nombres.length} ${nombres.length === 1 ? "usuario" : "usuarios"}. Entra con tu usuario y contraseña.`); $("#iUser").focus();
   } catch(err){ $("#eIngreso").textContent = mensaje(err); }
 };
 $("#lConfig").onclick = e => { e.preventDefault(); $("#cRepo").value = (CFG.DATOS && CFG.DATOS.repo) || Datos.REPO_POR_DEFECTO; $("#eConfig").textContent = ""; $("#dConfig").showModal(); };
@@ -535,8 +554,9 @@ $("#fConfig").addEventListener("submit", async e => {
     }, `Configuración inicial: administrador ${un}`);
     const act = await Datos.Acceso.crear({usuario:un, nombre, rol:"admin", codigo:cod, repo:repoN, token});
     guardarAcceso(Datos.Acceso.leer(act));
+    await repo.guardarJSON("accesos.json", actual => { const doc = actual && actual.usuarios ? actual : {usuarios:{}}; doc.usuarios[un] = Datos.Acceso.leer(act); return doc; }, `Configuración inicial: acceso de ${un}`);
     $("#cToken").value = ""; $("#cCod").value = ""; $("#dConfig").close(); $("#iUser").value = un;
-    mostrarActivacion(un, nombre, act, "Listo: este navegador quedó activado. Para usar tu usuario en el celular, abre la APK, toca \"Activar este teléfono\" y escanea este QR. Después entra con tu usuario y tu código.");
+    aviso("Listo: este navegador quedó configurado. Entra con tu usuario y contraseña.");
   } catch(err){ $("#eConfig").textContent = mensaje(err); }
   finally { $("#bConfigOk").disabled = false; }
 });
@@ -544,7 +564,8 @@ function mostrarActivacion(u, nombre, act, ayuda){
   $("#dActTit").textContent = "Activación de " + (nombre || u);
   $("#dActAyuda").textContent = ayuda;
   $("#qrAct").innerHTML = "";
-  new QRCode($("#qrAct"), {text:act, width:280, height:280, correctLevel:QRCode.CorrectLevel.M});
+  const grande = act.length > 600;      // el QR de varios usuarios es más denso: más grande y con menos redundancia
+  new QRCode($("#qrAct"), {text:act, width:grande ? 360 : 280, height:grande ? 360 : 280, correctLevel:grande ? QRCode.CorrectLevel.L : QRCode.CorrectLevel.M});
   $("#tActCodigo").value = act;
   $("#dAct").showModal();
 }
@@ -1023,7 +1044,7 @@ $("#fUsr").addEventListener("submit", async e => {
   try {
     const r = await api("guardar_usuario", {p_token:S.sesion.token, p_username:$("#uUser").value, p_nombre:$("#uNombre").value.trim()||null, p_codigo:$("#uCod").value.trim()||null, p_rol:$("#uRol").value, p_activo:null});
     aviso("Usuario " + $("#uUser").value + " guardado"); $("#fUsr").reset(); pintarUsuarios();
-    if (r && r.activacion) mostrarActivacion(r.usuario, r.nombre, r.activacion, `Entrega este código a ${r.nombre || r.usuario}: en la APK toca "Activar este teléfono" y escanea el QR (o pega el texto). Después entra con el usuario "${r.usuario}" y el código que acabas de escribir. Si le cambias el código, entrégale el código de activación nuevo.`);
+    if (r && r.activacion) aviso(`Listo: ${r.nombre || r.usuario} ya puede entrar con su usuario y su contraseña en los celulares preparados (se actualizan solos al sincronizar).`);
   } catch(err){ $("#eUsr").textContent = mensaje(err); }
 });
 
@@ -1055,6 +1076,19 @@ function subirFirma(usuario, nombre){
 const ES_ADMIN = c => /JEFE|COORDINADOR/.test(norm(c).toUpperCase());
 const ENTREGA_ACTAS = c => Datos.PUEDE_ENTREGAR(c);
 $("#bUsrExcel").onclick = () => { $("#fileU").value = ""; $("#fileU").click(); };
+// QR único para preparar un celular (o navegador) para todos los usuarios autorizados
+async function mostrarQrEquipo(){
+  $("#eUsr").textContent = "";
+  try {
+    await traerTodo();
+    const q = await api("qr_equipo", {});
+    if (!q.total) throw new Error("Aún no hay accesos guardados. Crea los usuarios (o súbelos desde el Excel) con su contraseña.");
+    mostrarActivacion("", "", q.texto, `Sirve para ${q.total} ${q.total === 1 ? "usuario" : "usuarios"}. En el celular: abre la APK, toca 5 veces el logo, "Escanear QR". Solo se hace una vez por celular.` +
+      (q.sin.length ? ` Sin contraseña guardada (vuelve a ponérsela): ${q.sin.join(", ")}.` : ""));
+    $("#dActTit").textContent = "QR para preparar celulares";
+  } catch(err){ $("#eUsr").textContent = mensaje(err); }
+}
+$("#bQrEquipo").onclick = mostrarQrEquipo;
 $("#fileU").addEventListener("change", async () => {
   const f = $("#fileU").files[0]; if (!f) return;
   $("#eUsr").textContent = "";
@@ -1073,9 +1107,13 @@ $("#fileU").addEventListener("change", async () => {
       usuario:String(r[col.usuario] || "").trim().toLowerCase(), codigo:String(r[col.codigo] || "").trim(),
       nombre:String(r[col.nombre] || "").trim().replace(/\s+/g, " ").toUpperCase(), cedula:ced(r[col.cedula]), cargo:String(r[col.cargo] || "").trim().toUpperCase()
     })).filter(u => u.usuario);
+    // Si ya existe un usuario con la misma cédula (aunque el nombre de usuario sea distinto), se actualiza ese
+    await traerTodo();
+    const existentes = usuariosJSON();
+    lista.forEach(u => { if (!existentes[u.usuario] && u.cedula){ const e = Object.entries(existentes).find(([, x]) => ced(x.cedula) === u.cedula); if (e){ u.excel = u.usuario; u.usuario = e[0]; } } });
     const malos = lista.filter(u => !/^[a-z0-9_-]{3,30}$/.test(u.usuario) || u.codigo.length < 6).map(u => u.usuario);
     if (malos.length) throw new Error("Revisa estos usuarios (usuario inválido o contraseña de menos de 6 caracteres): " + malos.join(", "));
-    if (!confirm(`Se crearán o actualizarán ${lista.length} usuarios:\n\n${lista.map(u => `• ${u.usuario} – ${u.nombre} (${u.cargo || "sin cargo"})${ES_ADMIN(u.cargo) ? " · administrador" : ""}${ENTREGA_ACTAS(u.cargo) ? " · entrega actas" : ""}`).join("\n")}\n\n¿Continuar?`)) return;
+    if (!confirm(`Se crearán o actualizarán ${lista.length} usuarios:\n\n${lista.map(u => `• ${u.usuario}${u.excel ? ` (en el Excel: ${u.excel})` : existentes[u.usuario] ? "" : " · NUEVO"} – ${u.nombre} (${u.cargo || "sin cargo"})${ES_ADMIN(u.cargo) ? " · administrador" : ""}${ENTREGA_ACTAS(u.cargo) ? " · entrega actas" : ""}`).join("\n")}\n\n¿Continuar?`)) return;
     const hechos = [];
     for (const u of lista){
       $("#eUsr").textContent = `Creando ${hechos.length + 1} de ${lista.length}: ${u.usuario}…`;
@@ -1083,8 +1121,8 @@ $("#fileU").addEventListener("change", async () => {
       hechos.push({...u, codigo:undefined, activacion:r.activacion});
       if (u.usuario === S.sesion.username) guardarAcceso(Datos.Acceso.leer(r.activacion));   // tu navegador pasa a usar tu contraseña del Excel
     }
-    $("#eUsr").textContent = ""; aviso(`${hechos.length} usuarios listos`); pintarUsuarios();
-    hojaActivacion(hechos);
+    $("#eUsr").textContent = ""; aviso(`${hechos.length} usuarios listos`); await pintarUsuarios();
+    await mostrarQrEquipo();      // un solo QR para preparar los celulares de todos
   } catch(err){ $("#eUsr").textContent = mensaje(err); }
 });
 // Hoja imprimible con el QR de activación de cada usuario (sin contraseñas)
