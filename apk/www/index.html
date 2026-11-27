@@ -390,10 +390,13 @@ const E = {
   gh:{etag:null, shas:{}},         // qué archivos del repositorio ya se leyeron
   historial:[], ultimaSync:null,
   hist:{},                         // últimos movimientos de cada equipo (para la línea de tiempo)
+  actasIdx:{},                     // orden de todas las asignaciones (para numerar las actas igual que la web)
   lote:[]                          // IMEI del lote en curso
 };
 async function leer(){
   try { const v = NAT && Pl.Preferences ? (await Pl.Preferences.get({key:CLAVE})).value : localStorage.getItem(CLAVE); if (v) Object.assign(E, JSON.parse(v)); } catch(_){}
+  // Una sola vez (versión con actas numeradas): volver a leer todo el repositorio para conocer el orden de las actas
+  if (!E.actasV){ E.actasV = 1; E.gh = {etag:null, shas:{}}; }
 }
 async function guardar(){
   // Cada cambio pendiente queda marcado con su id, fecha y usuario (así no se duplica ni se confunde de dueño)
@@ -576,6 +579,7 @@ function aplicarEvento(e){
 }
 function aplicarVigente(r){
   agregarHist(r);
+  if (r.id){ E.actasIdx = E.actasIdx || {}; const p = E.actasIdx[r.id]; E.actasIdx[r.id] = {tipo:r.tipo, imei:r.imei, registrado_en:r.registrado_en || (p && p.registrado_en) || null}; }
   const c = E.vig[r.imei], t = x => new Date(x.fecha_ingreso).getTime(), reg = x => x.registrado_en ? new Date(x.registrado_en).getTime() : Date.now();
   if (!c || t(r) > t(c) || (t(r) === t(c) && reg(r) >= reg(c)))
     E.vig[r.imei] = limpio({id:r.id, nombre:r.nombre, cedula:r.cedula, labor:r.labor || null, fecha_ingreso:r.fecha_ingreso, registrado_en:r.registrado_en, tipo:r.tipo, usuario:r.usuario,
@@ -1068,24 +1072,39 @@ async function registrar(tipo, p, imei = eqActual, sinSync = false){
 /* ---------- Acta de entrega en el celular (mismo texto que la web) ---------- */
 let actaActual = null;
 function mostrarActa(regs){
-  actaActual = regs;
-  $("#actaAyuda").textContent = regs.length === 1 ? `Acta de ${regs[0].nombre} · ${nomEquipo(regs[0].imei)}.` : `${regs.length} actas (una página por equipo) de ${regs[0].nombre}.`;
+  actaActual = regs; numerosDeActa(regs);
+  const n = regs.map(r => Datos.numeroActa(r.actaNum)).join(", ");
+  $("#actaAyuda").textContent = (regs.length === 1 ? `Acta N°${n} de ${regs[0].nombre} · ${nomEquipo(regs[0].imei)}.` : `${regs.length} actas (N°${n}, una página por equipo) de ${regs[0].nombre}.`)
+    + (regs.some(r => r.provisional) ? " El número se confirma al enviar a GitHub." : "");
   $("#hActa").classList.remove("oculto");
 }
 $("#bActa").onclick = () => {
   const a = asignado(eqActual);
   mostrarActa([{...a, imei:eqActual, adic:a.adicionales ? a.adicionales.split(", ") : null}]);
 };
+// Número de acta de cada registro (el mismo cálculo que la web). provisional = aún no llegó al repositorio.
+function numerosDeActa(regs){
+  const num = Datos.numerarActas(Object.entries(E.actasIdx || {}).map(([id, x]) => ({id, ...x})));
+  regs.forEach(r => { r.actaNum = num[r.id] || null; const x = (E.actasIdx || {})[r.id]; r.provisional = !x || !x.registrado_en; });
+}
 $("#bCompartirActa").onclick = async () => {
   const regs = actaActual; if (!regs) return;
-  const nombre = `Acta_${regs[0].nombre.replace(/\s+/g,"_")}_${regs[0].id ? regs[0].id.slice(0,8) : "copia"}.pdf`;
+  $("#bCompartirActa").disabled = true; $("#bCompartirActa").textContent = "Preparando el acta…";
   try {
+    // Con internet, primero se envía la asignación para que el número de acta quede definitivo
+    if (enLinea && E.cola.length){ for (let i = 0; i < 30 && sincronizando; i++) await new Promise(r => setTimeout(r, 500)); await sincronizar(); }
+    numerosDeActa(regs);
+    const nums = regs.map(r => r.actaNum).filter(Boolean);
+    const rango = nums.length > 1 ? `${Datos.numeroActa(Math.min(...nums))} a ${Datos.numeroActa(Math.max(...nums))}` : null;
+    const nombre = rango ? `ACTA N°${rango} - ${regs[0].nombre.toUpperCase()}.pdf`.replace(/[\\/:*?"<>|]+/g, " ") : Datos.nombrePdfActa(regs[0].actaNum, regs[0].nombre);
     const doc = generarActa(regs);
     if (NAT && Pl.Filesystem && Pl.Share){
       const f = await Pl.Filesystem.writeFile({path:nombre, data:doc.output("datauristring").split(",")[1], directory:"CACHE"});
       await Pl.Share.share({title:nombre, text:"Acta de entrega de equipo", files:[f.uri], dialogTitle:"Compartir acta"});
     } else doc.save(nombre);
+    if (regs.some(r => r.provisional)) aviso("Sin internet: el número de acta es provisional y se confirma al sincronizar. Vuelve a compartirla después.");
   } catch(err){ if (!/cancel/i.test(err.message)) aviso("No se pudo generar el acta: " + err.message); }
+  finally { $("#bCompartirActa").disabled = false; $("#bCompartirActa").textContent = "Compartir acta (WhatsApp, correo…)"; }
 };
 const pesos = n => "$" + Number(n).toLocaleString("es-CO");
 function generarActa(regs){
@@ -1101,7 +1120,7 @@ function generarActa(regs){
       .forEach((t,i) => doc.text(t, W-M, y+2.5+i*3.3, {align:"right"}));
     y += 22; doc.setDrawColor(15,91,54); doc.setLineWidth(.6); doc.line(M, y, W-M, y); doc.setTextColor(20);
     y += 12; doc.setFont("helvetica","bold"); doc.setFontSize(12.5);
-    doc.text(`ACTA DE ENTREGA${r.labor ? " - " + r.labor.toUpperCase() : ""}`, W/2, y, {align:"center"});
+    doc.text(Datos.tituloActa(r.actaNum, r.labor), W/2, y, {align:"center"});
     y += 10;
     const nombre = (r.nombre||"").toUpperCase(), equipo = [d.marca,d.modelo].filter(Boolean).join(" ").toUpperCase() || "—";
     const recibidos = r.adic ? r.adic.map(norm) : null;
@@ -1109,7 +1128,7 @@ function generarActa(regs){
     const ent = (r.entrega_por && E.usuarios && E.usuarios[r.entrega_por]) || ACTA.ENTREGA;
     const valor = r.valor_equipo || valorDe(r.imei);
     const P = [
-      [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(d.serial ? [[" serial número "],[d.serial,1],[" e IMEI "],[r.imei,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
+      [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(d.serial ? [[" serial número "],[d.serial,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
       [["Los bienes que acaban de ser entregados por la empresa y recibidos por el trabajador, es un medio e instrumento de trabajo y será utilizado única y exclusivamente para tal fin, quedándole expresamente prohibido al trabajador su utilización para fines u objetos diferentes a aquellos para los cuales se le entrega. Haciéndose responsable de su custodia, conservación, cuidado y aseo, además de cualquier daño, pérdida o avería que sufra el celular."]],
       [["En cualquier momento Palmas de Tumaco S.A.S podrá solicitar la devolución del celular, caso en el cual será devuelta en el mismo estado que fue recibido, salvo el deterioro normal por el paso del tiempo y por su uso racional. Su no devolución, a solicitud de la empresa, se considera falta grave. De la misma manera, será devuelto a la terminación del contrato laboral existente entre las partes."]],
       [["El bien está avaluado en la suma de "],[pesos(valor),1],[" y los adicionales la suma de "],[pesos(totalAdic),1],...(adic.length ? [[" ("], ...adic.flatMap(([n,v],i) => [[n+": "],[pesos(v),1],[i<adic.length-1?", ":""]]), [")"]] : []),
@@ -1133,7 +1152,7 @@ function generarActa(regs){
     doc.text(ent.cargo || "", cx[0], y+10, {align:"center", maxWidth:col-6});
     doc.text("C.C. " + (r.cedula||""), cx[1], y+10, {align:"center"});
     doc.setFontSize(7.5); doc.setTextColor(120);
-    doc.text(`Ref. ${r.id ? r.id.slice(0,8).toUpperCase() : "—"} · ${MOVS[r.tipo]||r.tipo||""} · registrado por ${r.usuario||E.usuario} (APK)${img ? " · firmada en el celular" : ""}`, M, 268);
+    doc.text(`Acta N°${Datos.numeroActa(r.actaNum)}${r.provisional ? " (provisional: se confirma al sincronizar)" : ""} · ${MOVS[r.tipo]||r.tipo||""} · registrado por ${r.usuario||E.usuario} (APK)${img ? " · firmada en el celular" : ""}`, M, 268);
   });
   return doc;
 }

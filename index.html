@@ -411,10 +411,10 @@ function estadoActual(){
 function numerar(asig, disp){
   const filas = Object.entries(asig || {}).map(([id, r]) => { const d = (disp || {})[r.imei] || {};
     return {...r, id, marca:d.marca, modelo:d.modelo, imei2:d.imei2, serial:d.serial}; });
-  // N° de acta = orden de llegada al repositorio (estable: el historial nunca se borra)
-  const t = x => x.registrado_en ? new Date(x.registrado_en).getTime() : 0;
-  filas.sort((a,b) => t(a) - t(b) || a.id.localeCompare(b.id)).forEach((r,i) => r.acta = i + 1);
-  return filas.sort((a,b) => new Date(b.fecha_ingreso) - new Date(a.fecha_ingreso) || b.acta - a.acta);
+  // N° de acta: consecutivo solo para las entregas (ver Datos.numerarActas, el mismo cálculo de la APK)
+  const num = Datos.numerarActas(filas);
+  filas.forEach(r => { r.actaNum = num[r.id] || null; r.acta = r.actaNum ? Datos.numeroActa(r.actaNum) : "—"; });
+  return filas.sort((a,b) => new Date(b.fecha_ingreso) - new Date(a.fecha_ingreso) || (b.actaNum || 0) - (a.actaNum || 0));
 }
 const eventoPersona = (p, fecha) => limpio({k:"pers", id:uuid(), cedula:p.cedula, nombre:p.nombre, labor:p.labor || null, activo:p.activo !== false, fecha, usuario:S.sesion.username, origen:"web"});
 
@@ -681,7 +681,7 @@ $("#fReg").addEventListener("submit", async e => {
 });
 
 /* ---------------- Acta PDF ---------------- */
-const nombrePdf = r => `Acta_${r.acta}_${(r.nombre||"").replace(/\s+/g,"_")}.pdf`;
+const nombrePdf = r => Datos.nombrePdfActa(r.actaNum, r.nombre);     // "ACTA N°007 - NOMBRE DEL COLABORADOR.pdf"
 // Usuarios que pueden entregar actas (jefe, coordinador y analistas)
 const entregadores = () => Object.entries(usuariosJSON()).filter(([,u]) => u.entrega && u.activo !== false).map(([username, u]) => ({username, ...u})).sort((a,b) => String(a.nombre).localeCompare(String(b.nombre)));
 // Valor del equipo según la tabla de valores (apk/www/valores.js)
@@ -703,13 +703,13 @@ async function acta(r){
   doc.setTextColor(20);
   // Título
   y += 12; doc.setFont("helvetica","bold"); doc.setFontSize(12.5);
-  doc.text(`ACTA DE ENTREGA N° ${r.acta}${r.labor ? " - " + r.labor.toUpperCase() : ""}`, W/2, y, {align:"center"});
+  doc.text(Datos.tituloActa(r.actaNum, r.labor), W/2, y, {align:"center"});
   y += 10;
   const nombre = (r.nombre||"").toUpperCase(), equipo = [r.marca,r.modelo].filter(Boolean).join(" ").toUpperCase() || "—";
   const todos = (window.VALORES && VALORES.ADICIONALES) || CFG.ADICIONALES || [], recibidos = r.adicionales ? r.adicionales.split(", ").map(x => norm(x)) : null;
   const adic = recibidos ? todos.filter(([n]) => recibidos.includes(norm(n))) : todos, totalAdic = adic.reduce((s,[,v]) => s+v, 0);
   const P = [
-    [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(r.serial ? [[" serial número "],[r.serial,1],[" e IMEI "],[r.imei,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
+    [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(r.serial ? [[" serial número "],[r.serial,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
     [["Los bienes que acaban de ser entregados por la empresa y recibidos por el trabajador, es un medio e instrumento de trabajo y será utilizado única y exclusivamente para tal fin, quedándole expresamente prohibido al trabajador su utilización para fines u objetos diferentes a aquellos para los cuales se le entrega. Haciéndose responsable de su custodia, conservación, cuidado y aseo, además de cualquier daño, pérdida o avería que sufra el celular."]],
     [["En cualquier momento Palmas de Tumaco S.A.S podrá solicitar la devolución del celular, caso en el cual será devuelta en el mismo estado que fue recibido, salvo el deterioro normal por el paso del tiempo y por su uso racional. Su no devolución, a solicitud de la empresa, se considera falta grave. De la misma manera, será devuelto a la terminación del contrato laboral existente entre las partes."]],
     [["El bien está avaluado en la suma de "],[pesos(valorEquipo(r)),1],[" y los adicionales la suma de "],[pesos(totalAdic),1],
@@ -735,7 +735,7 @@ async function acta(r){
   doc.text(ent.cargo || "", cx[0], y+10, {align:"center", maxWidth:col-6});
   doc.text("C.C. " + (r.cedula||""), cx[1], y+10, {align:"center"});
   doc.setFontSize(7.5); doc.setTextColor(120);
-  doc.text(`Registro ${r.acta} · ${MOVS[r.tipo]||r.tipo} · registrado por ${r.usuario||""} (${r.origen==="apk"?"APK":"web"})`, M, 268);
+  doc.text(`Acta N°${r.acta} · ${MOVS[r.tipo]||r.tipo} · registrado por ${r.usuario||""} (${r.origen==="apk"?"APK":"web"})`, M, 268);
   return doc;
 }
 // Párrafo justificado con fragmentos en negrita
@@ -761,7 +761,7 @@ let pdfUrl = null, pdfReg = null;
 async function verPdf(r){
   pdfReg = r; if (pdfUrl) URL.revokeObjectURL(pdfUrl);
   pdfUrl = URL.createObjectURL((await acta(r)).output("blob"));
-  $("#dPdfTitulo").textContent = `Acta N° ${r.acta}, ${r.nombre}`;
+  $("#dPdfTitulo").textContent = `ACTA N°${r.acta} - ${r.nombre}`;
   $("#pdfMarco").src = pdfUrl; $("#dPdf").showModal();
 }
 $("#bPdfDesc").onclick = async () => (await acta(pdfReg)).save(nombrePdf(pdfReg));

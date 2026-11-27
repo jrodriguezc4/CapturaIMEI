@@ -124,6 +124,27 @@ async function traerCambios(repo, estado, alArchivo){
   return true;
 }
 
+/* Numeración de actas (la misma en la web y en la APK).
+   Solo las entregas (ASIGNACION y REASIGNACION) reciben un número nuevo: 1, 2, 3... en el orden en que llegaron
+   al repositorio. Un cambio de labor o una edición reutiliza el número de la última entrega de ese equipo.
+   Devoluciones, daños y pérdidas no tienen acta. Lo que aún no se ha enviado queda al final (número provisional). */
+const ES_ENTREGA = t => t === "ASIGNACION" || t === "REASIGNACION";
+function numerarActas(asigs){
+  const t = x => x.registrado_en ? new Date(x.registrado_en).getTime() : Infinity;
+  const orden = asigs.slice().sort((a, b) => t(a) - t(b) || String(a.id).localeCompare(String(b.id)));
+  const num = {}, ultimo = {};
+  let n = 0;
+  for (const r of orden){
+    if (ES_ENTREGA(r.tipo)){ num[r.id] = ++n; ultimo[r.imei] = n; }
+    else if ((r.tipo === "CAMBIO_LABOR" || r.tipo === "EDICION") && ultimo[r.imei]) num[r.id] = ultimo[r.imei];
+  }
+  return num;
+}
+const numeroActa = n => n ? String(n).padStart(3, "0") : "—";
+const nombreArchivo = t => String(t || "").replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
+const nombrePdfActa = (n, nombre) => nombreArchivo(`ACTA N°${numeroActa(n)} - ${String(nombre || "").toUpperCase()}`) + ".pdf";
+const tituloActa = (n, labor) => `ACTA DE ENTREGA N°${numeroActa(n)}${labor ? " - " + String(labor).toUpperCase() : ""}`;
+
 /* Códigos de activación: el token de GitHub cifrado con el código de ingreso del usuario */
 const PREFIJO = "CIMEI1.";
 const b64url = t => t.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -164,5 +185,6 @@ const MENSAJES = {
 };
 const mensaje = e => { const m = String(e && e.message || e); return MENSAJES[m] || m; };
 
-window.Datos = {Repo, enviarEventos, traerCambios, Acceso, mensaje, nombreSeguro, bytesAb64, textoAb64, REPO_POR_DEFECTO:"jrodriguezc4/CapturaIMEI-datos"};
+window.Datos = {Repo, enviarEventos, traerCambios, Acceso, mensaje, nombreSeguro, bytesAb64, textoAb64, REPO_POR_DEFECTO:"jrodriguezc4/CapturaIMEI-datos",
+  ES_ENTREGA, numerarActas, numeroActa, nombrePdfActa, tituloActa};
 })();
