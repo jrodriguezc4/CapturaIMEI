@@ -113,6 +113,12 @@ main{padding:14px 14px 40px}
 .kpi small{display:block;color:var(--suave);font-size:12px}
 .kpi b{font-size:24px;line-height:1.2}
 .kpi b.p{color:var(--fruto)}
+.kpi b.r{color:var(--peligro)}
+.kpis.inv{grid-template-columns:1fr 1fr 1fr}
+.kpis.inv .kpi{text-align:left;font:inherit;color:inherit}
+.kpis.inv .kpi b{font-size:21px}
+.kpis.inv .kpi[aria-pressed="true"]{border-color:var(--palma);background:var(--sel)}
+.estados{grid-template-columns:1fr 1fr!important}
 .barras{margin-top:10px}
 .barras .f{display:flex;align-items:center;gap:8px;font-size:13px;margin:5px 0}
 .barras .f span:first-child{width:96px;color:var(--suave);flex:none}
@@ -210,13 +216,26 @@ main{padding:14px 14px 40px}
 
   <main>
     <!-- Resumen del día -->
+    <!-- Buscar equipo o persona -->
+    <section class="tarjeta" id="tBuscar">
+      <h2>Buscar equipo o trabajador</h2>
+      <input id="qEquipo" type="search" autocomplete="off" placeholder="Nombre, cédula, IMEI, SN, marca o modelo">
+      <ul class="resultados oculto" id="resEquipos"></ul>
+    </section>
+
     <section class="tarjeta" id="tResumen">
       <h2>Resumen de hoy</h2>
       <div class="kpis">
         <div class="kpi"><small>Asignados hoy (tú)</small><b id="kHoy">0</b></div>
         <div class="kpi"><small>Pendientes por enviar</small><b id="kPend">0</b></div>
-        <div class="kpi"><small>Equipos en campo</small><b id="kCampo">0</b></div>
-        <div class="kpi"><small>En bodega</small><b id="kBodega">0</b></div>
+      </div>
+      <h2 style="margin-top:12px">Inventario de equipos</h2>
+      <div class="kpis inv">
+        <button type="button" class="kpi" data-inv="activo"><small>Activos (asignados)</small><b id="kCampo">0</b></button>
+        <button type="button" class="kpi" data-inv="bodega"><small>En bodega</small><b id="kBodega">0</b></button>
+        <button type="button" class="kpi" data-inv="danado"><small>Dañados</small><b id="kDanado" class="r">0</b></button>
+        <button type="button" class="kpi" data-inv="perdido"><small>Perdidos</small><b id="kPerdido" class="r">0</b></button>
+        <button type="button" class="kpi" data-inv="reparacion"><small>En reparación</small><b id="kReparacion">0</b></button>
       </div>
       <div class="barras" id="barras"></div>
     </section>
@@ -265,7 +284,7 @@ main{padding:14px 14px 40px}
       <button class="btn primario oculto" id="bAsignar" type="button">Asignar a trabajador</button>
       <button class="btn primario oculto" id="bOtro" type="button">Asignar a otro</button>
       <button class="btn oculto" id="bLabor" type="button">Cambiar labor</button>
-      <button class="btn oculto" id="bEstado" type="button">Reportar devolución, daño o pérdida</button>
+      <button class="btn" id="bEstado" type="button">Reportar novedad (daño, pérdida, reparación…)</button>
       <button class="btn oculto" id="bActa" type="button">Acta de entrega (PDF)</button>
       <button class="btn" id="bNuevo" type="button">Escanear otro equipo</button>
     </section>
@@ -329,7 +348,7 @@ main{padding:14px 14px 40px}
 <div class="velo oculto" id="hEstado"><div class="hoja">
   <h3>Reportar estado</h3>
   <p class="ayuda" id="estadoAyuda"></p>
-  <div class="estados" id="estados"><button type="button" data-e="Devuelto" aria-pressed="false">Devuelto</button><button type="button" data-e="Dañado" aria-pressed="false">Dañado</button><button type="button" data-e="Perdido" aria-pressed="false">Perdido</button></div>
+  <div class="estados" id="estados"></div>
   <p class="ayuda" id="estadoNota"></p>
   <label for="estObs">Observación</label>
   <input id="estObs" placeholder="Ej. pantalla rota, se cayó al canal">
@@ -353,9 +372,26 @@ main{padding:14px 14px 40px}
 "use strict";
 const CFG = window.APP_CONFIG || {};
 const LABORES = ["Aplicador","Sanidad","Mantenimiento","Cosecha","Fertilización","Reubicado","Supervisor","Administrativo"];
-const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor",DEVOLUCION:"Devolución",DANO:"Daño reportado",PERDIDA:"Pérdida"};
-const ESTADOS = {"Devuelto":"DEVOLUCION","Dañado":"DANO","Perdido":"PERDIDA"};
-const LIBERA = t => t === "DEVOLUCION" || t === "PERDIDA";        // después de estos, el equipo queda sin trabajador
+const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor",DEVOLUCION:"Devolución a bodega",DANO:"Daño reportado",PERDIDA:"Pérdida",REPARACION:"Enviado a reparación"};
+// Novedades que se pueden reportar: tipo de movimiento y estado que queda en el inventario
+const NOVEDADES = {
+  "Devuelto a bodega":   {tipo:"DEVOLUCION", estado:"Devuelto",       nota:"El equipo queda en bodega, sin trabajador."},
+  "Dañado":              {tipo:"DANO",       estado:"Dañado",         nota:"Queda marcado como dañado (si lo tiene un trabajador, sigue a su nombre)."},
+  "Perdido en campo":    {tipo:"PERDIDA",    estado:"Perdido",        nota:"Queda sin trabajador y marcado como perdido."},
+  "Enviado a reparación":{tipo:"REPARACION", estado:"En reparación",  nota:"Sale del trabajador y queda en reparación."},
+  "Reparado (a bodega)": {tipo:"DEVOLUCION", estado:"Reparado",       nota:"Volvió de reparación y queda disponible en bodega."},
+  "Recuperado (a bodega)":{tipo:"DEVOLUCION",estado:"Recuperado",     nota:"Apareció y queda disponible en bodega."}
+};
+// Qué novedades se ofrecen según cómo está el equipo
+const NOVEDADES_POR_ESTADO = {
+  activo:["Dañado","Perdido en campo","Enviado a reparación","Devuelto a bodega"],
+  danado:["Enviado a reparación","Perdido en campo","Devuelto a bodega"],
+  bodega:["Dañado","Perdido en campo","Enviado a reparación"],
+  reparacion:["Reparado (a bodega)","Perdido en campo"],
+  perdido:["Recuperado (a bodega)"]
+};
+const LIBERA = t => t === "DEVOLUCION" || t === "PERDIDA" || t === "REPARACION";   // después de estos, el equipo queda sin trabajador
+const ETIQUETA_INV = {activo:"", danado:'<span class="tag r">Dañado</span>', perdido:'<span class="tag r">Perdido</span>', reparacion:'<span class="tag g">En reparación</span>', bodega:'<span class="tag g">En bodega</span>'};
 // Datos del acta: valores de valores.js; quien entrega sale de los usuarios (jefe, coordinador, analistas)
 const VAL = window.VALORES || {EQUIPOS:[], ADICIONALES:[], VALOR_POR_DEFECTO:1000000, buscar:() => null};
 const ACTA = {
@@ -484,15 +520,44 @@ function pintarResumen(){
   const hoy = new Date().toDateString();
   const mios = E.historial.filter(x => x.usuario === E.usuario && (x.tipo === "ASIGNACION" || x.tipo === "REASIGNACION") && new Date(x.fecha_ingreso).toDateString() === hoy).length;
   const enCampo = Object.values(E.vig).filter(v => !v.libre);
-  const bodega = Object.keys(E.disp).filter(i => !E.vig[i] || (E.vig[i].libre && E.vig[i].estado !== "Perdido")).length;
+  // Inventario: cada equipo cuenta en un solo estado según su último movimiento
+  const cuenta = {activo:0, bodega:0, danado:0, perdido:0, reparacion:0};
+  todosLosEquipos().forEach(i => cuenta[estadoDe(i)]++);
   $("#kHoy").textContent = mios;
   $("#kPend").textContent = E.cola.length; $("#kPend").className = E.cola.length ? "p" : "";
-  $("#kCampo").textContent = enCampo.length;
-  $("#kBodega").textContent = bodega;
+  $("#kCampo").textContent = cuenta.activo; $("#kBodega").textContent = cuenta.bodega;
+  $("#kDanado").textContent = cuenta.danado; $("#kPerdido").textContent = cuenta.perdido; $("#kReparacion").textContent = cuenta.reparacion;
   const porLabor = {}; enCampo.forEach(v => { const l = v.labor || "Sin labor"; porLabor[l] = (porLabor[l] || 0) + 1; });
   const filas = Object.entries(porLabor).sort((a,b) => b[1] - a[1]), max = filas.length ? filas[0][1] : 1;
   $("#barras").innerHTML = filas.length ? '<h2 style="margin-top:4px">Equipos por labor</h2>' + filas.map(([l,n]) => `<div class="f"><span>${esc(l)}</span><span class="b" style="width:${Math.round(n / max * 55)}%"></span><em>${n}</em></div>`).join("")
                                         : '<p class="ayuda">Aún no hay equipos asignados en este teléfono. Se llenará al sincronizar.</p>';
+}
+
+/* ---------- Buscar equipo o trabajador (por nombre, cédula, IMEI, SN, marca o modelo) ---------- */
+let filtroInv = null;
+function buscarEquipos(){
+  const qs = norm($("#qEquipo").value).split(/\s+/).filter(Boolean);
+  if (!qs.length && !filtroInv){ $("#resEquipos").classList.add("oculto"); $("#resEquipos").innerHTML = ""; return; }
+  const lista = todosLosEquipos().map(i => {
+    const d = E.disp[i] || {}, v = E.vig[i] || {}, est = estadoDe(i);
+    return {i, d, v, est, texto:norm([i, d.imei2, d.serial, d.marca, d.modelo, v.cedula !== "-" ? v.nombre : "", v.cedula !== "-" ? v.cedula : ""].join(" "))};
+  }).filter(x => (!filtroInv || x.est === filtroInv) && qs.every(q => x.texto.includes(q)))
+    .sort((a,b) => String(a.v.nombre || "zz").localeCompare(String(b.v.nombre || "zz"))).slice(0, 40);
+  $("#resEquipos").classList.remove("oculto");
+  $("#resEquipos").innerHTML = lista.length ? lista.map(x => `<li><button type="button" data-imei="${esc(x.i)}"><b>${esc(nomEquipo(x.i))} ${ETIQUETA_INV[x.est] || ""}</b><small>${x.d.serial ? "SN " + esc(x.d.serial) + " · " : ""}IMEI ${esc(x.i)}${x.est === "activo" || x.est === "danado" ? (x.v.cedula !== "-" ? "<br>" + esc(x.v.nombre) + " · " + esc(x.v.labor || "") : "") : ""}</small></button></li>`).join("")
+                                          : '<li class="vacio">No se encontró ningún equipo.</li>';
+}
+$("#qEquipo").addEventListener("input", buscarEquipos);
+document.querySelectorAll("[data-inv]").forEach(b => b.onclick = () => {
+  filtroInv = filtroInv === b.dataset.inv ? null : b.dataset.inv;
+  document.querySelectorAll("[data-inv]").forEach(x => x.setAttribute("aria-pressed", x.dataset.inv === filtroInv));
+  buscarEquipos(); if (filtroInv) $("#tBuscar").scrollIntoView({behavior:"smooth"});
+});
+$("#resEquipos").addEventListener("click", e => { const b = e.target.closest("[data-imei]"); if (b) abrirEquipo(b.dataset.imei); });
+function abrirEquipo(imei){
+  eqActual = imei; pintarEquipo();
+  ["#tEscaneo","#tResumen","#tLote","#tBuscar"].forEach(s => $(s).classList.add("oculto"));
+  $("#tEquipo").classList.remove("oculto"); scrollTo(0,0);
 }
 
 /* ---------- Sincronización ---------- */
@@ -535,9 +600,14 @@ async function sincronizar(manual){
     }
     // 3. Traer lo nuevo (solo los archivos que cambiaron desde la última vez)
     await Datos.traerCambios(repo, E.gh, async (ruta, datos) => {
+      if (ruta.startsWith("firmas/usuarios/")){       // firma guardada de un responsable (se usa sola en el acta)
+        E.firmasUsuarios = E.firmasUsuarios || {};
+        E.firmasUsuarios[ruta.slice(16, -4)] = datos.png;
+        return;
+      }
       if (ruta === "usuarios.json"){
         E.usuarios = {};    // nombre, cargo y si entrega actas (sin contraseñas)
-        for (const [k, v] of Object.entries((datos && datos.usuarios) || {})) E.usuarios[k] = {nombre:v.nombre, cargo:v.cargo, entrega:!!v.entrega, activo:v.activo !== false};
+        for (const [k, v] of Object.entries((datos && datos.usuarios) || {})) E.usuarios[k] = {nombre:v.nombre, cargo:v.cargo, entrega:!!v.entrega || Datos.PUEDE_ENTREGAR(v.cargo), activo:v.activo !== false};
         const u = datos && datos.usuarios && datos.usuarios[E.usuario];
         if (!u || u.activo === false){ const e = new Error("USUARIO_INACTIVO"); e.inactivo = true; throw e; }
         s.nombre = u.nombre || s.nombre; s.rol = u.rol || s.rol;
@@ -583,7 +653,7 @@ function aplicarVigente(r){
   const c = E.vig[r.imei], t = x => new Date(x.fecha_ingreso).getTime(), reg = x => x.registrado_en ? new Date(x.registrado_en).getTime() : Date.now();
   if (!c || t(r) > t(c) || (t(r) === t(c) && reg(r) >= reg(c)))
     E.vig[r.imei] = limpio({id:r.id, nombre:r.nombre, cedula:r.cedula, labor:r.labor || null, fecha_ingreso:r.fecha_ingreso, registrado_en:r.registrado_en, tipo:r.tipo, usuario:r.usuario,
-                            estado:r.estado, libre:LIBERA(r.tipo) || null, adicionales:r.adicionales, firma:r.firma,
+                            estado:r.estado, libre:(LIBERA(r.tipo) || r.cedula === "-") || null, adicionales:r.adicionales, firma:r.firma,
                             entrega_por:r.entrega_por, firma_entrega:r.firma_entrega, valor_equipo:r.valor_equipo});
 }
 function agregarHist(r){
@@ -594,6 +664,8 @@ function agregarHist(r){
   E.hist[r.imei] = l.slice(0, 15);
 }
 const asignado = imei => { const a = E.vig[imei]; return a && !a.libre ? a : null; };
+const estadoDe = imei => Datos.estadoInventario(E.vig[imei]);
+const todosLosEquipos = () => [...new Set([...Object.keys(E.disp), ...Object.keys(E.vig)])];
 $("#bSync").onclick = () => sincronizar(true);
 
 /* ---------- Escaneo ---------- */
@@ -747,8 +819,8 @@ function limpiarEscaneo(){
   $("#otros").classList.add("oculto"); $("#eEscaneo").textContent = "";
   eqActual = null;
   ["#tEquipo","#tEqHist"].forEach(s => $(s).classList.add("oculto"));
-  ["#tEscaneo","#tResumen"].forEach(s => $(s).classList.remove("oculto"));
-  pintarLote();
+  ["#tEscaneo","#tResumen","#tBuscar"].forEach(s => $(s).classList.remove("oculto"));
+  pintarLote(); buscarEquipos();
 }
 $("#cImei1").addEventListener("change", () => {   // si el equipo ya existe, completa lo que falta
   const d = E.disp[$("#cImei1").value.trim()]; if (!d) return;
@@ -778,9 +850,7 @@ async function equipoDelFormulario(){
 }
 $("#bConsultar").onclick = async () => {
   const i1 = await equipoDelFormulario(); if (!i1) return;
-  eqActual = i1; pintarEquipo();
-  ["#tEscaneo","#tResumen","#tLote"].forEach(s => $(s).classList.add("oculto"));
-  $("#tEquipo").classList.remove("oculto"); scrollTo(0,0);
+  abrirEquipo(i1);
 };
 $("#bNuevo").onclick = () => { limpiarEscaneo(); scrollTo(0,0); };
 const nomEquipo = imei => { const d = E.disp[imei] || {}; return [d.marca, d.modelo].filter(Boolean).join(" ") || "Equipo sin marca/modelo"; };
@@ -790,19 +860,23 @@ function pintarEquipo(){
   $("#eqCodigos").innerHTML = `IMEI 1: ${esc(eqActual)}` + (d.imei2 ? `<br>IMEI 2: ${esc(d.imei2)}` : "") + (d.serial ? `<br>SN: ${esc(d.serial)}` : "");
   const el = $("#eqAsignado");
   el.className = "asignado" + (a ? "" : " libre");
-  el.innerHTML = a ? `<div class="t">Asignado a</div><div class="n">${esc(a.nombre)}</div><div>C.C. ${esc(a.cedula)} · desde ${fFecha(a.fecha_ingreso)}</div><span class="labor">${esc(a.labor || "Sin labor")}</span>${a.estado === "Dañado" ? '<span class="tag r">Dañado</span>' : ""}`
-           : v && v.estado === "Perdido" ? `<div class="t">Reportado como perdido</div><div>Lo tenía ${esc(v.nombre)} · ${fFecha(v.fecha_ingreso)}</div>`
-           : v ? `<div class="t">En bodega</div><div>Devuelto por ${esc(v.nombre)} · ${fFecha(v.fecha_ingreso)}</div>`
-           : `<div class="t">Sin asignar</div><div>Este equipo no tiene trabajador registrado.</div>`;
-  $("#bAsignar").classList.toggle("oculto", !!a);
-  ["#bOtro","#bLabor","#bEstado","#bActa"].forEach(s => $(s).classList.toggle("oculto", !a));
+  const est = estadoDe(eqActual), quien = v && v.cedula !== "-" ? `${esc(v.nombre)} · ` : "";
+  el.innerHTML = a ? `<div class="t">Asignado a</div><div class="n">${esc(a.nombre)}</div><div>C.C. ${esc(a.cedula)} · desde ${fFecha(a.fecha_ingreso)}</div><span class="labor">${esc(a.labor || "Sin labor")}</span>${ETIQUETA_INV[est]}`
+           : est === "perdido" ? `<div class="t">Reportado como perdido ${ETIQUETA_INV.perdido}</div><div>${quien}${fFecha(v.fecha_ingreso)}${v.observacion ? " · " + esc(v.observacion) : ""}</div>`
+           : est === "reparacion" ? `<div class="t">En reparación ${ETIQUETA_INV.reparacion}</div><div>Enviado: ${fFecha(v.fecha_ingreso)}</div>`
+           : est === "danado" ? `<div class="t">En bodega, dañado ${ETIQUETA_INV.danado}</div><div>${fFecha(v.fecha_ingreso)}</div>`
+           : v ? `<div class="t">En bodega</div><div>${v.estado && v.estado !== "Devuelto" ? esc(v.estado) + " · " : (quien ? "Devuelto por " + quien : "")}${fFecha(v.fecha_ingreso)}</div>`
+           : `<div class="t">En bodega (sin asignar)</div><div>Este equipo no tiene trabajador registrado.</div>`;
+  $("#bAsignar").classList.toggle("oculto", !!a || (est !== "bodega"));
+  ["#bOtro","#bLabor","#bActa"].forEach(s => $(s).classList.toggle("oculto", !a));
+  $("#bEstado").classList.toggle("oculto", !(NOVEDADES_POR_ESTADO[est] || []).length);
   // Línea de tiempo del equipo
   const h = E.hist[eqActual] || [];
   $("#tEqHist").classList.toggle("oculto", !h.length);
   $("#eqHist").innerHTML = h.map(x => {
-    const mal = x.tipo === "DANO" || x.tipo === "PERDIDA", libre = x.tipo === "DEVOLUCION";
-    const titulo = mal || libre ? esc(MOVS[x.tipo]) : esc(x.nombre) + (x.labor ? ` <span class="tag">${esc(x.labor)}</span>` : "");
-    const detalle = mal || libre ? esc(x.nombre) + (x.obs ? " · " + esc(x.obs) : "") : esc(MOVS[x.tipo]);
+    const mal = x.tipo === "DANO" || x.tipo === "PERDIDA", libre = x.tipo === "DEVOLUCION" || x.tipo === "REPARACION";
+    const titulo = mal || libre ? esc(x.estado && x.tipo === "DEVOLUCION" && x.estado !== "Devuelto" ? MOVS[x.tipo] + " (" + x.estado + ")" : MOVS[x.tipo]) : esc(x.nombre) + (x.labor ? ` <span class="tag">${esc(x.labor)}</span>` : "");
+    const detalle = mal || libre ? (x.nombre && x.nombre !== "BODEGA" ? esc(x.nombre) : "Bodega") + (x.obs ? " · " + esc(x.obs) : "") : esc(MOVS[x.tipo]);
     return `<li class="${mal ? "mal" : libre ? "libre" : ""}"><b>${titulo}</b><span>${detalle} · ${fFecha(x.fecha)}${x.usuario ? " · " + esc(x.usuario) : ""}</span></li>`;
   }).join("");
 }
@@ -859,20 +933,19 @@ $("#bLoteDevolver").onclick = async () => {
   aviso(`${lista.length} ${lista.length === 1 ? "equipo devuelto" : "equipos devueltos"} a bodega`);
 };
 
-/* ---------- Estado del equipo: devolución, daño o pérdida ---------- */
+/* ---------- Novedades del equipo: dañado, perdido en campo, en reparación, devuelto... ---------- */
 let estadoSel = null, fotoEvid = null;
-const NOTAS = {Devuelto:"El equipo queda en bodega, sin trabajador.", "Dañado":"El equipo sigue asignado al trabajador, marcado como dañado.", Perdido:"El equipo queda sin trabajador y marcado como perdido."};
 $("#bEstado").onclick = () => {
-  const a = asignado(eqActual); estadoSel = null; fotoEvid = null;
-  $("#estadoAyuda").textContent = `${nomEquipo(eqActual)} · lo tiene ${a.nombre}`;
-  document.querySelectorAll("#estados button").forEach(b => b.setAttribute("aria-pressed", "false"));
+  const a = asignado(eqActual), est = estadoDe(eqActual); estadoSel = null; fotoEvid = null;
+  $("#estadoAyuda").innerHTML = `${esc(nomEquipo(eqActual))} · ${a ? "lo tiene " + esc(a.nombre) : esc(Datos.ESTADOS_INV[est])}`;
+  $("#estados").innerHTML = (NOVEDADES_POR_ESTADO[est] || []).map(n => `<button type="button" data-e="${esc(n)}" aria-pressed="false">${esc(n)}</button>`).join("");
   $("#estadoNota").textContent = ""; $("#estObs").value = ""; $("#eEstado").textContent = "";
   $("#imgEvid").classList.add("oculto"); $("#bGuardarEstado").disabled = true;
   $("#hEstado").classList.remove("oculto");
 };
 $("#estados").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
   estadoSel = b.dataset.e; document.querySelectorAll("#estados button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  $("#estadoNota").textContent = NOTAS[estadoSel]; $("#bGuardarEstado").disabled = false; });
+  $("#estadoNota").textContent = NOVEDADES[estadoSel].nota; $("#bGuardarEstado").disabled = false; });
 $("#bFotoEvid").onclick = async () => {
   $("#eEstado").textContent = "";
   try {
@@ -892,13 +965,17 @@ function achicar(src, max, calidad){
 }
 $("#bGuardarEstado").onclick = async () => {
   if (!estadoSel) return;
-  const a = asignado(eqActual), obs = $("#estObs").value.trim();
-  if (estadoSel !== "Devuelto" && !obs && !fotoEvid){ $("#eEstado").textContent = "Escribe qué pasó o toma una foto de evidencia."; return; }
+  const nov = NOVEDADES[estadoSel], obs = $("#estObs").value.trim();
+  if ((nov.tipo === "DANO" || nov.tipo === "PERDIDA" || nov.tipo === "REPARACION") && !obs && !fotoEvid){ $("#eEstado").textContent = "Escribe qué pasó o toma una foto de evidencia."; return; }
+  // A nombre de quién queda el registro: el trabajador que lo tiene (o tenía); si estaba en bodega, "BODEGA"
+  const a = asignado(eqActual), v = E.vig[eqActual];
+  const vuelveABodega = nov.estado === "Reparado" || nov.estado === "Recuperado";
+  const quien = a ? a : (!vuelveABodega && v && v.cedula && v.cedula !== "-" && estadoDe(eqActual) !== "bodega") ? v : {nombre:"BODEGA", cedula:"-", labor:null};
   $("#hEstado").classList.add("oculto");
-  const id = await registrar(ESTADOS[estadoSel], {nombre:a.nombre, cedula:a.cedula, labor:a.labor, estado:estadoSel, observacion:obs, con_foto:fotoEvid ? true : null}, eqActual, true);
+  const id = await registrar(nov.tipo, {nombre:quien.nombre, cedula:quien.cedula, labor:quien.labor, estado:nov.estado, observacion:obs, con_foto:fotoEvid ? true : null}, eqActual, true);
   if (fotoEvid) E.cola.push({k:"evid", id, imagen:fotoEvid});
-  await guardar(); pintarSync(); sincronizar();
-  aviso(estadoSel === "Devuelto" ? "Equipo devuelto a bodega" : "Reporte guardado: " + estadoSel.toLowerCase());
+  await guardar(); pintarSync(); pintarResumen(); sincronizar();
+  aviso("Novedad guardada: " + estadoSel);
 };
 
 /* ---------- Elegir trabajador (buscar o manual) ---------- */
@@ -962,7 +1039,15 @@ function pintarEntregadores(){
                                             : '<option value="">(Sincroniza con internet para cargar los responsables)</option>';
   if (lista.some(u => u.usuario === E.usuario)) $("#selEntrega").value = E.usuario;
   else if (E.ultimoEntrega && lista.some(u => u.usuario === E.ultimoEntrega)) $("#selEntrega").value = E.ultimoEntrega;
+  ayudaEntrega();
 }
+// Si el responsable tiene firma guardada, se pone sola en el acta (no hace falta firmar abajo)
+function ayudaEntrega(){
+  const u = $("#selEntrega").value, tiene = !!(u && E.firmasUsuarios && E.firmasUsuarios[u]);
+  $("#entregaAyuda").textContent = tiene ? "✍ Su firma guardada se pondrá sola en el acta." : "Solo jefe, coordinador, analistas e ingeniero de métodos pueden entregar actas.";
+  $("#cFirmaE").closest(".firma").previousElementSibling.textContent = tiene ? "Firma de quien entrega (opcional: reemplaza la guardada)" : "Firma de quien entrega (opcional)";
+}
+$("#selEntrega").addEventListener("change", ayudaEntrega);
 const firmasMem = {};   // firmas de esta sesión (para volver a generar el acta sin internet)
 function cambiarModo(m){
   modo = m;
@@ -1139,7 +1224,9 @@ function generarActa(regs){
     for (const p of P){ y = parrafo(doc, p, M, y, ancho, 5.2) + 4.5; }
     y = Math.max(y + 22, 222);
     const col = ancho/2, cx = [M + col/2, M + col + col/2];
-    const img = r.firma && firmasMem[r.firma], imgE = r.firma_entrega && firmasMem[r.firma_entrega];
+    // Firma de quien entrega: la dibujada en el celular o, si no, la firma guardada del responsable
+    const img = r.firma && firmasMem[r.firma];
+    const imgE = (r.firma_entrega && firmasMem[r.firma_entrega]) || (r.entrega_por && E.firmasUsuarios && E.firmasUsuarios[r.entrega_por]) || null;
     const ponerFirma = (im, x) => { const pr = doc.getImageProperties(im), alto = Math.min(20, 64 * pr.height / pr.width), an = alto * pr.width / pr.height; doc.addImage(im, "PNG", x - an / 2, y - alto - 1, an, alto); };
     if (imgE) ponerFirma(imgE, cx[0]);
     if (img) ponerFirma(img, cx[1]);

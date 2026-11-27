@@ -30,9 +30,17 @@ Los archivos Excel (`*.xlsx`) **nunca** se suben a este repositorio (es público
 
 El personal de campo (347 personas de `Personal Palmaco.xlsx`) ya está cargado. Para actualizarlo: web → *Personal de campo* → *Subir Excel*.
 
+## Inventario y novedades
+- Cada equipo está en un estado: **Activo (asignado)**, **En bodega**, **Dañado**, **Perdido** o **En reparación**. La web (arriba de la tabla) y la APK (en el resumen) muestran cuántos hay en cada uno; al tocar uno se filtra la lista.
+- **Buscar**: por nombre, cédula, IMEI, SN, marca o modelo (web: cuadro de búsqueda; APK: "Buscar equipo o trabajador").
+- **Novedad**: dañado, perdido en campo, enviado a reparación, devuelto a bodega, reparado o recuperado (web: botón *Novedad* en la fila; APK: abrir el equipo → *Reportar novedad*). Las opciones dependen del estado actual.
+
+## Firmas guardadas
+- Cada responsable puede tener su firma guardada (web → Usuarios → *Subir firma*: se limpia el fondo sola). Se pone automáticamente en "QUIEN ENTREGA" de sus actas. Se guarda en el repositorio **privado** (`firmas/usuarios/`).
+
 ## Roles
 - **Jefe y coordinador**: administradores (crean y desactivan usuarios).
-- **Jefe, coordinador y analistas**: pueden **entregar actas**. En la APK se elige quién entrega; su nombre y cargo salen en "QUIEN ENTREGA", con su firma opcional, y el trabajador firma en "QUIEN RECIBE".
+- **Jefe, coordinador, analistas e ingeniero de métodos**: pueden **entregar actas**. En la APK se elige quién entrega; su nombre y cargo salen en "QUIEN ENTREGA", con su firma opcional, y el trabajador firma en "QUIEN RECIBE".
 - Auxiliares: registran y asignan, pero el acta la entrega uno de los responsables.
 
 ## Tabla de valores

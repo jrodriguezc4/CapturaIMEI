@@ -88,6 +88,15 @@ class Repo {
     if (r.status === 403 || r.status === 404) throw new Error("TOKEN_SIN_ESCRITURA");
     throw new Error("GitHub " + r.status);
   }
+  // Sube o reemplaza un archivo binario (por ejemplo la firma guardada de un responsable)
+  async guardarBinario(ruta, b64, mensaje){
+    const actual = await this.leerArchivo(ruta);
+    const r = await this.pedir("/contents/" + encodeURI(ruta), {method:"PUT", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({message:mensaje, content:b64, branch:"main", ...(actual ? {sha:actual.sha} : {})})});
+    if (r.ok) return true;
+    if (r.status === 403 || r.status === 404) throw new Error("TOKEN_SIN_ESCRITURA");
+    throw new Error("GitHub " + r.status);
+  }
   async leerImagen(ruta, tipo){
     const a = await this.leerArchivo(ruta);
     return a ? "data:" + tipo + ";base64," + a.b64.replace(/\s/g, "") : null;
@@ -113,11 +122,13 @@ async function traerCambios(repo, estado, alArchivo){
   estado.shas = estado.shas || {};
   const a = await repo.arbol(estado.etag);
   if (!a) return false;
-  const rutas = Object.keys(a.archivos).filter(r => r === "usuarios.json" || /^registros\/.+\.json$/.test(r)).sort();
+  const rutas = Object.keys(a.archivos).filter(r => r === "usuarios.json" || /^registros\/.+\.json$/.test(r) || /^firmas\/usuarios\/[^/]+\.png$/.test(r)).sort();
   for (const ruta of rutas){
     const sha = a.archivos[ruta];
     if (estado.shas[ruta] === sha) continue;
-    await alArchivo(ruta, await repo.leerJSON(sha));
+    // Firmas guardadas de los responsables (firmas/usuarios/<usuario>.png) llegan como imagen
+    const datos = ruta.endsWith(".png") ? {png:"data:image/png;base64," + String(await repo.leerBlob(sha)).replace(/\s/g, "")} : await repo.leerJSON(sha);
+    await alArchivo(ruta, datos);
     estado.shas[ruta] = sha;
   }
   estado.etag = a.etag;
@@ -129,6 +140,21 @@ async function traerCambios(repo, estado, alArchivo){
    al repositorio. Un cambio de labor o una edición reutiliza el número de la última entrega de ese equipo.
    Devoluciones, daños y pérdidas no tienen acta. Lo que aún no se ha enviado queda al final (número provisional). */
 const ES_ENTREGA = t => t === "ASIGNACION" || t === "REASIGNACION";
+// Quién puede entregar actas y dispositivos: jefe, coordinador, analistas e ingeniero de métodos (grupo de Ingeniería de Datos)
+const PUEDE_ENTREGAR = cargo => /JEFE|COORDINADOR|ANALISTA|INGENIERO/.test(String(cargo || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase());
+/* Estado de inventario de un equipo según su último movimiento:
+   activo (con trabajador), danado (con trabajador, dañado), perdido, reparacion, bodega */
+function estadoInventario(ultimo){
+  if (!ultimo) return "bodega";
+  switch (ultimo.tipo){
+    case "DANO": return "danado";
+    case "PERDIDA": return "perdido";
+    case "REPARACION": return "reparacion";
+    case "DEVOLUCION": return "bodega";
+    default: return ultimo.estado === "Dañado" ? "danado" : "activo";
+  }
+}
+const ESTADOS_INV = {activo:"Activo (asignado)", danado:"Dañado", perdido:"Perdido", reparacion:"En reparación", bodega:"En bodega"};
 function numerarActas(asigs){
   const t = x => x.registrado_en ? new Date(x.registrado_en).getTime() : Infinity;
   const orden = asigs.slice().sort((a, b) => t(a) - t(b) || String(a.id).localeCompare(String(b.id)));
@@ -144,6 +170,32 @@ const numeroActa = n => n ? String(n).padStart(3, "0") : "—";
 const nombreArchivo = t => String(t || "").replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
 const nombrePdfActa = (n, nombre) => nombreArchivo(`ACTA N°${numeroActa(n)} - ${String(nombre || "").toUpperCase()}`) + ".pdf";
 const tituloActa = (n, labor) => `ACTA DE ENTREGA N°${numeroActa(n)}${labor ? " - " + String(labor).toUpperCase() : ""}`;
+
+/* Limpia la foto de una firma en papel: quita el fondo (queda transparente), deja la tinta casi negra
+   y recorta los bordes. Devuelve un PNG (data URL). Se usa en la web al subir la firma de un responsable. */
+function limpiarFirma(img, anchoMax = 900){
+  const c = document.createElement("canvas"), k = Math.min(1, anchoMax / img.naturalWidth || 1);
+  c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+  const g = c.getContext("2d"); g.drawImage(img, 0, 0, c.width, c.height);
+  const d = g.getImageData(0, 0, c.width, c.height), p = d.data, n = c.width * c.height;
+  const lum = new Float32Array(n);
+  for (let i = 0; i < n; i++) lum[i] = 0.299 * p[i*4] + 0.587 * p[i*4+1] + 0.114 * p[i*4+2];
+  // Fondo = brillo típico del papel (percentil 60); tinta = lo bastante más oscuro que el papel
+  const orden = Array.from(lum).sort((a, b) => a - b), papel = orden[Math.floor(n * 0.6)];
+  const opaco = papel * 0.45, nada = papel * 0.78;
+  let x0 = c.width, y0 = c.height, x1 = 0, y1 = 0;
+  for (let i = 0; i < n; i++){
+    const a = lum[i] <= opaco ? 255 : lum[i] >= nada ? 0 : Math.round(255 * (nada - lum[i]) / (nada - opaco));
+    p[i*4] = 20; p[i*4+1] = 22; p[i*4+2] = 40; p[i*4+3] = a;
+    if (a > 60){ const x = i % c.width, y = (i / c.width) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  }
+  g.putImageData(d, 0, 0);
+  if (x1 <= x0) return c.toDataURL("image/png");
+  const m = 12, r = document.createElement("canvas");
+  r.width = Math.min(c.width, x1 - x0 + 2 * m); r.height = Math.min(c.height, y1 - y0 + 2 * m);
+  r.getContext("2d").drawImage(c, Math.max(0, x0 - m), Math.max(0, y0 - m), r.width, r.height, 0, 0, r.width, r.height);
+  return r.toDataURL("image/png");
+}
 
 /* Códigos de activación: el token de GitHub cifrado con el código de ingreso del usuario */
 const PREFIJO = "CIMEI1.";
@@ -186,5 +238,5 @@ const MENSAJES = {
 const mensaje = e => { const m = String(e && e.message || e); return MENSAJES[m] || m; };
 
 window.Datos = {Repo, enviarEventos, traerCambios, Acceso, mensaje, nombreSeguro, bytesAb64, textoAb64, REPO_POR_DEFECTO:"jrodriguezc4/CapturaIMEI-datos",
-  ES_ENTREGA, numerarActas, numeroActa, nombrePdfActa, tituloActa};
+  ES_ENTREGA, numerarActas, numeroActa, nombrePdfActa, tituloActa, limpiarFirma, PUEDE_ENTREGAR, estadoInventario, ESTADOS_INV};
 })();

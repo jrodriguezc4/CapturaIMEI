@@ -13,8 +13,9 @@ Registro de qué celular de la empresa tiene cada trabajador de campo. Sin Fireb
 ## Datos en el repositorio privado
 - `usuarios.json` → `{usuarios:{usuario:{nombre, cedula, cargo, rol, entrega, activo, ...}}}` (sin contraseñas).
 - `registros/AAAA-MM/<usuario>.json` → lista de eventos, nunca se borra: `k:"asig"` (asignaciones: tipo, fecha_ingreso, nombre, cedula, labor, entrega_por, valor_equipo, adicionales, firma, firma_entrega, estado, con_foto...), `k:"disp"` (imei2, serial, marca, modelo), `k:"pers"` (personal). `registros/2026-11/carga-inicial.json` = personal inicial.
-- `firmas/<id>.png`, `evidencias/<id>.jpg`.
-- Tipos: ASIGNACION, REASIGNACION, EDICION, CAMBIO_LABOR, DEVOLUCION, DANO, PERDIDA (DEVOLUCION y PERDIDA dejan el equipo libre).
+- `firmas/<id>.png`, `evidencias/<id>.jpg`, `firmas/usuarios/<usuario>.png` (firma guardada de un responsable; sale sola en sus actas).
+- Tipos: ASIGNACION, REASIGNACION, EDICION, CAMBIO_LABOR, DEVOLUCION, DANO, PERDIDA, REPARACION (DEVOLUCION, PERDIDA y REPARACION dejan el equipo libre; cedula "-" = BODEGA). Estado de inventario: `Datos.estadoInventario` (activo, bodega, danado, perdido, reparacion). Novedades: tablas NOVEDADES / NOVEDADES_POR_ESTADO en los dos HTML.
+- Pueden entregar actas: `Datos.PUEDE_ENTREGAR(cargo)` (JEFE, COORDINADOR, ANALISTA, INGENIERO) o `entrega:true`.
 - Acceso: el token fine-grained (solo ese repo, Contents RW) va cifrado con la contraseña de cada usuario en su código de activación (QR). Nunca poner un token en el código ni en `config.js`.
 
 ## Reglas importantes
