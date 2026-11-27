@@ -340,6 +340,9 @@ main{padding:14px 14px 40px}
 <div class="velo oculto" id="hActa"><div class="hoja">
   <h3>Acta de entrega lista</h3>
   <p class="ayuda" id="actaAyuda"></p>
+  <label for="selEntregaActa">Quien entrega (sale en el acta)</label>
+  <select id="selEntregaActa"></select>
+  <p class="ayuda" id="entregaActaAyuda"></p>
   <button class="btn primario" id="bCompartirActa" type="button">Compartir acta (WhatsApp, correo…)</button>
   <button class="btn" data-cerrar type="button">Cerrar</button>
 </div></div>
@@ -351,8 +354,13 @@ main{padding:14px 14px 40px}
   <div class="estados" id="estados"></div>
   <p class="ayuda" id="estadoNota"></p>
   <label for="estObs">Observación</label>
-  <input id="estObs" placeholder="Ej. pantalla rota, se cayó al canal">
-  <button class="btn" id="bFotoEvid" type="button">📷 Foto de evidencia</button>
+  <input id="estObs" placeholder="Ej. pantalla rota, se cayó al canal, taller al que se envió">
+  <div id="repCampos" class="dos oculto">
+    <div><label for="repCuenta">N° cuenta de cobro</label><input id="repCuenta" placeholder="Ej. CC-0123" autocapitalize="characters"></div>
+    <div><label for="repValor">Valor del arreglo ($)</label><input id="repValor" inputmode="numeric" placeholder="Ej. 85000"></div>
+  </div>
+  <p class="ayuda oculto" id="repAyuda">Si aún no tienes la cuenta de cobro, déjala vacía y regístrala al marcarlo como "Reparado".</p>
+  <button class="btn" id="bFotoEvid" type="button">📷 Foto de evidencia o de la cuenta de cobro</button>
   <img class="evidencia oculto" id="imgEvid" alt="Foto de evidencia">
   <div class="error" id="eEstado" role="alert"></div>
   <button class="btn primario" id="bGuardarEstado" type="button" disabled>Guardar reporte</button>
@@ -598,7 +606,9 @@ async function sincronizar(manual){
       await repo.subirBinario(ruta, o.imagen.split(",")[1], `${o.usuario}: ${o.k === "firma" ? "firma" : "foto de evidencia"}`);
       E.cola = E.cola.filter(x => x !== o); await guardar();
     }
-    // 3. Traer lo nuevo (solo los archivos que cambiaron desde la última vez)
+    // 3. Traer lo nuevo (solo los archivos que cambiaron desde la última vez).
+    //    Si el teléfono no tiene la lista de usuarios/responsables, se vuelve a pedir aunque no haya cambios.
+    if (!E.usuarios || !Object.keys(E.usuarios).length){ E.gh.etag = null; delete E.gh.shas["usuarios.json"]; }
     await Datos.traerCambios(repo, E.gh, async (ruta, datos) => {
       if (ruta.startsWith("firmas/usuarios/")){       // firma guardada de un responsable (se usa sola en el acta)
         E.firmasUsuarios = E.firmasUsuarios || {};
@@ -659,7 +669,7 @@ function aplicarVigente(r){
 function agregarHist(r){
   const l = E.hist[r.imei] || [];
   if (r.id && l.some(x => x.id === r.id)) return;
-  l.push(limpio({id:r.id, tipo:r.tipo, nombre:r.nombre, labor:r.labor, fecha:r.fecha_ingreso, estado:r.estado, obs:r.observacion, usuario:r.usuario}));
+  l.push(limpio({id:r.id, tipo:r.tipo, nombre:r.nombre, labor:r.labor, fecha:r.fecha_ingreso, estado:r.estado, obs:r.observacion, usuario:r.usuario, cuenta:r.cuenta_cobro, valorRep:r.valor_reparacion}));
   l.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
   E.hist[r.imei] = l.slice(0, 15);
 }
@@ -876,7 +886,8 @@ function pintarEquipo(){
   $("#eqHist").innerHTML = h.map(x => {
     const mal = x.tipo === "DANO" || x.tipo === "PERDIDA", libre = x.tipo === "DEVOLUCION" || x.tipo === "REPARACION";
     const titulo = mal || libre ? esc(x.estado && x.tipo === "DEVOLUCION" && x.estado !== "Devuelto" ? MOVS[x.tipo] + " (" + x.estado + ")" : MOVS[x.tipo]) : esc(x.nombre) + (x.labor ? ` <span class="tag">${esc(x.labor)}</span>` : "");
-    const detalle = mal || libre ? (x.nombre && x.nombre !== "BODEGA" ? esc(x.nombre) : "Bodega") + (x.obs ? " · " + esc(x.obs) : "") : esc(MOVS[x.tipo]);
+    const detalle = mal || libre ? (x.nombre && x.nombre !== "BODEGA" ? esc(x.nombre) : "Bodega") + (x.obs ? " · " + esc(x.obs) : "")
+                                   + (x.cuenta ? " · Cuenta de cobro " + esc(x.cuenta) : "") + (x.valorRep ? " · Arreglo $" + Number(x.valorRep).toLocaleString("es-CO") : "") : esc(MOVS[x.tipo]);
     return `<li class="${mal ? "mal" : libre ? "libre" : ""}"><b>${titulo}</b><span>${detalle} · ${fFecha(x.fecha)}${x.usuario ? " · " + esc(x.usuario) : ""}</span></li>`;
   }).join("");
 }
@@ -940,12 +951,17 @@ $("#bEstado").onclick = () => {
   $("#estadoAyuda").innerHTML = `${esc(nomEquipo(eqActual))} · ${a ? "lo tiene " + esc(a.nombre) : esc(Datos.ESTADOS_INV[est])}`;
   $("#estados").innerHTML = (NOVEDADES_POR_ESTADO[est] || []).map(n => `<button type="button" data-e="${esc(n)}" aria-pressed="false">${esc(n)}</button>`).join("");
   $("#estadoNota").textContent = ""; $("#estObs").value = ""; $("#eEstado").textContent = "";
+  $("#repCuenta").value = ""; $("#repValor").value = ""; $("#repCampos").classList.add("oculto"); $("#repAyuda").classList.add("oculto");
   $("#imgEvid").classList.add("oculto"); $("#bGuardarEstado").disabled = true;
   $("#hEstado").classList.remove("oculto");
 };
 $("#estados").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
   estadoSel = b.dataset.e; document.querySelectorAll("#estados button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  $("#estadoNota").textContent = NOVEDADES[estadoSel].nota; $("#bGuardarEstado").disabled = false; });
+  $("#estadoNota").textContent = NOVEDADES[estadoSel].nota; $("#bGuardarEstado").disabled = false;
+  // Reparación: cuenta de cobro y valor del arreglo (para el histórico de costos)
+  const rep = NOVEDADES[estadoSel].tipo === "REPARACION" || NOVEDADES[estadoSel].estado === "Reparado";
+  $("#repCampos").classList.toggle("oculto", !rep); $("#repAyuda").classList.toggle("oculto", NOVEDADES[estadoSel].tipo !== "REPARACION");
+  if (!rep){ $("#repCuenta").value = ""; $("#repValor").value = ""; } });
 $("#bFotoEvid").onclick = async () => {
   $("#eEstado").textContent = "";
   try {
@@ -972,7 +988,9 @@ $("#bGuardarEstado").onclick = async () => {
   const vuelveABodega = nov.estado === "Reparado" || nov.estado === "Recuperado";
   const quien = a ? a : (!vuelveABodega && v && v.cedula && v.cedula !== "-" && estadoDe(eqActual) !== "bodega") ? v : {nombre:"BODEGA", cedula:"-", labor:null};
   $("#hEstado").classList.add("oculto");
-  const id = await registrar(nov.tipo, {nombre:quien.nombre, cedula:quien.cedula, labor:quien.labor, estado:nov.estado, observacion:obs, con_foto:fotoEvid ? true : null}, eqActual, true);
+  const valorRep = parseInt($("#repValor").value.replace(/\D/g, ""), 10) || null, cuentaCobro = $("#repCuenta").value.trim().toUpperCase() || null;
+  const id = await registrar(nov.tipo, {nombre:quien.nombre, cedula:quien.cedula, labor:quien.labor, estado:nov.estado, observacion:obs, con_foto:fotoEvid ? true : null,
+                                        cuenta_cobro:cuentaCobro, valor_reparacion:valorRep}, eqActual, true);
   if (fotoEvid) E.cola.push({k:"evid", id, imagen:fotoEvid});
   await guardar(); pintarSync(); pintarResumen(); sincronizar();
   aviso("Novedad guardada: " + estadoSel);
@@ -1033,18 +1051,29 @@ function crearFirma(selLienzo, selAyuda, selBorrar){
 }
 const firmaT = crearFirma("#cFirma", "#firmaAyuda", "#bBorrarFirma");       // trabajador
 const firmaE = crearFirma("#cFirmaE", "#firmaAyudaE", "#bBorrarFirmaE");    // quien entrega
-function pintarEntregadores(){
+// Llena una lista de responsables (jefe, coordinador, analistas, ingeniero). Devuelve cuántos hay.
+function llenarResponsables(sel, valor){
   const lista = entregadores();
-  $("#selEntrega").innerHTML = lista.length ? '<option value="">— Elige quién entrega —</option>' + lista.map(u => `<option value="${esc(u.usuario)}">${esc(u.nombre)} · ${esc(u.cargo || "")}</option>`).join("")
-                                            : '<option value="">(Sincroniza con internet para cargar los responsables)</option>';
-  if (lista.some(u => u.usuario === E.usuario)) $("#selEntrega").value = E.usuario;
-  else if (E.ultimoEntrega && lista.some(u => u.usuario === E.ultimoEntrega)) $("#selEntrega").value = E.ultimoEntrega;
+  sel.innerHTML = lista.length ? '<option value="">— Elige quién entrega —</option>' + lista.map(u => `<option value="${esc(u.usuario)}">${esc(u.nombre)} · ${esc(u.cargo || "")}</option>`).join("")
+                               : '<option value="">(No hay responsables cargados todavía)</option>';
+  const def = valor || (lista.some(u => u.usuario === E.usuario) ? E.usuario : (E.ultimoEntrega && lista.some(u => u.usuario === E.ultimoEntrega) ? E.ultimoEntrega : ""));
+  if (lista.some(u => u.usuario === def)) sel.value = def;
+  return lista.length;
+}
+// Si no hay responsables: explica por qué y permite sincronizar ahí mismo
+function avisoSinResponsables(ayuda, alTerminar){
+  const c = cuenta() || {};
+  ayuda.innerHTML = `No se han cargado los responsables (jefe, coordinador, analistas). ${c.error ? esc(c.error) + " " : enLinea ? "" : "Necesitas internet una vez. "}<button type="button" class="btn" style="margin-top:6px">Sincronizar ahora</button>`;
+  ayuda.querySelector("button").onclick = async () => { await sincronizar(true); alTerminar(); };
+}
+function pintarEntregadores(){
+  if (!llenarResponsables($("#selEntrega"))) return avisoSinResponsables($("#entregaAyuda"), pintarEntregadores);
   ayudaEntrega();
 }
 // Si el responsable tiene firma guardada, se pone sola en el acta (no hace falta firmar abajo)
 function ayudaEntrega(){
   const u = $("#selEntrega").value, tiene = !!(u && E.firmasUsuarios && E.firmasUsuarios[u]);
-  $("#entregaAyuda").textContent = tiene ? "✍ Su firma guardada se pondrá sola en el acta." : "Solo jefe, coordinador, analistas e ingeniero de métodos pueden entregar actas.";
+  $("#entregaAyuda").textContent = tiene ? "✍ Su firma guardada se pondrá sola en el acta." : u ? "Puede firmar abajo (opcional)." : "Elige quién entrega: jefe, coordinador, analistas o ingeniero de métodos.";
   $("#cFirmaE").closest(".firma").previousElementSibling.textContent = tiene ? "Firma de quien entrega (opcional: reemplaza la guardada)" : "Firma de quien entrega (opcional)";
 }
 $("#selEntrega").addEventListener("change", ayudaEntrega);
@@ -1145,7 +1174,7 @@ async function registrar(tipo, p, imei = eqActual, sinSync = false){
   const id = uuid();
   const datos = limpio({imei, tipo, fecha_ingreso:new Date().toISOString(), nombre:p.nombre, cedula:p.cedula, labor:p.labor || null,
                         estado:p.estado, observacion:p.observacion, adicionales:p.adicionales, con_foto:p.con_foto,
-                        entrega_por:p.entrega_por, valor_equipo:p.valor_equipo});
+                        entrega_por:p.entrega_por, valor_equipo:p.valor_equipo, cuenta_cobro:p.cuenta_cobro, valor_reparacion:p.valor_reparacion});
   E.cola.push({k:"asig", id, datos});
   E.historial.unshift({id, ...datos, usuario:E.usuario, sync:false}); E.historial = E.historial.slice(0, 200);
   aplicarVigente({...datos, id, usuario:E.usuario, registrado_en:null});
@@ -1156,8 +1185,31 @@ async function registrar(tipo, p, imei = eqActual, sinSync = false){
 
 /* ---------- Acta de entrega en el celular (mismo texto que la web) ---------- */
 let actaActual = null;
+function pintarResponsableActa(){
+  const regs = actaActual; if (!regs) return;
+  if (!llenarResponsables($("#selEntregaActa"), regs[0].entrega_por || "")) return avisoSinResponsables($("#entregaActaAyuda"), pintarResponsableActa);
+  const u = $("#selEntregaActa").value;
+  $("#entregaActaAyuda").textContent = !u ? "Elige quién entrega antes de compartir el acta." : (E.firmasUsuarios && E.firmasUsuarios[u]) ? "✍ Su firma guardada saldrá en el acta." : "";
+}
+// Cambiar quién entrega desde la pantalla del acta: se guarda en el registro
+$("#selEntregaActa").addEventListener("change", async () => {
+  const u = $("#selEntregaActa").value, regs = actaActual; if (!u || !regs) return;
+  for (const r of regs){
+    if (r.entrega_por === u) continue;
+    r.entrega_por = u;
+    const op = E.cola.find(o => o.k === "asig" && o.id === r.id);
+    if (op) { op.datos.entrega_por = u; const v = E.vig[r.imei]; if (v && v.id === r.id) v.entrega_por = u; }
+    else {   // ya se envió: queda una "edición" con el mismo número de acta
+      const id = await registrar("EDICION", {nombre:r.nombre, cedula:r.cedula, labor:r.labor, adicionales:r.adicionales, entrega_por:u, valor_equipo:r.valor_equipo}, r.imei, true);
+      if (r.firma) marcarFirma(id, r.firma);
+      if (r.firma_entrega) marcarFirma(id, r.firma_entrega, "firma_entrega");
+      r.id = id;
+    }
+  }
+  E.ultimoEntrega = u; await guardar(); pintarSync(); sincronizar(); pintarResponsableActa();
+});
 function mostrarActa(regs){
-  actaActual = regs; numerosDeActa(regs);
+  actaActual = regs; numerosDeActa(regs); pintarResponsableActa();
   const n = regs.map(r => Datos.numeroActa(r.actaNum)).join(", ");
   $("#actaAyuda").textContent = (regs.length === 1 ? `Acta N°${n} de ${regs[0].nombre} · ${nomEquipo(regs[0].imei)}.` : `${regs.length} actas (N°${n}, una página por equipo) de ${regs[0].nombre}.`)
     + (regs.some(r => r.provisional) ? " El número se confirma al enviar a GitHub." : "");
@@ -1174,6 +1226,7 @@ function numerosDeActa(regs){
 }
 $("#bCompartirActa").onclick = async () => {
   const regs = actaActual; if (!regs) return;
+  if (entregadores().length && !regs[0].entrega_por){ $("#entregaActaAyuda").textContent = "Primero elige quién entrega."; $("#selEntregaActa").focus(); return; }
   $("#bCompartirActa").disabled = true; $("#bCompartirActa").textContent = "Preparando el acta…";
   try {
     // Con internet, primero se envía la asignación para que el número de acta quede definitivo

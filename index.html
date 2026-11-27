@@ -198,6 +198,11 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
       <div class="ficha" id="novFicha"></div>
       <label for="novTipo">Novedad</label><select id="novTipo" required></select>
       <label for="novObs">Observación (qué pasó, dónde, a qué taller se envió…)</label><textarea id="novObs" rows="3"></textarea>
+      <div id="novRep" class="rejilla oculto" style="grid-template-columns:1fr 1fr">
+        <div><label for="novCuenta">N° cuenta de cobro</label><input id="novCuenta" placeholder="Ej. CC-0123"></div>
+        <div><label for="novValor">Valor del arreglo ($)</label><input id="novValor" inputmode="numeric" placeholder="Ej. 85000"></div>
+      </div>
+      <div class="ficha oculto" id="novHistRep" style="margin-top:8px"></div>
       <div class="error" id="eNov" role="alert"></div>
     </div>
     <footer><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primario" id="bGuardarNov" value="ok">Guardar novedad</button></footer>
@@ -256,7 +261,7 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
       <table>
         <thead><tr>
           <th class="num">#</th><th>N° acta</th><th>Fecha de ingreso</th><th>Nombre</th><th>Cédula</th><th>Labor</th>
-          <th>Movimiento</th><th>Equipo</th><th>IMEI 1</th><th>IMEI 2</th><th>SN</th>
+          <th>Movimiento</th><th>Equipo</th><th>Valor inicial</th><th>IMEI 1</th><th>IMEI 2</th><th>SN</th>
           <th>Registró</th><th>Acta PDF</th><th>Acciones</th>
         </tr></thead>
         <tbody id="filas"></tbody>
@@ -636,8 +641,17 @@ function abrirNovedad(r){
   novActual = r;
   $("#novFicha").innerHTML = `<b>${esc([r.marca,r.modelo].filter(Boolean).join(" ") || "Equipo")}</b>${r.serial ? " · SN " + esc(r.serial) : ""} · IMEI ${esc(r.imei)}<br>Estado actual: <b style="color:${COLOR_INV[r.inv]}">${esc(Datos.ESTADOS_INV[r.inv])}</b>${!r.libre ? " · " + esc(r.nombre) : ""}`;
   $("#novTipo").innerHTML = (NOVEDADES_POR_ESTADO[r.inv] || []).map(n => `<option>${esc(n)}</option>`).join("");
-  $("#novObs").value = ""; $("#eNov").textContent = ""; $("#dNov").showModal();
+  $("#novObs").value = ""; $("#novCuenta").value = ""; $("#novValor").value = ""; $("#eNov").textContent = "";
+  // Histórico de reparaciones de este equipo
+  const reps = S.datos.filter(x => x.imei === r.imei && (x.cuenta_cobro || x.valor_reparacion));
+  const total = reps.reduce((s, x) => s + (x.valor_reparacion || 0), 0);
+  $("#novHistRep").classList.toggle("oculto", !reps.length);
+  $("#novHistRep").innerHTML = reps.length ? `<b>Reparaciones anteriores: ${reps.length} · total ${pesos(total)}</b><br>` + reps.map(x => `${fDia(x.fecha_ingreso)} · ${x.cuenta_cobro ? "Cuenta " + esc(x.cuenta_cobro) : "sin cuenta"} · ${x.valor_reparacion ? pesos(x.valor_reparacion) : "sin valor"}`).join("<br>") : "";
+  verCamposRep(); $("#dNov").showModal();
 }
+// Cuenta de cobro y valor del arreglo: al enviar a reparación o al recibirlo reparado
+function verCamposRep(){ const n = NOVEDADES[$("#novTipo").value] || {}; $("#novRep").classList.toggle("oculto", !(n.tipo === "REPARACION" || n.estado === "Reparado")); }
+$("#novTipo").addEventListener("change", verCamposRep);
 $("#fNov").addEventListener("submit", async e => {
   if (e.submitter && e.submitter.value !== "ok") return;
   e.preventDefault();
@@ -647,7 +661,9 @@ $("#fNov").addEventListener("submit", async e => {
   const quien = (!r.libre || (!vuelve && r.cedula !== "-" && r.inv !== "bodega")) ? r : {nombre:"BODEGA", cedula:"-", labor:null};
   $("#bGuardarNov").disabled = true;
   try {
+    const conRep = nov.tipo === "REPARACION" || nov.estado === "Reparado";
     await api("registrar", {p_registro:{imei:r.imei, nombre:quien.nombre, cedula:quien.cedula, labor:quien.labor || null, tipo:nov.tipo, estado:nov.estado,
+      cuenta_cobro: conRep ? ($("#novCuenta").value.trim().toUpperCase() || null) : null, valor_reparacion: conRep ? (parseInt($("#novValor").value.replace(/\D/g, ""), 10) || null) : null,
       fecha_ingreso:new Date().toISOString(), observacion:obs, client_uuid:crypto.randomUUID()}});
     $("#dNov").close(); aviso("Novedad guardada: " + sel); await cargar();
   } catch(err){ $("#eNov").textContent = mensaje(err); }
@@ -667,8 +683,9 @@ function pintar(){
       <td class="nombre">${esc(r.nombre)}</td>
       <td>${esc(r.cedula)}</td>
       <td>${r.labor ? `<span class="labor" style="--c:${COLORES[r.labor]||"#5B6B61"}">${esc(r.labor)}</span>` : '<span class="mov">Sin labor</span>'}</td>
-      <td class="mov">${r.tipo === "DANO" || r.tipo === "PERDIDA" ? `<b style="color:#B42318">${esc(MOVS[r.tipo])}</b>` : esc(MOVS[r.tipo]||r.tipo)}${r.observacion ? `<br><small>${esc(r.observacion)}</small>` : ""}${r.firma ? "<br><small>✍ Firmada en el celular</small>" : ""}</td>
+      <td class="mov">${r.tipo === "DANO" || r.tipo === "PERDIDA" ? `<b style="color:#B42318">${esc(MOVS[r.tipo])}</b>` : esc(MOVS[r.tipo]||r.tipo)}${r.observacion ? `<br><small>${esc(r.observacion)}</small>` : ""}${r.cuenta_cobro ? `<br><small>Cuenta de cobro ${esc(r.cuenta_cobro)}</small>` : ""}${r.valor_reparacion ? `<br><small>Arreglo ${pesos(r.valor_reparacion)}</small>` : ""}${r.firma ? "<br><small>✍ Firmada en el celular</small>" : ""}</td>
       <td>${esc([r.marca,r.modelo].filter(Boolean).join(" "))}</td>
+      <td class="num">${pesos(valorEquipo(r))}</td>
       <td class="mono">${esc(r.imei)}</td>
       <td class="mono">${esc(r.imei2)}</td>
       <td class="mono">${esc(r.serial)}</td>
@@ -842,7 +859,7 @@ function guardarExcel(filas, hoja, archivo, anchos){
   XLSX.writeFile(wb, archivo);
 }
 $("#bCsv").onclick = () => {
-  const cols = [["N° acta","acta"],["Fecha ingreso",r=>fFecha(r.fecha_ingreso)],["Nombre","nombre"],["Cédula","cedula"],["Labor","labor"],["Movimiento",r=>MOVS[r.tipo]],["Marca","marca"],["Modelo","modelo"],["IMEI 1","imei"],["IMEI 2","imei2"],["SN","serial"],["Registró","usuario"],["Origen","origen"],["Vigente",r=>r.vigente?"Sí":"No"],["Estado","estado"],["Adicionales","adicionales"],["Firmada",r=>r.firma?"Sí":""],["Observación","observacion"]];
+  const cols = [["N° acta","acta"],["Fecha ingreso",r=>fFecha(r.fecha_ingreso)],["Nombre","nombre"],["Cédula","cedula"],["Labor","labor"],["Movimiento",r=>MOVS[r.tipo]],["Marca","marca"],["Modelo","modelo"],["Valor inicial",r=>valorEquipo(r)],["IMEI 1","imei"],["IMEI 2","imei2"],["SN","serial"],["Registró","usuario"],["Origen","origen"],["Vigente",r=>r.vigente?"Sí":"No"],["Estado","estado"],["Adicionales","adicionales"],["Firmada",r=>r.firma?"Sí":""],["Entregó","entrega_por"],["Cuenta de cobro","cuenta_cobro"],["Valor arreglo","valor_reparacion"],["Observación","observacion"]];
   const val = (r,c) => typeof c === "function" ? c(r) : r[c];
   guardarExcel([cols.map(c => c[0]), ...filtrados().map(r => cols.map(c => { const v = val(r,c[1]); return v == null ? "" : String(v); }))],
     "Asignaciones", `dispositivos_${new Date().toLocaleDateString("en-CA")}.xlsx`, [9,17,30,13,15,16,12,14,18,18,16,14,8,8,30]);
