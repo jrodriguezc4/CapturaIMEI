@@ -11,6 +11,9 @@
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="apk/www/datos.js"></script>
+<script src="apk/www/valores.js"></script>
 <style>
 :root{
   --palma:#0F5B36; --fronda:#2E7D4F; --fruto:#D9692A; --pacifico:#2479B8;
@@ -153,15 +156,50 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
     <img class="logo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCACwAeADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD6pooooAKKz9b1zTvDunTajql3HaWsIy0jn9AO59hXhHi79pe+lle38L2MdvCOBdXa7nb3CdB+OaDmxGMpUF77PofIor45ufjF49uZTI3iW8QnnEYRF/ICtLRvj5450qRTNqMWoxjrHdwqc/8AAlwRRY4I51Rb1TPrSuf8e66vhrwdq+qltrQW7bP98jC/qRXK/Dz44aL42kj0+6X+zNVfhYJGykx/2G7n2PP1rgf2iviDHfzR+EtOmDx20glvnQ5BkH3Y/wAOp98elM6a+Opqg6sHft6nvukX8Wq6VZ38DB4rmFJVI7hgD/WrdeJ/s8/EKO90r/hE76YLd2gZ7Qsf9bF1Kj3U5/D6Vo+Pv2gtJ8MzSadokSatfp8rybsQRN6bh94/T86RUMdS9iqsnY9bNFfIuqfHTx7qkhYax9jQnhLWJUA/Egn9arWfxn8e2UgkXxFcy4/hnRHH6imcjzqje1mfYdFeC+DP2lhLNHa+LLJIVbj7bag7R7sh/mD+Fe5WN/balaRXdncR3FvMoeOSNsqwPcGkehQxVOurwZYooooOgKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiig0AFFGaM0AFFGaKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACmuxUZxTqTNAHlXiX4Y618TtZ+2eJNTfTdHgYi0022wz4/vuT8oY/jgcVp6f8BfANigD6S92w/juJ3Yn8AQP0rb8bfEXQPAdoJdVuSZ5BmK1iw0sn0HYe5wK8Q1/wDaX8RXkrLo2n2enQ5+VpQZpD9eg/SmeVXqYShJuprL72es3vwL8AXkZUaGLcno0EzqR+uP0rz/AMV/sy7I3n8Maq7MORa3uOfYSAfzH41xMXx+8fRybzqlu4/utapj+Vdn4X/abm81IfE2lIYycG5ssgr7lCefwNByuvgK3uyjb5W/I8X1fRtU8Nak9lqVrPY3kJztfgj0ZSOo9CKovI0js7sWZjlixySfUmvr7xD4f8L/ABj8MLLb3EFwpBNrfRffgf0Pf6qa+UvEnh6/8K61daRqUey5tmwcfdcdmX2I5FB52NwboWcXeL6mfFNJbyLLDI8Ui9HRipH4itTw14U1nxffiw0aykupurEcJGPVm6AVa8C+C7/x34gh0my/dqfnnnIyIYx1Y+/YDua+qrWDwp8IvDAQyQ6fZRAbpG5kuHx1OOWY+g/QUDwWBddc83aKPOvDH7MljFGkviTVZp5SMmCz+RF9txGT+AFdxa/A/wAAWqBRoKSnu0s0jE/+PV5p4m/abvHleHw3pMcMQ4W4vSWdvcIDgfiTXIN8fvH7Sb/7VgX/AGRapj+VB6CxOAo+7GN/lf8AM9u1T4AeA9QQiLT7ixc9HtrhuPwYkfpUXgjwJr3w01M2thqH9r+HLl/ngl+Wa0Y/xqOjD1Ax64rzfw/+0xrtrKqa5ptpfwfxPBmKQfzU/pXuHg3x9oPjmy+06Pd73QDzbeT5ZYj/ALS/1HFB1YeeErSUqWkvuOkGcc0UDpRSPVCiiigAooooAKKKKACiiigAooooAKKKKACiiigArK8U6lNo/hrVdStwhmtLSWeMOMqWVSRn24rVrn/H/wDyI3iH/sHXH/os0GdV2g2j59H7SfjP/n30n/vy3/xVL/w0p4z/AOffSf8Avy3/AMVXk46Cuy8O/CPxd4q0qLVdKsIZrSUsEdrhFJwSDwT6imfJU8Xi5u0JNnURftK+MUcM9ppMijqvlMM/+PV6L4B/aC0rxPdx6brNsuk3spCxvv3Qyt6ZPKk+/wCdeNan8EvHWk2Mt7Po4eKFd7iGZHYDudoOT+FcL3oNY47F0JL2l/mffAOaWvOvgX4wn8WeC0F7IZb3T3+yyuxyZFABRj74OPwr0WkfT0aqqwU11CijNGaDUKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACuS+Jfju28AeGZdScCW7kPlWsJP+skI7+w6mutr5m+PV9qHiv4j2/hzToZbprONYooIxktK43Mfy28+1M48dXdGleO70R5ZrGsX+u6lPqWpXL3N1O255GP6D0A7CqRr3BfhR4b+GnhpvEXjhzqV7wsOnRPtiaU9EyOW9z0xng15BrutS67etcyQW1rGOIre2jEcUK/3VA/meTQfK4ihKlrUfvPp1M6iuq8NfC/xb4tRZtL0eY27dLiciKM/Qt1/DNden7NPjBo9zXmjo39wzOf12UChg601eMWcl8O/iDqPw/1tLy3dpLKUhbu1zxKnqPRh2NetfH3QbLxN4Q0/wAb6VtlEKpulUf6yB+hP+6xH0ya801/4J+N/D8TTy6SbyBRkvZOJcf8B+9+lei/BmZ/Fvww8ReELrLPbK6RK3VVkBIH4Op/Og9DCxqOMsLVW609Te+EWkWHw6+GcviPVcRSXcX22dyPmEf/ACzQfUc49WrwXx5451Lx5rcmo3zlYQSLa2B+WBOwHv6nvXsX7RmqPp+gaF4Vsg2Lgh2jQZLJGAqLgdeT0/2a830L4HeONdiWZNLFjCwyGvZBGT/wHlv0oHjVN2wtJXUVrbucCeeaK9Zl/Zq8YRx7lvNHkbH3BM4J/Na4zxN8NvFXhFWk1bR544B/y8RYki/Fl6fjig82eErQV5RaRzNaOga/qPhnVYNU0u5a3uoDkMOjDurDuD6U/wAPa/JoF6J/stre27YE9rdRh45V9Oeh9CORXrd78H9A8feG4/EvgGY2ssikyadM+5BIPvRhjyrD3yDx0oKw9CdT3qT95dD2b4f+NLTx14at9XtwI5G/d3EOcmKUdV+ncexFdJXzd+ztqd7oHjXUfDF/HLbtcRMzQSDBSaP2/wB0n8hX0iKD6rA13WpKUt9n6hRRRSOwKKKKACiiigAooooAKKKKACiiigAooooAK5/x/wD8iN4h/wCwdcf+izXQVz/j/wD5EbxD/wBg64/9FmgzrfA/RnxMOgr6Q+D3xJ8I+HvANhp2q65bWt3G0heJw2Vy5I6D0r5uHSlpnxuFxUsPPnirn11qXxv8CWNjNcR65FeOikrBAjF5D6DIx+dfJd3P9ru5pwgj82RnCDouSTioa6PwX4C1rx1qKWmlWzmEMBNdMuIoR6k9z7Dk0G2IxVXGSjG33Htf7L9lNH4f1q8cERT3SIme5Ref/QhXtfasfwn4as/CGg2mjWAPk2yY3HrIx5Zj7k81r0j6jC0XSpRg+iOV8R/E/wAKeE9ROm6xqgtroIJNnlO3ynocgEdq1fDXijSvFunnUdGuvtVqHMfmbCvzDqMEA96+bP2jP+Sjv/15Q/8As1eqfs28/Dtv+v6b+S0zjo42c8VKi0rK56rRRRSPUCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACuS8O+BrbSPFGueJbgJNqGpz/u3x/qYQAAo9zjJ/CutppHTigiUIyab6Hyv+0B4rk13xvJpiSE2ekjyFQdDKQC5+vQfhXc/CD4HW1tawa/4otlnupAJLexlHyQjqGcd29jwPrXJfDjwsPGXxh1S6vk8y2sLya7mV+Qz+aQin8ef+A19OgYpnjYLDe3qSxFXXXQRFCAKAAAMAAcCnUUUj3ArOg0XTbDU7rVoLWGC6uUCTyqNvmBSSN3YkZPNaNcr8RtX/svw3MiNiW6/cr9D979KyrVVSpupLZGtDDuvVjTW7ZsyaHptxq0esSWkMl9HF5Uc7DLRpnOF9M56itAVg+CdX/tnw5aTM2ZYx5Un+8vH8sGt+nSqKpBTWzJq0XRqSpvdMKbJGksbI6qysMFSMginUVoQeB/GP4IwRWs/iLwtbCIxAvdWEY+Ur1LxjsR3X8q539nPxXJpPi59CkkJtdUQ7VJ4EyjIP4qCPyr6dKg8EZzXzJr/AIV/4Qn47aUljHstbu+hurdV6KrvhlHsDu/DFB4mLwyoVY4ilprqe4at4Gtrzxto/iy1CQ3lmXjuCBjz4mjZRn3BI/DPtXVgUBRS0HsRpxi211CiiigsKKKKACiiigAooooAKKKKACiiigAooooAK5/x/wD8iN4h/wCwdcf+izXQVz/j/wD5EbxD/wBg64/9FmgzrfA/RnxMO1fS3wZ8BeFtd+H2n3+p6Bp95dSNKGlliDM2HIGT9K+aV7V9a/AT/kmGmf783/ow0z5nKIRlWakr6G0nww8EwuJE8LaSGHIP2cGpJ/Gngvw5iwfW9GsfLOBAkqKE9to6V4l8bvi5fajqlz4a0O6e30+2YxXM0TYa4cfeXI6IOnuc9q4Hw58M/Fviu0+2aTo001sekrssav8A7pYjP4UHfVzBQm6eGhd/12Pr6LxLos2nf2lHq1i1lkD7R56+WCe27OAaWx8RaNqk3kWGrWF3Lt3eXBcI7Y9cA18XapYa54XkudG1CG7sGmC+fbScLKAcqcdCMjgiu+/ZvA/4WI/AH+gS/wA0oCjmsp1Y0nC1yP8AaM/5KO//AF5Q/wDs1ep/s3MF+HTE9Pt038lryz9oz/ko7/8AXlD/AOzV6l+ziM/DaT/r9n/ktBjhv9/n8zvv+Ey8NFto8QaSWzjH2uPOfzqPVfHPhjQ7j7Nqeu6faT/885ZlDD6jtXxRN8tzIV4IckEdjmt7R/AvizxbDLqWnaRfX8bMWa4P/LRu+Cx+Y0DWcVJO0YXZ9ladq+n6vbi4069t7uE/xwSB1/Sk1LW9N0WDz9Svrazi/vzyBAfzr4w0TXfEHgHW2ms5LjT72Bts0EikBv8AZdD1H+RTdR1PxB4/17zbl7nU9QuWxHEgLY/2UXsBQV/bXu25fePr7T/iB4T1acW9j4h0yeY8BFuFyT6AZ5rfVt1fE2v+A/E/he3judY0a6s4XICysoKg+hIzg/WvUvgR8Vr4apD4V1q6e4t7j5bOaU5eJwOEJPVT29D9aDbD5o5VFTrR5Wz6IqG6u4LKFp7maKCJBlpJHCqB7k8VU17W7Tw9o15q19IUt7SIyue5x2HuTx+NfIPjfx9rnxD1cy3ckv2dn22tjGSVjGeBtH3m9+tB1Y3HRw6StdvofVSfEnwbJci2TxNpJmJwF+0LyfrnFad74j0bTXRL3VrC1aRd6Ca4RCy+oyeR718lt8HfHa6d9uPh248nG7ZuTzMf7md34YrlLu6u51it7qWZxaKYo0lJzEM5KgHoM54pHnSzerBfvKdj7osNTsdUgM9heW93CDtMkEgdc+mR3pbu/tdPgae8uYbaFeskzhFH4nivL/2bSE+HcpPAF9Kf/HVrxDx/4v1f4i+LJY900kJuDb2Nkp+VRu2rgdCx4yfemdlXMVToxqNay6H1ZZ+NvDOozeRaa/pk0pOAiXKEk+wzzW0DkcV8h6v8EvHGi6edQn0lZo0Xe620qyOg75Ucn8M17H+z/aeLU0B7rWr2Z9LmA+w29wN0iju+TyFPYfjxQGGxtWpP2dSm0etUUUUj0wooooAKKKKACkIo3UbhRcDhfAXhE+GfFfjC4MZWO/vI54XxwUZSxA+jMw/Cu6FHWlFBnTpxguWP9XCiijpQaBXkPxV1b7Xrkdip+S0Tkf7bcn9MV6zcTpbQvNJwiKXY+gAzXjcsya8Z7/XYktbeRmaG9UbZj6KF/wCWo7e3rXj5xJypqlF6v9D3Miio1nXktI/m+y6mt8JNV8q+utMduJl82Mf7Q6/p/KvUlrx2wul8O39peaVFHLpokUS3oO+RwTyH/wCef+7gfU17DGwZdwOQRkGqyiVqXsm9Y/qRncE6/toqyl+a017eg6iiivWPGCuK8TeE/wC2/iF4X1Zo8x6YlxK7Y4z8oQfmc/ga7WjFBFSmpqzAdKKBRQWFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABXP+P/8AkRvEP/YOuP8A0Wa6Cuf8f/8AIjeIf+wdcf8Aos0Gdb4H6M+Jl7V9VfBmeS2+DkE8QzJFHcuoHqGYivlUDGK+s/gMgf4XaarDKl5gR6jeaZ81kyvWa8j5f0C1TWPEmnWl5IfLu7yNJnJ5IZwGP6mvt+0tYbO2itreNYoYVCIijAVRwABXxv8AEXwfd+BPFlzYsrpbmQzWcw4Dx5yMH1HQ/SvUvCf7S1vbaVHbeJNMu5ruJQv2i1KkS4HUqxGD64zQa5bXhh5zhW0Z0f7R+kWdz4HTUpEUXdncoIpP4iHOGX6d/wAK81/Zv/5KI/8A14S/zSsr4pfFq7+IssNtHbtZaXbNvjgLbnkfpucjjp0A6ZrU/Zv/AOShv/14S/zSgmVeFbHQlDbQj/aM/wCSjv8A9eUP/s1epfs4/wDJNpP+v2b+S15b+0Z/yUd/+vKH/wBmr1L9nHj4bSf9fs/8loNsN/v8/mfMpQS3/lt0ebafoWr7m0zTrbStPt7KzjEVvBGscaKMBQBXw2n/ACE0/wCu4/8AQq+7V+6PpQPJFrNnzt+0/pltb6xot/HGFuLmGWOVwMbwhXbn/vo1d/Zd0y1kOu6m0StdRmKBHI5VSGJA+pA/KmftSn/SPDv+5cfzjq7+y1/yDfEI/wCm8P8A6C1AoxX9ovT+rHsPiLS7XV9Cv7G8iWW3ngdXRh/snn6jrXxToE8lpr+mzRMVkiuomVh2IcV9w3//AB43H/XJv5GvhrSRjWbP/r6j/wDQxSHnK9+m/wCuh9LftIXU1v8AD5IoydtxexJJj+6AzfzArzb9m7SLPUfGtzdXKLJJY2plgVuzlgu7HsCfzr3T4m+Em8a+C7/SocC5Kia3J/56KcgfjyPxr5R8MeI9W+H3iVNQtkMV5as0U9vKCAw6MjDt0/A0xY9+zxUKs/h0Ptjbg18t/tF6PZaX48Se0VY3vrVZ51UYG/cy5/EAV3B/af0b+z940PUPt23/AFRdPLz/AL2c4/CvDPFfii/8Y67c6zqTAzzEAIv3Y0HRV9hQGZ42jVpKEHdn0T+zYM/DyXP/AD/y/wDoK15J8TPhZrfhHXrm+sLO5udKllM0FzbqWMOTna2OVIPfvXrn7Nn/ACT2X/r/AJf/AEFa5Txr+0HqWm+Mfs+i2qtplg7QzxXCFWum6E88qB2/M+lBVWNF4On7V27HCaN8bvHOibYl1g3kaceXeRiT9fvfrXsPwq+OUfjG/XQ9Xs4rHUHB8h4SfKmwMlcHlWwDx04rmde+MXw38R6RL/aHhGaa+dCBGYYwQ3r5oOQPfr7V5v8ACixutR+IuhpZoxaO6WdyP4ETlifbHFBzU69SjVjGFTnTPsqiiikfThRRRQAUUUUAeXX/AMa0tLua3TRHJidkJecDkHHTbUcXx0j3fvtEcL6pOCf/AEGuE8eWJ0/xfqkOMAzGRfo3P9awa+spZZhZ04y5d13Z8XVzXFwqOPNs30R7lp3xi8O3rBbj7TZMT1kTcv5jNdlp+qWWqQieyu4bmM/xRsDj6+leA+F/h9rHilRPCi29oT/x8TZAb/dHU16DpHwi/siVbi38RXsFyvJaBAoPsQScivMxmEwlN2jOz7bnr4HG42ok5Quu+x6PnNBqtYR3MMKx3VwtxIP+WgTZn6jJ5qyehrxnoe4ndGF4w1iHRtElmnDFZCIgFUMee+DwcdcV49qtneXO/URdHU4DwZ1zuQejJ1T+XpXe/FCK61EWVnAoESbpppZG2xxjoCzH8feuGg1K20By2lO1xeYKteSAhFB6hE7/AFb8q+Xzapz1nCekV/XzPsMkpclBVKWs306W8+39aMTS7W60vZqM922mwsOON0k49BH/ABD3PFez+GdVj1rRre9iQorjbtOMgg47cdq8YnvbLX5TLfv9iv363Ay0Up/2l6p9V49q9G+GEd3Z6bdWN0mBHKJInUhkdWHVWHBGRV5RU5Kvs4fC1/XoRnlLno+1qaTT28vLv0/yR2tFFFfSnyYUUUUAFFFFABRmg1naxr2naDbm51G7jt4+248t7AdTTjFydorUmUlFc0nZGjkUZFeT658bDuaPRbAEDgTXPf3Cj+prjr74j+Kb9iX1aWIH+GEBB+lenSyfETV3p6nk1s7w9N2j73ofROaMivmZfFevq24azqGf+vhj/WtvR/ir4k0x1E1yt/EDyk45P0Yc1rPJKyV4yTMafEFFu0otHv2c0VzfhDxzpni2LFuTBdoMyW0h+Ye49R710leTUpypy5ZqzPapVYVYqcHdBRRRUGgUUUUAI7rGpZ2CqOpJwBTY54pgTHIjgcZU5rivjYSvww1wgkHy06f9dFrif2XmZtF13cSf9Kj6nP8AAaDklibYhULbq57dWfr+ljXNEv8ASmkMS3lvJbmQDJQMpGcfjWhRQdUkmrM8LH7Ldj1/4SW7/wDAdf8AGvVPAvhOPwR4bttDiunukgLkSugUtuYnoPrXQUjUHNRwdGi+amrMxfFfg/RfGemmw1izW4jByjA7Xjb1VuoNeQaj+y5G85bTvEjxQE8Jc229h+KsM/lWP4xb4uf8JZq/9lDxN9g+1yfZ/JVtnl7jt2+2K5jWPEPxX8PQLcavf+IrGF22LJcMygt1x+hpnl4rEUJtupSenU9OtP2ZNHi0uaC51i5mvpdu25WIKsQBydqZ5J6ZJre+HvwTtvh/r51iLWZ7xvJeDy3hVRgkHOQfavFtJ1r4t67aC80u78SXtsWKiWAsykjqM12Xw3PxTPjbTP7fHiL+zN7ef9qDeXjYcbs++KBUKmHc4uFJrzO1+IHwQtfH3iE61NrNxaMYUh8pIQw+XPOSfeul+H/gaPwB4ebRobyS8Rpnm8x0CnLY4wPpXUr0paR68cLSjUdVLVnh6/sw2K3An/4SS7yHD4+zr659a9uUECnUUDo4anRv7NWucF8TPhVB8SZNPefU5rH7EJAAkYffu2+p/wBn9am+Gfwyh+G0F/DBqMt8L10cmSMJs2gjsfeu3ooD6tT9p7W3vEc8XnwyRZIDqVz6ZGK8Vtf2Y7G2u4bkeI7tjFKsm37OvOGzjrXt1FAVsNTqtOavYQDjmuF8efB7w747lN3PG9lqOMfa7bAZvTeDw38/eu7ooLqUoVI8s1dHgA/Zal8/nxQpgz/z5/Pj/vvFa1/+zJok8dslnq15aGKPbK5jDtM2c7jkgD0wK9pop3ORZZhl9k5b4d+BYvh9oDaRDeyXitO03mOgU8gDGB9KreM/hR4Y8cN5+oWbQ3uMfa7Y7JD6Z6hvxBrsqKR0/V6fIqbWh4S/7LdoZ8p4luRDn7ptlLfnnH6V6T4F+Gmg+ALd10yB5LmUAS3cx3SOPTPYewrraKDOlgqNKXNCOoUUUUHUFFFFABRRRQB4v8a9KNvrdnqKr8tzD5bH/aQ/4EflWF8O/Ci+Kdc2XAP2K2XzZv8Aa9F/E/oDXqXxW0Y6t4UmkjXMtkwnX6Dhv0P6VlfBK2RNBvbgAb5LnaT7BRj+dfQUsY44C8XqtD5mrgVLMUpLR6nosESQQpFGioiAKqqMAAdqfQOlFfPn0qQUN0OaKD0NAzyr4iX9lea4dNvHngWBFKTxsWVWIz86d/qOfrXGX2lXNgqysFlt3/1dxEd0b/Q9j7HBrb8aWlzqHjW/htonlk3LwP4RtHJPQD3NV7S9tvDSyoky6jcyLteEHNqv+9/z0P0wPc18XimqtabqaK71/rc+/wAD+5w9NUtXZe7+t+nz0M6x0ia8iNxI6WtoDhrmbhPoO7H2Fd18NNRs01OfS7JZ2iMRkM0zEF2BHROijk+p9a5W8nt/E0iyC4FneKNq28zfuD7Rnon0PHvWp8Oba5sfGcdvcxPDIIpAyuMHGOv0qsE/Z14ez1Te/wDW35kZh+9w1T2ujSvb+t/y8j2FaWkFLX2KPgwooopgFIxx2oJrzz4l/EH+xI20nTJAdQdf3kg/5YKf/Zj+lbUKE681TgtTDE4mGHg6k9iz46+Jdt4c32OnhLnUcYPOUh/3vU+1eLapqt7rN213f3MlxM38Tnp7Adh9KrMzOxZ2LMxySTkk0lfX4PA08PH3d+58TjcfUxMvedl2Ciiiu44QooooAnsL+50u8ivLSVop4W3I47f/AFq+i/CHiSLxPocF+gCyH5JkH8DjqP6/jXzbXpfwR1J49TvtNLHy5YhMo/2lOD+h/SvHzjDxnR9p1j+R7OS4qVOsqXSX5nsdFFNdgilmbCjkk8AD1r5Q+yFJpM8187fEX47axq2qvongxpIbff5IuYU3TXLdP3foPTHJ61hRfDP4t3kf9pN/aIlPzASajtl/ItwaZ5k8yTk40ouVux7d8bTn4X67/wBck/8ARi1xX7Lf/IE1z/r6j/8AQDXnGr/EnxjaeH9V8G+KY5p2mjCBrtds8BDAg5/jU47/AJ16N+y4f+JJrv8A19R/+gGkctLERr4yEo9n+p7hSbhmvNfi58XY/AECWGnolzrNwm5Vf7kCf329fYV5JZQfGTx5H/atpc6u0D/MjC4FtG3+4uVyPcCg7q+PjCfs4JyfkfUwORRXzJoXxd8cfDvWV0zxdFeXduMeZDdj98q/3kf+L8SQfavo/R9Vtdb0631GxmE9rcxiSOQdwaDXDYuFe6WjXRlyvHf2m/8AkTNO/wCv9f8A0Bq9irx39pr/AJE3Tv8Ar/X/ANAagjMP93maf7O3Hw0g/wCvuf8A9Cr00MDXl/7PvHwtQjgi4uCPzrgvgJ4r1/WfHzWupa1qF7bi0mbyp52dcgrg4J60GNDEqnTowa+JH0eOlITilFeW/tD6xqWieDrK40u/urGZr9UaS3kKMV2OcZHbgflQd1eqqVNzfQ9Q3CjPWvN/g7qt/qnwr+3317cXV3m5/fyyFn4JxyeeK8D0D4u+MNDlnnGsXd7JLCYk+2TNKsRJHzhScFuOPrTOKrmMKcYSkviPsTdnoDSg18sQ+Dfi/wCLIxqzPqzbxvQz3vksR/soWGB+Aq34a+LnjL4d62uk+LUvLq1UgSw3fM8Sn+JHP3h7ZIPqKREczSa9pBxT6n04Tg0m6vnPx78c9b8S6p/Yvgj7RDbu3lpPChNxct/sjGVH6/SsR/h58XreH+1Mat5gG8hNQ3Tf987s59utMc8yTk1Si5JdUfVAOaWvnv4YfHTVLbVYvD/jGRpUkfyUvJV2SwvnG2TpkZ4z1HevoNTnvSOvDYmFePNAUnFJn2rw74t/HO60i/m8P+FnT7TCdlzebQ2x/wC5GOhI7k9+BXD23gD4t+KIxqkh1TLjepur7ynb6KWBH5Cg5quYpScKUXJrex9UbhTga+V4viL8Q/h3JPoviAXsiTQuiJdsS6ZBAeKXnOCQepHHauo/Z08Ta7rniXVIdV1i/v447IMqXE7OFO8DIBPWmKlmcKlSNPlab/A+gD0ppPauU+I3xCsvh7opvrhfPuZTstrYHBlf3PZR3NfPy658T/i1eymwlvngVsGO1fyLeL2LZGT9STQa4nHQpS5EuaXZH1YTTh0r5RvtA+K/w4j/ALTabVIYI+WlhufPjX/fXJ4+oxXsnwb+KF38QLGeDUbNor2zA33ESHyZgfforeq/iKCaGPVSfs5xcZeZ6VSFq5rx/wCObDwBoUmqXuZHJ8u3t1OGmk7D2HcntXztN4r+JnxX1CaPTHvjCp5t7FjDBED0DNkZP1OaReJx0KL5LXl2R9XZxS18n3nhv4r+AYzqbNq8EUfzPLBdeeqj1ZQTx9RivVfg/wDGdvGUg0TXBHDq4UtFKgwl0B147MOuOhoM6GYRnP2dSLi33PWJoEuInilUMjqVZT3BrhPhtaN4f1HXvD0mc286zRZ/ijYcH9BXfVzmuWo07WrHX0GEUfZLvHeJj8rH/dbH4E10UZ+7Kn3/ADWxviKfvRqr7P5Pc6MdKKRelLXOdQUN0NFFAHkfxRe8tdYMKsI7S5QSERjb5rDg7j/FjA61w9e7eLvC0PifTvILCO4jO6GQ9j6H2NeQ6j4R1vS5THPp87AHh413q30Ir4/NsHVjWc0rxe3l5H3WR4+jKgqbaUl+Jj4HevQ/hS95dXs/muZLa1i2pvGTGzHop6gYB4rl9L8G63q0ypFYSxITzJMpRV/OvYvDHh6Dw3pi2cPzuTukk/vt61eUYOq6yqNWS/EjPsdRVB0YtOT/AANYGloxRX1p8QFGaKinmjt4XmlZUjjUszHoAOpoE3Y53x74vTwpo7SIVa9nyluh9e7H2FfPdxPLdTyTzyNJLIxZ3Y5LE962vGfiWTxTrs16SfIX93Ah/hQf1PWsKvscuwSw9O7+J7nw+Z414mq7fCtgooor0TzQqW2tLi8lEVtBLPIf4Y0LH9K7zwT8KrnWlS/1cva2Z+ZIhxJKP/ZR+tevaXo2n6NbrBYWkNvGoxhF5P1PU15GLzenSfJD3n+B7ODyarWXPU91fifO8nhDxDDCZpNFv1QckmE8VkMpRirAhhwQeor6sBzXHeO/h9Z+JbOS4too4NTjUskijAlx/C3r9e1c+HzvmlarGy8jpxOQuMOalK7Xc8Ert/g8rnxmhXOBbyFvpx/WuJkRonaN1KupKkHqCOtetfBTQXihu9alTAmxDDkdVByx/PA/CvQzKooYaV+uh5uV0pTxULdNT1OuG+NWszaJ8N9Xnt3KSzKtsGHVQ7BSfyJrua5L4q+HJvFPgPVtOtk33BjEsKj+J0IYD8cY/GvjD7TEqTpSUd7M8v8A2ZvC1pLDqPiW4iWS4jl+yW5YZ8sbQzEe53Afga98AFfNv7Pnj+x8O3l34d1eZbaG9kEsEshwqzYwVYnpkAfiPevpBXDAEcgjIIpnLlcoOglHfqeVftD+FbXVPBkmt7FF7pjKyyY5aNmCspPpyCPp71j/ALLnOia7/wBfUf8A6AaP2hviFYJozeFLC4Se8uHVrrYciFFOdpPqTjj0o/Zd40TXf+vqP/0A0HLeEswXJ21/E8m8U+I7fUPiZqGsavbNf2sd+26337d8aNtVM84HAz+Nemp+1FaxoqJ4VZUUYVVuwAB6D5a4vWI4vhv8Zp59Ts0uNP8AtbTMkkYdZLeXPIB4JG4/itfSWn6R4W1WyhvbHS9IubeZQ0ckdtGwYH8KDHBU6zlNQnyu+uh85/Er4wab8RdIjtJPDptLuCQPBdfaAxT+8p+UZBHb2Fei/sx6xLeeFtS02Ry6WN0DHk/dV1zj8wT+Nd1qUngPR9RttO1CLQLW8uuIoZYYwzfpx+PWug0/TbDTlcWNnbWwfBbyIlQN6ZwOaR20MJNV/bSmm9mW68d/ab/5EzTv+v8AH/oDV7Ea8d/ab/5E3Tv+v8f+gNQb5h/u8/Qv/s+/8ksX/r4uP515d+zmcfEh/wDrym/9CWvU/wBnlQ/wxiU/xXM4/WvHfhzqsfw2+Krxa1mCKOSWxnkb/lmCeHPtkL+BzQebN8qw83sj6zFeQ/tN/wDIjWP/AGEU/wDRcletQzxzQrLE6yRuAyuhyGHqDXgv7SvjHT7u2sfDVrMk1zDP9qudhyIsKQqk+p3E49qD0cxmlh5Xe51XwP8A+SPAe91/Nq8g+Anh608QeP4PtsayxWMDXQjYZDOCoXI9ic/gK9u+FGjz6L8JLSG4Vklmt5rkoRgqH3ED8iPzryb9mf8A5Hu6/wCwe/8A6GlB504e9h4yXT/I+ndteT/tGeHrS/8ABJ1do1F3p8ybJMclHO0r9OQfwr1mvO/j5/yTDVP9+H/0YtB6uNinQmn2OI/Zj8PWklvquvyxq92sotYmIz5a4y2Pc5H5V70RmvG/2Yf+RS1T/r+/9kWvZKZnl0VHDxsfOH7TPh+00/W9M1i2jWOa/jdJ9vG9kxhvrg4/AV6tpPia5j+D0HiB23XUekGbce8ioQD+YFef/tS/6rw9/vT/AMlrvPA2lLrnwa07S2IAu9LaHPoWBAP50jlpJrFVYx7fieP/ALPPhm38ReLbzV9QUT/2cglQPzmZycOc9cYJ+tfToXIFfKnwe8Wr8N/G11p+uhrWC4zaXLMP9TIrfKx9s5H0Oa+qILiK4hSWF1licAq6EMrA9wRQXlLj7Gy3vqcd8XPCln4o8EajHPGpuLSF7q3lx80boCeD6EAgj3ryH9l/nxVq59bEf+jFr0f42fEKw8NeGbvSoZ0k1bUImgSFWy0SMMM7egxnHqa85/Zf48VawB0FiP8A0YtMyxEoPHU1HfqZ/wAeb241/wCKMejCTCW6wWsQPRWkwxP/AI8Pyr6O8O+H7Hwxo9rpWnRCK3t0CAAcse7H1JPJr56/aI0O60Xxza+IYVIivEjdZMcLNHgY/IKfzr3HwD470zx3ocN9ZTILgKBc22fnhfHII9PQ96C8G1HE1VP4r6eh0skKSoY3UMjDDKRkEehqtpmkWGiWaWem2kFpbJkrFEgVQT1PFJqutWGh2Et/qVzHa2sKlnlkOAP8T7VleD/Hug+ObNrjRrvzGTiSCQbZYv8AeX09+lI9NyhzpNq54L+0dqtxqfju00gMRFaW6BFPTfIck/8AoI/CvoHwh4XsfCOgWmkWMSokMY3sBzI+Pmc+pJrwn9pXw9PZeJbDxDEreRdQiFpAOElQkjP1H8jXsPw1+IGneO9BgninjXUYowt3bE/PG4HJx3U9QaDzMK0sXUU/i6eh1rRgqQeQRgg96+UfinpKfDv4nrdaOBbpuj1CBF4EZJ+ZR6DIP4HFfU+o6nZ6TZy3l/cxWttEpZ5ZWCqor5U8T6jL8YfimkemxyfZ55EtoCRysCfec+n8RoDN2nCMV8V9D61qG5t47mCSCVN8cilXU9CDwRU1FB69ijpYnggFpOxeSD5A5/5aL/C31x19wavUY5zRQ9XcSVlYKKKKBhTQuDTqKAE2ilAxRRQAUUUHpQAZHrXmvxg8V/YbBdDtZP390N0xB+5H6fj/ACFdd4t8UWvhTSnvbghnOViiB5kb0+nqa+dtT1K51i/nv7yQyTztuY/0HsK9jKcG6k/ayWi/Fnh5zjlSh7GL1e/kitRRUtpZ3F/cx2trE808p2oiDJY19U2krnyKTbsiOON5XWONWd2IAVRkk+1ew+APhemn+VquuRLJc8NFbNysXu3q3t2rT8BfDm38NRpe34SfUmGc9Vh9l9/euo1fWINJg3Od0rD5Ix1P/wBavm8dmUqz9jh9u/c+ny/K40Y+3xO/bsP1PVbbSoPMlPzH7qDqxridQ1691CQlpWjTPCIcAVVvb2a/naedyzn8gPSoKjD4SNNXlqysTjJVXaOiNHTddvNPlDCVpI8/MjnIIrvbS6jvbeO4jOUcZFeY13HhDf8A2P8AN08xtv04/rmscfSjyqaWp0ZbWlzezb0PK7jwPdeJfiBqttbqY7JLotNOBwgPJA/2q9o06xg02yhs7aIRQwqERB2AqSGCKDd5SKm5ix2jGSepqWuTE4uddRi9l/VzswmChh3KS3b/AKQUh5HSlorlO08a+JfwAh8SXk2r+HZobK9mJea2lGIpW7sCPuk9+x9q8+T4Y/F20X+zYV1Bbb7oWPUQIsf999K+pqKDzquWUZy5ldeh85Wv7Nmrr4fvbq8u4ZtZdB9mtY5MRqxYZLuepxngfma7/wCB3gPW/Amm6pb61FBHJczo8flSbwQFINenUUF0cvo0pqpDdHF/En4Zab8Q9OSOYm2v7fP2e7VclM/wsO6n0/KvFP8AhUPxW8MySWujXExt3P3rG/EaN7lSy4/Kvp+igdfAUq0ud6PyPnXwx+znrep3wvPGF+sURO6SKKXzZpfYv0H15r6B0+xg02zgsrWPyreCNY40znaoGAOas0UGmHwlOgvc6geledfGzwVrHjjw7Z2GjRwyTRXYmYSybBt2sOv416LRQa1qSqwcJbM4f4P+FNT8HeDI9K1eOJLpZ5JCI33jBPHNZPxV+C9r47k/tTTpksdYVdrM4/d3CjoHxyCOma9OooM3hacqSoyV0fK6/C34t6QrafZR3y2x4xbagFiP4bhj8q6vwB+ztdQ38Wp+L5YnWNvMFjE2/wAxv+mjdMew6+te+0UHLTyujGXM7u3crXsBl0+eCJQGeJkUdACVIFeM/Bb4U+J/BHiibUdYgtY7d7RoVMUwc7iykcfga9vooOuph4VJxm947BXH/Fbw1qPi3wTfaRpaRvdTNGUEj7V4cE8/QV2FFBpUgpxcH1POfgl4I1jwLoF7Y6zFCk0115qeVJvBXaB1/CvRaWigVKkqUFCOyPKfjn8Pde8eLpC6LFBJ9laUy+bLs4YLjH5V2vgHRrzw/wCDNI0q/VFurW3EcgRtyg89D3roaKCI4eEarqrdnmPxP+Cll46kOp2EyWGr7QGkZcx3AHQOB37bh+teTp8KvizoJaz08XiwHj/Q78LG34bhj8RX1NRQc9bLqVWXPqn5HznoP7OWuXsdzfeJLxFuDE7RW0cu95Jdp275OgGcZxn6103wQ+F/iTwLruoXutQ20cU9qIkMUwclt4PT6CvZqKAp5dRpyU43ujG8VeFNM8Y6NNpOrQeZBJyrDho2HRlPYivn7WPgB418N37XPhq6F9GCfLlhn8iYD0IJA/I19NUUGmIwVOvrLfuj5bj+DfxP8U3KLrLSRxg/62/vPMCe4UEmvb/hv8L9L+HVk4t2N1qE4Anu3XBYf3VH8K+1drRQTh8BSoy51q+7MvxH4c07xXpE+larbie1mGCOhU9mU9iPWvnvxB+z34t0G/Nz4ZuhfQqSY3SXyLhB6HJAP1B/CvpiigrE4KlX1nv3Plhfg/8AFDxNOkWqC4ESn/WaheblX3AyT+le1/DT4T6b8O7Z5Vk+2apOu2a7K4wP7qDsP513lFBGHy+lRlzrV92FFFFB3BRRRQA3eu7aDyO1OrP1fSf7Qi3QXEtndp/q7iLqvsR0Yexribv4ga54QuhaeJtLE8ROI7y1+VZB64PGfbit6WHlV0p6vt1Oatio0Nami79PmejUVyOnfFPwvqAGdQ+zMf4Z0K4/Hp+tbcPibRLgAx6vYN/23XP86mdCpD4otFQxNKavGSZp0Vmy+JNGhBL6tYKB6zr/AI1i6j8UPC+ng/8AExFy4/gt1L5/Hp+tEKFSbtGLfyHPE0oK8pJfM6w1z/irxnpnhS1Ml3JvuGH7u3Qje5/oPevOvEHxnvrxHg0e2Fmh486XDSfgOg/WvO7q6nvrh7i6mknmc5Z5GyT+NethMmnJ81fRdjxcZnkIrloavuaHiTxJfeKNRa9vn9o4x92NfQf41lUdOtdX4S+HOq+J2SZkNnY55nkHLD/YHf69K+glOlhqeuiR83CFXE1NPebMHSNGvtdvkstPgaaZ+w6KPUnsK908E+ArLwnb+a2241Bx+8nI+7/sr6D+da3h7w1pnhex+zWEAjHV5W5dz6k1R1vxTHb7oLIh5Ohk7L9PWvnMVjqmLl7OkrR/rc+nwmApYKPtazvL+tv8y9rWvQ6VHsUh7gj5U9Pc1w1zdTXkzTTuXdjyTTJJHmkMkjFnY5JPWm1th8NGkvM58Tip1nrt2Ciir2maPdapKFiTCD7zt0Fbzkoq8jnhCU3aKIbGxm1C5SCFcsx5PZR6mvRbC0SxtY7eP7qDGfX3qHStIt9Kg2RDLn7znq1XsV4uKxPtXZbI9/BYT2K5pbsKKKK5DuCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKr3+n2up2z215BHcQuMMki5BqxRTTs7oTSaszyjxL8GAzNPoFwFHX7NOeB9G/x/OvO9U8Maxorlb/TbiED+MrlT9GHFfTeKayBgQwBB7EV6uHzitTVp+8vxPGxOR0Kj5oe6/wAD5S4PpRX05c+GdFvGLT6VYyMepaFcn9Krr4N8OwfMmiWOR28oH+ddyz2HWDPOfD9TpNfcz5vhgluHCQxvK56Kikn9K6jRvhj4k1gqxtPsUJ6yXJ28f7vX9K9sWW10pMW+kSRD0hhUD9KoXXiuZMiHTpQfWTIqZZrXqaUopebZcMooU9as2/JIzPDPwp0XRSs93nUblecyDCKfZf8AHNdPf6zY6WoV5FLAYEacn/61cld6/ql5lS7Rr/djGP1rOFtcyHIhlbPfaTXG8POrLnxE7nYsTCjHkw8LGlq3iS71LManyYT/AAr1P1NZFXotD1Gb7lpL9SMVo2/g2+m/1zxRD65NdKqUaSsnY5nTrVnzNNmBU1rZXF6+y3heQ+w4H412Nn4PsbfDTF529G4H5VtQwR26BIo1jUdlGK5qmYRXwK51Ussk9ajsc1png9UxJfuGP/PNen4muligjgRUiUIo6ADAqTFFebUrTqO8merRoQpK0UFFFFZmwUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAf/2Q==" alt="Palmas de Tumaco">
     <h1>Control de dispositivos</h1>
     <p>Ingresa con tu usuario y tu código de ingreso</p>
-    <div class="demo-aviso oculto" id="avisoDemo">Modo demo: datos de ejemplo. Usuario <b>jrodriguezc</b>, código <b>Palmas2026</b>.</div>
     <label for="iUser">Usuario</label>
     <input id="iUser" autocomplete="username" required autocapitalize="none">
     <label for="iCod">Código de ingreso</label>
     <input id="iCod" type="password" autocomplete="current-password" required>
     <button class="btn primario ancho" type="submit">Ingresar</button>
     <div class="error" id="eIngreso" role="alert"></div>
+    <div id="activarWeb" class="oculto">
+      <label for="tActWeb">Código de activación (lo entrega el administrador)</label>
+      <textarea id="tActWeb" rows="3" spellcheck="false" placeholder="CIMEI1...." style="width:100%;font:13px ui-monospace,monospace;padding:8px;border-radius:8px;border:1px solid var(--linea)"></textarea>
+      <button class="btn ancho" type="button" id="bActWeb">Activar este navegador</button>
+    </div>
+    <p style="font-size:13px;margin-top:14px;text-align:center"><a href="#" id="lActWeb">Tengo un código de activación</a> · <a href="#" id="lConfig">Configuración inicial (administrador)</a></p>
   </form>
 </section>
+
+<!-- Configuración inicial: conecta la app con el repositorio privado de datos -->
+<dialog id="dConfig" class="grande" style="height:auto">
+  <header><h2>Configuración inicial</h2><button class="x" type="button" id="bConfigCerrar" aria-label="Cerrar">×</button></header>
+  <div class="cuerpo" style="padding:6px 20px 20px;height:auto">
+    <form id="fConfig">
+      <p style="color:var(--suave);font-size:14px;margin:8px 0">Solo se hace una vez (o cuando cambies el token). Los datos se guardan en el repositorio privado de GitHub. El token se guarda cifrado con tu código: nadie puede usarlo sin el código.</p>
+      <label for="cRepo">Repositorio de datos (privado)</label><input id="cRepo" required>
+      <label for="cToken">Token de GitHub (solo de ese repositorio, permiso Contents: Read and write)</label><input id="cToken" type="password" required autocomplete="off" spellcheck="false">
+      <div class="rejilla" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        <div><label for="cUser">Tu usuario (administrador)</label><input id="cUser" required autocapitalize="none" pattern="[A-Za-z0-9_\-]{3,30}"></div>
+        <div><label for="cNombre">Tu nombre</label><input id="cNombre" required></div>
+        <div><label for="cCod">Tu código de ingreso (mínimo 6)</label><input id="cCod" type="password" minlength="6" required autocomplete="new-password"></div>
+      </div>
+      <div class="error" id="eConfig" role="alert"></div>
+      <button class="btn primario" type="submit" id="bConfigOk" style="margin-top:10px">Conectar y crear administrador</button>
+    </form>
+  </div>
+</dialog>
+
+<!-- Código de activación para entregar a un usuario -->
+<dialog id="dAct" style="height:auto;max-width:440px">
+  <header><h2 id="dActTit">Código de activación</h2><button class="x" type="button" id="bActCerrar" aria-label="Cerrar">×</button></header>
+  <div class="cuerpo" style="padding:6px 20px 20px;height:auto;text-align:center">
+    <p style="color:var(--suave);font-size:14px;text-align:left" id="dActAyuda"></p>
+    <div id="qrAct" style="display:inline-block;padding:12px;background:#fff;border-radius:12px;border:1px solid var(--linea)"></div>
+    <textarea id="tActCodigo" rows="4" readonly style="width:100%;margin-top:10px;font:12px ui-monospace,monospace;padding:8px;border-radius:8px;border:1px solid var(--linea)"></textarea>
+    <button class="btn" type="button" id="bActCopiar" style="width:100%;margin-top:6px">Copiar código</button>
+  </div>
+</dialog>
 
 <!-- Panel -->
 <div id="vPanel" class="oculto">
@@ -249,6 +287,7 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
         <div><label for="rCedula">Cédula</label><input id="rCedula" inputmode="numeric" pattern="[0-9A-Za-z]{4,15}" required></div>
         <div><label for="rLabor">Labor</label><select id="rLabor"></select></div>
         <div class="full"><label for="rFecha">Fecha de ingreso</label><input id="rFecha" type="datetime-local" required></div>
+        <div class="full soloOtro"><label for="rEntrega">Responsable que entrega el acta y el dispositivo</label><select id="rEntrega"></select></div>
         <div class="soloEd"><label for="rMarca">Marca</label><input id="rMarca"></div>
         <div class="soloEd"><label for="rModelo">Modelo</label><input id="rModelo"></div>
         <div class="soloEd"><label for="rImei2">IMEI 2</label><input id="rImei2" inputmode="numeric"></div>
@@ -300,17 +339,22 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
 <dialog id="dUsr" class="grande" style="height:auto">
   <header><h2>Usuarios y códigos de ingreso</h2><button class="x" type="button" id="bUsrCerrar" aria-label="Cerrar">×</button></header>
   <div class="cuerpo" style="padding:6px 20px 20px;height:auto">
-    <p style="color:var(--suave);font-size:14px;margin:8px 0 0">El código de ingreso es la contraseña de la web y el código para entrar a la APK. Cada código debe ser único.</p>
+    <p style="color:var(--suave);font-size:14px;margin:8px 0 0">Al crear un usuario (o cambiarle el código) se muestra su <b>código de activación</b> con QR: el trabajador lo escanea en la APK una sola vez y luego entra con su usuario y su código. El código de ingreso no se guarda en ningún lado: anótalo y entrégalo a la persona.</p>
     <form id="fUsr" class="rejilla" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-items:end">
-      <div><label for="uUser">Usuario</label><input id="uUser" required autocapitalize="none" pattern="[A-Za-z0-9_-]{3,30}"></div>
+      <div><label for="uUser">Usuario</label><input id="uUser" required autocapitalize="none" pattern="[A-Za-z0-9_\-]{3,30}"></div>
       <div><label for="uNombre">Nombre</label><input id="uNombre"></div>
-      <div><label for="uCod">Código de ingreso</label><input id="uCod" minlength="4" placeholder="Vacío = no cambiar"></div>
+      <div><label for="uCod">Código de ingreso</label><input id="uCod" minlength="6" placeholder="Vacío = no cambiar" autocomplete="off"></div>
       <div><label for="uRol">Rol</label><select id="uRol"><option value="usuario">Usuario</option><option value="admin">Administrador</option></select></div>
       <div><button class="btn primario" style="width:100%;padding:10px" type="submit">Guardar usuario</button></div>
     </form>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <button class="btn" type="button" id="bUsrExcel">Crear usuarios desde Excel</button>
+      <span style="color:var(--suave);font-size:13px;align-self:center">Columnas: NOMBRE, CEDULA, CARGO, USUARIO, CONTRASEÑA. Las contraseñas no se guardan: solo se usan en este navegador para crear los códigos de activación.</span>
+      <input type="file" id="fileU" accept=".xlsx,.xls,.csv" class="oculto">
+    </div>
     <div class="error" id="eUsr" role="alert"></div>
     <div class="hoja usuarios" style="max-height:340px;min-height:0;margin-top:6px">
-      <table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Creado</th><th>Acciones</th></tr></thead><tbody id="uFilas"></tbody></table>
+      <table><thead><tr><th>Usuario</th><th>Nombre y cargo</th><th>Rol</th><th>Estado</th><th>Creado</th><th>Acciones</th></tr></thead><tbody id="uFilas"></tbody></table>
     </div>
   </div>
 </dialog>
@@ -318,8 +362,6 @@ dialog.grande iframe{width:100%;height:100%;border:0;background:#777}
 <script>
 "use strict";
 const CFG = window.APP_CONFIG || {};
-const FBC = CFG.FIREBASE || {};
-const DEMO = !FBC.databaseURL || FBC.databaseURL.includes("TU_PROYECTO");
 const LABORES = ["Aplicador","Sanidad","Mantenimiento","Cosecha","Fertilización","Reubicado","Supervisor","Administrativo"];
 const COLORES = {"Aplicador":"#2479B8","Sanidad":"#B4235A","Mantenimiento":"#7A5AF8","Cosecha":"#D9692A","Fertilización":"#2E8B3F","Reubicado":"#0E8A8A","Supervisor":"#A15C07","Administrativo":"#5B6B61"};
 const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor",DEVOLUCION:"Devolución a bodega",DANO:"Daño reportado",PERDIDA:"Pérdida"};
@@ -336,179 +378,172 @@ const pesos = n => "$" + Number(n).toLocaleString("es-CO");
 
 let S = { sesion:null, datos:[], vista:"historial", labor:null, limite:300 };
 
-/* ---------------- API (Firebase JSON o demo) ---------------- */
+/* ---------------- Datos en GitHub (repositorio privado, ver apk/www/datos.js) ---------------- */
 const ERRORES = {
-  CREDENCIALES_INVALIDAS:"Usuario o código incorrecto.", SESION_INVALIDA:"Tu sesión terminó. Ingresa de nuevo.",
-  SOLO_ADMIN:"Solo el usuario principal puede hacer esto.", CODIGO_EN_USO:"Ese código ya lo tiene otro usuario.",
-  CODIGO_CORTO:"El código debe tener al menos 4 caracteres.", CODIGO_REQUERIDO:"Escribe un código de ingreso para el usuario nuevo.",
-  NO_PUEDE_DESACTIVARSE:"No puedes quitarte el rol de administrador ni desactivarte."
+  SOLO_ADMIN:"Solo el administrador puede hacer esto.", CODIGO_CORTO:"El código debe tener al menos 6 caracteres.",
+  CODIGO_REQUERIDO:"Escribe un código de ingreso para el usuario nuevo.", NO_PUEDE_DESACTIVARSE:"No puedes quitarte el rol de administrador ni desactivarte.",
+  USUARIO_INVALIDO:"El usuario solo puede tener letras, números, guion y guion bajo (3 a 30)."
 };
-function mensaje(e){ const m = String(e && e.message || e); const k = Object.keys(ERRORES).find(k => m.includes(k)); return k ? ERRORES[k] : (m.includes("Failed to fetch") ? "No hay conexión con el servidor." : m); }
-
-/* Firebase Realtime Database (JSON) por REST + sesión anónima validada con el código */
-const SV = {".sv":"timestamp"};
-async function sha(t){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("palmas-tumaco:" + String(t).trim())); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""); }
-const FB = {
-  async anonimo(){
-    const r = await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + FBC.apiKey, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({returnSecureToken:true})});
-    const j = await r.json(); if (!r.ok) throw new Error("Firebase Auth: " + ((j.error && j.error.message) || r.status) + ". Revisa que el acceso Anónimo esté activado.");
-    return {uid:j.localId, idToken:j.idToken, refreshToken:j.refreshToken, expira:Date.now() + (+j.expiresIn - 120) * 1000};
-  },
-  async token(s){
-    if (Date.now() < s.expira) return s.idToken;
-    const r = await fetch("https://securetoken.googleapis.com/v1/token?key=" + FBC.apiKey, {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:"grant_type=refresh_token&refresh_token=" + encodeURIComponent(s.refreshToken)});
-    const j = await r.json(); if (!r.ok) throw new Error("SESION_INVALIDA");
-    s.idToken = j.id_token; s.refreshToken = j.refresh_token; s.expira = Date.now() + (+j.expires_in - 120) * 1000;
-    try { sessionStorage.setItem("pt_sesion", JSON.stringify(s)); } catch(_){}
-    return s.idToken;
-  },
-  async db(s, metodo, ruta, cuerpo, query){
-    const t = await FB.token(s);
-    const r = await fetch(FBC.databaseURL.replace(/\/$/,"") + "/" + ruta + ".json?auth=" + t + (query || ""), {method:metodo, body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo)});
-    const txt = await r.text(); const j = txt ? JSON.parse(txt) : null;
-    if (!r.ok) throw new Error(r.status === 401 || /permission/i.test(j && j.error) ? "PERMISO" : "Error " + r.status + (j && j.error ? ": " + j.error : ""));
-    return j;
-  }
-};
+function mensaje(e){ const m = String(e && e.message || e); return ERRORES[m] || Datos.mensaje(e); }
 const limpio = o => Object.fromEntries(Object.entries(o).filter(([,v]) => v !== null && v !== undefined && v !== ""));
+const uuid = () => crypto.randomUUID();
+const G = { estado:{etag:null, shas:{}}, archivos:{} };          // copia en memoria de lo leído del repositorio
+const repoActual = () => new Datos.Repo(S.sesion.repo, S.sesion.token);
+async function traerTodo(){ await Datos.traerCambios(repoActual(), G.estado, (ruta, datos) => { G.archivos[ruta] = datos; }); }
+const eventos = () => Object.entries(G.archivos).filter(([r]) => r.startsWith("registros/")).flatMap(([,d]) => Array.isArray(d) ? d : []);
+const usuariosJSON = () => (G.archivos["usuarios.json"] && G.archivos["usuarios.json"].usuarios) || {};
+// Arma el estado actual (asignaciones, equipos y personal) a partir de todos los registros
+function estadoActual(){
+  const asig = {}, disp = {}, pers = {};
+  for (const e of eventos()){
+    if (e.k === "asig") asig[e.id] = e;
+    else if (e.k === "disp"){
+      const d = disp[e.imei] || {}, c = limpio({imei2:e.imei2, serial:e.serial, marca:e.marca, modelo:e.modelo});
+      disp[e.imei] = (!d._f || e.fecha >= d._f) ? {...d, ...c, _f:e.fecha} : {...c, ...d};
+    }
+    else if (e.k === "pers"){
+      const p = pers[e.cedula];
+      if (!p || e.fecha >= p.actualizado_en) pers[e.cedula] = {nombre:e.nombre, cedula:e.cedula, labor:e.labor || null, activo:e.activo !== false, actualizado_en:e.fecha, actualizado_por:e.usuario};
+    }
+  }
+  return {asig, disp, pers};
+}
 function numerar(asig, disp){
   const filas = Object.entries(asig || {}).map(([id, r]) => { const d = (disp || {})[r.imei] || {};
     return {...r, id, marca:d.marca, modelo:d.modelo, imei2:d.imei2, serial:d.serial}; });
-  // N° de acta = orden de llegada al servidor (estable: el historial nunca se borra)
-  filas.sort((a,b) => (a.registrado_en||0) - (b.registrado_en||0) || a.id.localeCompare(b.id)).forEach((r,i) => r.acta = i + 1);
+  // N° de acta = orden de llegada al repositorio (estable: el historial nunca se borra)
+  const t = x => x.registrado_en ? new Date(x.registrado_en).getTime() : 0;
+  filas.sort((a,b) => t(a) - t(b) || a.id.localeCompare(b.id)).forEach((r,i) => r.acta = i + 1);
   return filas.sort((a,b) => new Date(b.fecha_ingreso) - new Date(a.fecha_ingreso) || b.acta - a.acta);
 }
+const eventoPersona = (p, fecha) => limpio({k:"pers", id:uuid(), cedula:p.cedula, nombre:p.nombre, labor:p.labor || null, activo:p.activo !== false, fecha, usuario:S.sesion.username, origen:"web"});
 
-const filaPersona = (p, s) => limpio({nombre:p.nombre, cedula:p.cedula, labor:p.labor || null, activo:p.activo !== false, actualizado_en:SV, actualizado_por:s.username});
 async function api(fn, a){
-  if (DEMO) return demo(fn, a);
-  try { return await apiFirebase(fn, a); }
-  catch(err){
-    if (err.message === "PERMISO" && fn !== "login"){
-      const e = new Error(["listar_usuarios","guardar_usuario"].includes(fn) && S.sesion && S.sesion.rol !== "admin" ? "SOLO_ADMIN" : "SESION_INVALIDA");
-      if (e.message === "SESION_INVALIDA") setTimeout(salir, 1500);
-      throw e;
-    }
-    throw err;
-  }
+  try { return await apiGitHub(fn, a); }
+  catch(err){ if (/TOKEN_INVALIDO|REPO_SIN_ACCESO/.test(err.message)) setTimeout(salir, 2500); throw err; }
 }
-async function apiFirebase(fn, a){
-  const s = S.sesion;
+async function apiGitHub(fn, a){
+  const s = S.sesion, ahora = new Date().toISOString();
   switch(fn){
-    case "login": {
-      const usuario = a.p_username.trim().toLowerCase(), hash = await sha(a.p_codigo), n = await FB.anonimo();
-      try { await FB.db(n, "PUT", "sesiones/" + n.uid, {hash, username:usuario, creada:SV}); }
-      catch(e){ if (e.message === "PERMISO") throw new Error("CREDENCIALES_INVALIDAS"); throw e; }
-      const c = await FB.db(n, "GET", "codigos/" + hash);
-      return {...n, hash, token:n.uid, username:c.username, nombre:c.nombre, rol:c.rol};
-    }
-    case "logout": return FB.db(s, "DELETE", "sesiones/" + s.uid);
-    case "listar_registros": {
-      const [asig, disp] = await Promise.all([FB.db(s, "GET", "asignaciones"), FB.db(s, "GET", "dispositivos")]);
-      return numerar(asig, disp);
-    }
+    case "listar_registros": { await traerTodo(); const {asig, disp} = estadoActual(); return numerar(asig, disp); }
     case "registrar": {
-      const {client_uuid, ...r} = a.p_registro, upd = {}, d = a.p_dispositivo;
-      if (d){ for (const [k,v] of Object.entries(limpio(d))) if (k !== "imei") upd[`dispositivos/${d.imei}/${k}`] = v;
-              upd[`dispositivos/${d.imei}/actualizado_en`] = SV; upd[`dispositivos/${d.imei}/actualizado_por`] = s.username; }
-      upd["asignaciones/" + client_uuid] = limpio({...r, nombre:r.nombre.toUpperCase(), usuario:s.username, origen:"web", registrado_en:SV});
-      if (a.p_persona) upd["personal/" + a.p_persona.cedula] = filaPersona(a.p_persona, s);
-      await FB.db(s, "PATCH", "", upd); return null;
+      const {client_uuid, ...r} = a.p_registro, evs = [];
+      evs.push(limpio({k:"asig", id:client_uuid, ...r, nombre:r.nombre.toUpperCase(), usuario:s.username, origen:"web"}));
+      const d = a.p_dispositivo;
+      if (d) evs.push(limpio({k:"disp", id:uuid(), imei:d.imei, imei2:d.imei2, serial:d.serial, marca:d.marca, modelo:d.modelo, fecha:ahora, usuario:s.username, origen:"web"}));
+      if (a.p_persona) evs.push(eventoPersona(a.p_persona, ahora));
+      await Datos.enviarEventos(repoActual(), s.username, evs);
+      return null;
     }
-    case "listar_personal": {
-      const p = await FB.db(s, "GET", "personal") || {};
-      return Object.values(p).filter(x => x.activo !== false).sort((x,y) => x.nombre.localeCompare(y.nombre));
-    }
+    case "listar_personal": { await traerTodo(); return Object.values(estadoActual().pers).filter(p => p.activo).sort((x,y) => x.nombre.localeCompare(y.nombre)); }
     case "guardar_personal": {
       const lista = a.p_lista;
-      for (let i = 0; i < lista.length; i += 300){
-        const upd = {};
-        for (const p of lista.slice(i, i + 300)) upd["personal/" + p.cedula] = filaPersona(p, s);
-        await FB.db(s, "PATCH", "", upd);
-        if (a.progreso) a.progreso(Math.min(i + 300, lista.length), lista.length);
+      for (let i = 0; i < lista.length; i += 1000){
+        await Datos.enviarEventos(repoActual(), s.username, lista.slice(i, i + 1000).map(p => eventoPersona(p, ahora)));
+        if (a.progreso) a.progreso(Math.min(i + 1000, lista.length), lista.length);
       }
       return null;
     }
     case "listar_usuarios": {
-      const us = await FB.db(s, "GET", "usuarios") || {};
-      return Object.entries(us).map(([username, u]) => ({username, ...u})).sort((x,y) => (x.creado_en||0) - (y.creado_en||0));
+      await traerTodo();
+      return Object.entries(usuariosJSON()).map(([username, u]) => ({username, ...u})).sort((x,y) => String(x.creado_en || "").localeCompare(String(y.creado_en || "")));
     }
     case "guardar_usuario": {
+      if (s.rol !== "admin") throw new Error("SOLO_ADMIN");
       const un = a.p_username.trim().toLowerCase();
-      if (!/^[a-z0-9_-]{3,30}$/.test(un)) throw new Error("El usuario solo puede tener letras, números, guion y guion bajo (3 a 30).");
+      if (!/^[a-z0-9_-]{3,30}$/.test(un)) throw new Error("USUARIO_INVALIDO");
       const cod = (a.p_codigo || "").trim();
-      if (cod && cod.length < 4) throw new Error("CODIGO_CORTO");
+      if (cod && cod.length < 6) throw new Error("CODIGO_CORTO");
       if (un === s.username && (a.p_activo === false || (a.p_rol && a.p_rol !== "admin"))) throw new Error("NO_PUEDE_DESACTIVARSE");
-      const actual = await FB.db(s, "GET", "usuarios/" + un);
-      const nuevo = cod ? await sha(cod) : null;
-      if (!actual && !nuevo) throw new Error("CODIGO_REQUERIDO");
-      if (nuevo){ const c = await FB.db(s, "GET", "codigos/" + nuevo); if (c && c.username !== un) throw new Error("CODIGO_EN_USO"); }
-      const u = actual ? {...actual} : {creado_en:SV, creado_por:s.username, activo:true, rol:"usuario"};
-      if (a.p_nombre) u.nombre = a.p_nombre; if (a.p_rol) u.rol = a.p_rol; if (a.p_activo != null) u.activo = a.p_activo;
-      u.hash = nuevo || actual.hash;
-      const upd = {["usuarios/" + un]:u, ["codigos/" + u.hash]:{username:un, nombre:u.nombre || "", rol:u.rol, activo:u.activo}};
-      if (actual && nuevo && actual.hash !== nuevo) upd["codigos/" + actual.hash] = null;   // el código anterior deja de servir
-      await FB.db(s, "PATCH", "", upd);
-      if (un === s.username && nuevo && actual && actual.hash !== nuevo){ aviso("Tu código cambió. Ingresa de nuevo con el código nuevo."); setTimeout(salir, 1500); }
-      return null;
+      let final;
+      await repoActual().guardarJSON("usuarios.json", actual => {
+        const doc = actual && actual.usuarios ? actual : {usuarios:{}}, u = doc.usuarios[un];
+        if (!u && !cod) throw new Error("CODIGO_REQUERIDO");
+        const n = u ? {...u} : {creado_en:ahora, creado_por:s.username, activo:true, rol:"usuario"};
+        if (a.p_nombre) n.nombre = a.p_nombre.toUpperCase();
+        if (a.p_rol) n.rol = a.p_rol;
+        if (a.p_activo != null) n.activo = a.p_activo;
+        if (a.p_cargo) n.cargo = a.p_cargo;
+        if (a.p_cedula) n.cedula = a.p_cedula;
+        if (a.p_entrega != null) n.entrega = a.p_entrega;
+        n.actualizado_en = ahora; doc.usuarios[un] = final = n;
+        return doc;
+      }, `${s.username}: usuario ${un}`);
+      G.estado.etag = null;      // volver a leer usuarios.json en la próxima consulta
+      if (!cod) return null;
+      return {usuario:un, nombre:final.nombre, activacion: await Datos.Acceso.crear({usuario:un, nombre:final.nombre, rol:final.rol, codigo:cod, repo:s.repo, token:s.token})};
     }
   }
 }
 
-/* ---------------- Demo en memoria ---------------- */
-const D = (() => {
-  const nombres = [["EDISON ANDRES DELGADO","1087007537"],["MARIA FERNANDA QUIÑONES","1087123456"],["LUIS ALBERTO CAICEDO","12993811"],["YURI CAMPAZ ANGULO","1087554210"],["JHON JAIRO RIASCOS","98400321"],["ANA LUCIA CORTES","1086999102"],["CARLOS MARIO ORTIZ","1087333908"],["DIANA PATRICIA CASTILLO","1087210045"],["WILMER ARBOLEDA","1085440211"],["SANDRA MILENA VALENCIA","1087776120"]];
-  const modelos = [["CUBOT","KINGKONG"],["SAMSUNG","SM-A055M"],["MOTOROLA","moto g24"],["CUBOT","KINGKONG 9"]];
-  const disp = {}, reg = []; let id = 1;
-  for (let i=0;i<10;i++){
-    const imei = String(865327077835000 + i*1000 + i*7); const [marca,modelo] = modelos[i%4];
-    disp[imei] = {imei, imei2:String(+imei+18), serial:"R58T" + (40213 + i*37) + "KXZ", marca, modelo};
-    const base = new Date(2026,7,3+i,8+i%5,15);
-    reg.push({id:id++,imei,nombre:nombres[i][0],cedula:nombres[i][1],labor:null,tipo:"ASIGNACION",fecha_ingreso:base.toISOString(),usuario:"mperez",origen:"apk"});
-    reg.push({id:id++,imei,nombre:nombres[i][0],cedula:nombres[i][1],labor:LABORES[i%8],tipo:"CAMBIO_LABOR",fecha_ingreso:new Date(+base+6e5).toISOString(),usuario:"mperez",origen:"apk"});
-  }
-  reg.push({id:id++,imei:Object.keys(disp)[2],nombre:"EDISON ANDRES DELGADO",cedula:"1087007537",labor:"Reubicado",tipo:"REASIGNACION",fecha_ingreso:new Date(2026,7,10,9,30).toISOString(),usuario:"jrodriguezc",origen:"web"});
-  const usuarios = [{username:"jrodriguezc",nombre:"JHON MARCO RODRIGUEZ CORREA",rol:"admin",activo:true,creado_en:"2026-08-01T12:00:00Z",creado_por:"sistema",codigo:"Palmas2026"},
-                    {username:"mperez",nombre:"MARIA PEREZ",rol:"usuario",activo:true,creado_en:"2026-08-02T12:00:00Z",creado_por:"jrodriguezc",codigo:"4521"}];
-  const personal = nombres.map(([nombre,cedula],i) => ({nombre, cedula, labor:LABORES[i%8], activo:true, actualizado_en:Date.now(), actualizado_por:"jrodriguezc"}));
-  personal.push({nombre:"JOSE ELIAS MONTAÑO", cedula:"1087900011", labor:"Cosecha", activo:true, actualizado_en:Date.now(), actualizado_por:"jrodriguezc"});
-  return {disp, reg, usuarios, personal, next:()=>id++};
-})();
-async function demo(fn, a){
-  await new Promise(r => setTimeout(r, 150));
-  const fila = r => ({...r, ...(({imei2,serial,marca,modelo}) => ({imei2,serial,marca,modelo}))(D.disp[r.imei]||{})});
-  const yo = () => D.usuarios.find(u => u.username === a.p_token);
-  switch(fn){
-    case "login": { const u = D.usuarios.find(u => u.username === a.p_username.trim().toLowerCase() && u.codigo === a.p_codigo && u.activo); if(!u) throw new Error("CREDENCIALES_INVALIDAS"); return {token:u.username, username:u.username, nombre:u.nombre, rol:u.rol}; }
-    case "logout": return null;
-    case "listar_registros": return D.reg.map(r => ({...fila(r), acta:r.id})).sort((x,y) => new Date(y.fecha_ingreso)-new Date(x.fecha_ingreso) || y.id-x.id);
-    case "listar_personal": return D.personal.filter(x => x.activo).sort((x,y) => x.nombre.localeCompare(y.nombre));
-    case "guardar_personal": { for (const p of a.p_lista){ const i = D.personal.findIndex(x => x.cedula === p.cedula); const n = {...p, labor:p.labor||null, activo:p.activo!==false, actualizado_en:Date.now(), actualizado_por:a.p_token}; if (i < 0) D.personal.push(n); else D.personal[i] = n; } if (a.progreso) a.progreso(a.p_lista.length, a.p_lista.length); return null; }
-    case "registrar": { if (a.p_persona) await demo("guardar_personal", {p_token:a.p_token, p_lista:[a.p_persona]}); const p = a.p_dispositivo; if (p) Object.assign(D.disp[p.imei], Object.fromEntries(Object.entries(p).filter(([,v]) => v))); const r = {...a.p_registro, id:D.next(), nombre:a.p_registro.nombre.toUpperCase(), usuario:a.p_token, origen:"web"}; D.reg.push(r); return fila(r); }
-    case "listar_usuarios": if (yo().rol!=="admin") throw new Error("SOLO_ADMIN"); return D.usuarios.map(({codigo,...u}) => u);
-    case "guardar_usuario": {
-      const un = a.p_username.trim().toLowerCase(); let u = D.usuarios.find(x => x.username===un);
-      if (a.p_codigo && D.usuarios.some(x => x.codigo===a.p_codigo && x.username!==un)) throw new Error("CODIGO_EN_USO");
-      if (a.p_codigo && a.p_codigo.length < 4) throw new Error("CODIGO_CORTO");
-      if (!u){ if(!a.p_codigo) throw new Error("CODIGO_REQUERIDO"); D.usuarios.push({username:un,nombre:a.p_nombre,rol:a.p_rol||"usuario",activo:true,creado_en:new Date().toISOString(),creado_por:a.p_token,codigo:a.p_codigo}); }
-      else { if (un===a.p_token && (a.p_activo===false || (a.p_rol && a.p_rol!=="admin"))) throw new Error("NO_PUEDE_DESACTIVARSE"); if(a.p_nombre) u.nombre=a.p_nombre; if(a.p_codigo) u.codigo=a.p_codigo; if(a.p_rol) u.rol=a.p_rol; if(a.p_activo!=null) u.activo=a.p_activo; }
-      return null; }
-  }
+/* ---------------- Activación y configuración inicial ---------------- */
+const ACCESOS = "pt_accesos_web";
+const leerAccesos = () => { try { return JSON.parse(localStorage.getItem(ACCESOS) || "{}"); } catch(_){ return {}; } };
+const guardarAcceso = p => { const a = leerAccesos(); a[p.u] = p; try { localStorage.setItem(ACCESOS, JSON.stringify(a)); } catch(_){} };
+$("#lActWeb").onclick = e => { e.preventDefault(); $("#activarWeb").classList.toggle("oculto"); };
+$("#bActWeb").onclick = () => {
+  try {
+    const p = Datos.Acceso.leer($("#tActWeb").value); guardarAcceso(p);
+    $("#iUser").value = p.u; $("#tActWeb").value = ""; $("#activarWeb").classList.add("oculto"); $("#eIngreso").textContent = "";
+    aviso("Navegador activado para " + (p.n || p.u) + ". Escribe tu código."); $("#iCod").focus();
+  } catch(err){ $("#eIngreso").textContent = mensaje(err); }
+};
+$("#lConfig").onclick = e => { e.preventDefault(); $("#cRepo").value = (CFG.DATOS && CFG.DATOS.repo) || Datos.REPO_POR_DEFECTO; $("#eConfig").textContent = ""; $("#dConfig").showModal(); };
+$("#bConfigCerrar").onclick = () => $("#dConfig").close();
+$("#fConfig").addEventListener("submit", async e => {
+  e.preventDefault(); $("#eConfig").textContent = ""; $("#bConfigOk").disabled = true;
+  try {
+    const repoN = $("#cRepo").value.trim(), token = $("#cToken").value.trim(), un = $("#cUser").value.trim().toLowerCase();
+    const nombre = $("#cNombre").value.trim().replace(/\s+/g, " ").toUpperCase(), cod = $("#cCod").value;
+    if (!/^[a-z0-9_-]{3,30}$/.test(un)) throw new Error("USUARIO_INVALIDO");
+    if (cod.trim().length < 6) throw new Error("CODIGO_CORTO");
+    const repo = new Datos.Repo(repoN, token), info = await repo.probar();
+    if (!info.private && !confirm("¡Atención! Ese repositorio es PÚBLICO: cualquiera vería nombres y cédulas. ¿Seguir de todas formas?")) return;
+    const ahora = new Date().toISOString();
+    await repo.guardarJSON("usuarios.json", actual => {
+      const doc = actual && actual.usuarios ? actual : {usuarios:{}}, prev = doc.usuarios[un] || {creado_en:ahora, creado_por:un};
+      doc.usuarios[un] = {...prev, nombre, rol:"admin", activo:true, actualizado_en:ahora};
+      return doc;
+    }, `Configuración inicial: administrador ${un}`);
+    const act = await Datos.Acceso.crear({usuario:un, nombre, rol:"admin", codigo:cod, repo:repoN, token});
+    guardarAcceso(Datos.Acceso.leer(act));
+    $("#cToken").value = ""; $("#cCod").value = ""; $("#dConfig").close(); $("#iUser").value = un;
+    mostrarActivacion(un, nombre, act, "Listo: este navegador quedó activado. Para usar tu usuario en el celular, abre la APK, toca \"Activar este teléfono\" y escanea este QR. Después entra con tu usuario y tu código.");
+  } catch(err){ $("#eConfig").textContent = mensaje(err); }
+  finally { $("#bConfigOk").disabled = false; }
+});
+function mostrarActivacion(u, nombre, act, ayuda){
+  $("#dActTit").textContent = "Activación de " + (nombre || u);
+  $("#dActAyuda").textContent = ayuda;
+  $("#qrAct").innerHTML = "";
+  new QRCode($("#qrAct"), {text:act, width:280, height:280, correctLevel:QRCode.CorrectLevel.M});
+  $("#tActCodigo").value = act;
+  $("#dAct").showModal();
 }
+$("#bActCerrar").onclick = () => $("#dAct").close();
+$("#bActCopiar").onclick = async () => { try { await navigator.clipboard.writeText($("#tActCodigo").value); aviso("Código copiado"); } catch(_){ $("#tActCodigo").select(); } };
 
 /* ---------------- Ingreso ---------------- */
-if (DEMO) $("#avisoDemo").classList.remove("oculto");
 $("#fIngreso").addEventListener("submit", async e => {
   e.preventDefault(); $("#eIngreso").textContent = "";
+  const u = $("#iUser").value.trim().toLowerCase(), cod = $("#iCod").value;
   try {
-    const s = await api("login", {p_username:$("#iUser").value, p_codigo:$("#iCod").value});
-    S.sesion = s; try { sessionStorage.setItem("pt_sesion", JSON.stringify(s)); } catch(_){}
+    const p = leerAccesos()[u];
+    if (!p){ $("#activarWeb").classList.remove("oculto"); throw new Error("Este navegador aún no está activado para " + u + ". Pega tu código de activación, o usa la Configuración inicial si eres el administrador."); }
+    const acc = await Datos.Acceso.abrir(p, cod);
+    S.sesion = {username:u, nombre:p.n, rol:p.r, repo:acc.repo, token:acc.token};
+    G.estado = {etag:null, shas:{}}; G.archivos = {};
+    await traerTodo();
+    const yo = usuariosJSON()[u];
+    if (!yo || yo.activo === false) throw new Error("USUARIO_INACTIVO");
+    S.sesion.nombre = yo.nombre || p.n; S.sesion.rol = yo.rol || p.r;
+    try { sessionStorage.setItem("pt_sesion", JSON.stringify(S.sesion)); } catch(_){}
     iniciar();
-  } catch(err){ $("#eIngreso").textContent = mensaje(err); }
+  } catch(err){ S.sesion = null; $("#eIngreso").textContent = mensaje(err); }
 });
 async function salir(){
-  if (S.sesion) api("logout",{p_token:S.sesion.token}).catch(()=>{});
-  S.sesion = null; try { sessionStorage.removeItem("pt_sesion"); } catch(_){}
+  S.sesion = null; G.estado = {etag:null, shas:{}}; G.archivos = {};
+  try { sessionStorage.removeItem("pt_sesion"); } catch(_){}
   $("#vPanel").classList.add("oculto"); $("#vIngreso").classList.remove("oculto"); $("#iCod").value = "";
 }
 $("#bSalir").onclick = salir;
@@ -598,12 +633,13 @@ $("#filas").addEventListener("click", e => {
 });
 // Imágenes guardadas desde la APK (firma del trabajador y foto de evidencia)
 async function imagen(nodo, id){
-  if (DEMO || !id) return null;
-  try { const x = await FB.db(S.sesion, "GET", nodo + "/" + id); return x && x.imagen; } catch(_){ return null; }
+  if (!id) return null;
+  const [ext, tipo] = nodo === "firmas" ? ["png", "image/png"] : ["jpg", "image/jpeg"];
+  try { return await repoActual().leerImagen(`${nodo}/${id}.${ext}`, tipo); } catch(_){ return null; }
 }
 async function verFoto(r){
   const src = await imagen("evidencias", r.id);
-  if (!src) { aviso(DEMO ? "En modo demo no hay fotos guardadas." : "La foto aún no ha llegado desde el celular."); return; }
+  if (!src) { aviso("La foto aún no ha llegado desde el celular."); return; }
   const blob = await (await fetch(src)).blob(); window.open(URL.createObjectURL(blob), "_blank");
 }
 
@@ -616,6 +652,10 @@ function abrirReg(r, tipo){
   $("#dRegTitulo").textContent = ed ? "Editar asignación" : "Asignar a otro trabajador";
   $("#dRegFicha").innerHTML = `<b>${esc([r.marca,r.modelo].filter(Boolean).join(" ") || "Equipo")}</b> IMEI ${esc(r.imei)}<br>${ed ? "Asignado a" : "Actualmente con"} <b>${esc(r.nombre)}</b> (C.C. ${esc(r.cedula)})`;
   document.querySelectorAll(".soloEd").forEach(el => el.classList.toggle("oculto", !ed));
+  document.querySelectorAll(".soloOtro").forEach(el => el.classList.toggle("oculto", ed));
+  const resp = entregadores();
+  $("#rEntrega").innerHTML = resp.length ? resp.map(u => `<option value="${esc(u.username)}">${esc(u.nombre)} · ${esc(u.cargo || "")}</option>`).join("") : '<option value="">(Configura los usuarios que entregan actas)</option>';
+  if (resp.some(u => u.username === S.sesion.username)) $("#rEntrega").value = S.sesion.username;
   $("#rNombre").value = ed ? r.nombre : ""; $("#rCedula").value = ed ? r.cedula : "";
   $("#rLabor").value = ed ? (r.labor || "") : ""; $("#rFecha").value = fechaInicial = localISO(ed ? r.fecha_ingreso : new Date());
   $("#rMarca").value = r.marca||""; $("#rModelo").value = r.modelo||""; $("#rImei2").value = r.imei2||""; $("#rSerial").value = r.serial||"";
@@ -627,7 +667,7 @@ $("#fReg").addEventListener("submit", async e => {
   e.preventDefault();
   const ed = tipoActual === "EDICION";
   const registro = { imei:regActual.imei, nombre:$("#rNombre").value.trim(), cedula:$("#rCedula").value.trim(), labor:$("#rLabor").value || null,
-    tipo:tipoActual, fecha_ingreso:($("#rFecha").value !== fechaInicial ? new Date($("#rFecha").value).toISOString() : ed ? regActual.fecha_ingreso : new Date().toISOString()), observacion:$("#rObs").value.trim(), client_uuid:crypto.randomUUID() };
+    tipo:tipoActual, fecha_ingreso:($("#rFecha").value !== fechaInicial ? new Date($("#rFecha").value).toISOString() : ed ? regActual.fecha_ingreso : new Date().toISOString()), observacion:$("#rObs").value.trim(), client_uuid:crypto.randomUUID(), entrega_por: ed ? regActual.entrega_por : ($("#rEntrega").value || null) };
   const disp = ed ? { imei:regActual.imei, marca:$("#rMarca").value.trim(), modelo:$("#rModelo").value.trim(), imei2:$("#rImei2").value.trim(), serial:$("#rSerial").value.trim().toUpperCase() } : null;
   registro.nombre = registro.nombre.replace(/\s+/g," ").toUpperCase(); registro.cedula = ced(registro.cedula);
   // La persona queda guardada (o actualizada) en la base de personal
@@ -642,8 +682,13 @@ $("#fReg").addEventListener("submit", async e => {
 
 /* ---------------- Acta PDF ---------------- */
 const nombrePdf = r => `Acta_${r.acta}_${(r.nombre||"").replace(/\s+/g,"_")}.pdf`;
+// Usuarios que pueden entregar actas (jefe, coordinador y analistas)
+const entregadores = () => Object.entries(usuariosJSON()).filter(([,u]) => u.entrega && u.activo !== false).map(([username, u]) => ({username, ...u})).sort((a,b) => String(a.nombre).localeCompare(String(b.nombre)));
+// Valor del equipo según la tabla de valores (apk/www/valores.js)
+const valorEquipo = r => r.valor_equipo || ((window.VALORES && VALORES.buscar(r.marca, r.modelo)) || [])[2] || (window.VALORES && VALORES.VALOR_POR_DEFECTO) || CFG.VALOR_EQUIPO || 0;
 async function acta(r){
-  const firma = await imagen("firmas", r.firma);
+  const [firma, firmaEnt] = await Promise.all([imagen("firmas", r.firma), imagen("firmas", r.firma_entrega)]);
+  const ent = (r.entrega_por && usuariosJSON()[r.entrega_por]) || CFG.ENTREGA || {};
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({unit:"mm", format:"letter"});
   const W = 215.9, M = 25, ancho = W - 2*M; let y = 14;
@@ -661,15 +706,15 @@ async function acta(r){
   doc.text(`ACTA DE ENTREGA N° ${r.acta}${r.labor ? " - " + r.labor.toUpperCase() : ""}`, W/2, y, {align:"center"});
   y += 10;
   const nombre = (r.nombre||"").toUpperCase(), equipo = [r.marca,r.modelo].filter(Boolean).join(" ").toUpperCase() || "—";
-  const todos = CFG.ADICIONALES || [], recibidos = r.adicionales ? r.adicionales.split(", ") : null;
-  const adic = recibidos ? todos.filter(([n]) => recibidos.includes(n)) : todos, totalAdic = adic.reduce((s,[,v]) => s+v, 0);
+  const todos = (window.VALORES && VALORES.ADICIONALES) || CFG.ADICIONALES || [], recibidos = r.adicionales ? r.adicionales.split(", ").map(x => norm(x)) : null;
+  const adic = recibidos ? todos.filter(([n]) => recibidos.includes(norm(n))) : todos, totalAdic = adic.reduce((s,[,v]) => s+v, 0);
   const P = [
     [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(r.serial ? [[" serial número "],[r.serial,1],[" e IMEI "],[r.imei,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
     [["Los bienes que acaban de ser entregados por la empresa y recibidos por el trabajador, es un medio e instrumento de trabajo y será utilizado única y exclusivamente para tal fin, quedándole expresamente prohibido al trabajador su utilización para fines u objetos diferentes a aquellos para los cuales se le entrega. Haciéndose responsable de su custodia, conservación, cuidado y aseo, además de cualquier daño, pérdida o avería que sufra el celular."]],
     [["En cualquier momento Palmas de Tumaco S.A.S podrá solicitar la devolución del celular, caso en el cual será devuelta en el mismo estado que fue recibido, salvo el deterioro normal por el paso del tiempo y por su uso racional. Su no devolución, a solicitud de la empresa, se considera falta grave. De la misma manera, será devuelto a la terminación del contrato laboral existente entre las partes."]],
-    [["El bien está avaluado en la suma de "],[pesos(CFG.VALOR_EQUIPO||0),1],[" y los adicionales la suma de "],[pesos(totalAdic),1],[" ("],
-      ...adic.flatMap(([n,v],i) => [[n+": "],[pesos(v),1],[i<adic.length-1?", ":""]]),
-      [") y en caso de pérdida, hurto y/o extravío, daño o avería, el trabajador autoriza expresamente a Palmas de Tumaco S.A.S, el descuento del costo del arreglo o del valor del avalúo, de su salario, prestaciones sociales, vacaciones y demás acreencias laborales. En caso de retiro, el trabajador autoriza expresamente a la misma empresa para que descuente el mencionado valor, de los salarios y de las prestaciones sociales, tales como cesantías, intereses a las mismas, primas legales, compensación de vacaciones, bonificaciones, indemnizaciones, pagos por mera liberalidad y lo aplique a la cancelación del arreglo o a la reposición del equipo."]],
+    [["El bien está avaluado en la suma de "],[pesos(valorEquipo(r)),1],[" y los adicionales la suma de "],[pesos(totalAdic),1],
+      ...(adic.length ? [[" ("], ...adic.flatMap(([n,v],i) => [[n+": "],[pesos(v),1],[i<adic.length-1?", ":""]]), [")"]] : []),
+      [" y en caso de pérdida, hurto y/o extravío, daño o avería, el trabajador autoriza expresamente a Palmas de Tumaco S.A.S, el descuento del costo del arreglo o del valor del avalúo, de su salario, prestaciones sociales, vacaciones y demás acreencias laborales. En caso de retiro, el trabajador autoriza expresamente a la misma empresa para que descuente el mencionado valor, de los salarios y de las prestaciones sociales, tales como cesantías, intereses a las mismas, primas legales, compensación de vacaciones, bonificaciones, indemnizaciones, pagos por mera liberalidad y lo aplique a la cancelación del arreglo o a la reposición del equipo."]],
     [["Se hace la entrega del equipo el "],[new Date(r.fecha_ingreso).toLocaleDateString("es-CO",{timeZone:TZ,weekday:"long",day:"numeric",month:"long",year:"numeric"}) + "."]]
   ];
   doc.setFontSize(10.5);
@@ -677,15 +722,17 @@ async function acta(r){
   // Firmas
   y = Math.max(y + 22, 222);
   const col = ancho/2, cx = [M + col/2, M + col + col/2];
-  if (firma){ try { const pr = doc.getImageProperties(firma), alto = Math.min(20, 64 * pr.height / pr.width), an = alto * pr.width / pr.height; doc.addImage(firma, "PNG", cx[1] - an/2, y - alto - 1, an, alto); } catch(_){} }
+  const ponerFirma = (img, x) => { try { const pr = doc.getImageProperties(img), alto = Math.min(20, 64 * pr.height / pr.width), an = alto * pr.width / pr.height; doc.addImage(img, "PNG", x - an/2, y - alto - 1, an, alto); } catch(_){} };
+  if (firmaEnt) ponerFirma(firmaEnt, cx[0]);
+  if (firma) ponerFirma(firma, cx[1]);
   doc.setFont("helvetica","bold"); doc.setFontSize(10);
   doc.text("QUIEN ENTREGA", cx[0], y-24, {align:"center"}); doc.text("QUIEN RECIBE", cx[1], y-24, {align:"center"});
   doc.setDrawColor(40); doc.setLineWidth(.3);
   cx.forEach(c => doc.line(c-34, y, c+34, y));
-  doc.text((CFG.ENTREGA&&CFG.ENTREGA.nombre)||"", cx[0], y+5, {align:"center"});
+  doc.text(ent.nombre || "", cx[0], y+5, {align:"center", maxWidth:col-6});
   doc.text(nombre, cx[1], y+5, {align:"center", maxWidth:col-6});
   doc.setFont("helvetica","normal");
-  doc.text((CFG.ENTREGA&&CFG.ENTREGA.cargo)||"", cx[0], y+10, {align:"center"});
+  doc.text(ent.cargo || "", cx[0], y+10, {align:"center", maxWidth:col-6});
   doc.text("C.C. " + (r.cedula||""), cx[1], y+10, {align:"center"});
   doc.setFontSize(7.5); doc.setTextColor(120);
   doc.text(`Registro ${r.acta} · ${MOVS[r.tipo]||r.tipo} · registrado por ${r.usuario||""} (${r.origen==="apk"?"APK":"web"})`, M, 268);
@@ -875,7 +922,7 @@ async function pintarUsuarios(){
   try {
     const us = await api("listar_usuarios", {p_token:S.sesion.token});
     $("#uFilas").innerHTML = us.map(u => `<tr data-u="${esc(u.username)}" data-n="${esc(u.nombre)}" data-r="${u.rol}">
-      <td><b>${esc(u.username)}</b></td><td>${esc(u.nombre)}</td><td>${u.rol==="admin"?"Administrador":"Usuario"}</td>
+      <td><b>${esc(u.username)}</b></td><td>${esc(u.nombre)}${u.cargo ? `<br><small style="color:var(--suave)">${esc(u.cargo)}</small>` : ""}${u.entrega ? '<br><small style="color:var(--fronda,#2E7D4F)">✍ Entrega actas</small>' : ""}</td><td>${u.rol==="admin"?"Administrador":"Usuario"}</td>
       <td>${u.activo?"Activo":"Inactivo"}</td><td>${fDia(u.creado_en)}</td>
       <td><div class="acc"><button class="btn" data-a="ed" type="button">Cambiar código</button>${u.username!==S.sesion.username?`<button class="btn" data-a="act" data-v="${!u.activo}" type="button">${u.activo?"Desactivar":"Activar"}</button>`:""}</div></td></tr>`).join("");
   } catch(err){ $("#eUsr").textContent = mensaje(err); }
@@ -889,10 +936,67 @@ $("#uFilas").addEventListener("click", async e => {
 $("#fUsr").addEventListener("submit", async e => {
   e.preventDefault(); $("#eUsr").textContent = "";
   try {
-    await api("guardar_usuario", {p_token:S.sesion.token, p_username:$("#uUser").value, p_nombre:$("#uNombre").value.trim()||null, p_codigo:$("#uCod").value.trim()||null, p_rol:$("#uRol").value, p_activo:null});
+    const r = await api("guardar_usuario", {p_token:S.sesion.token, p_username:$("#uUser").value, p_nombre:$("#uNombre").value.trim()||null, p_codigo:$("#uCod").value.trim()||null, p_rol:$("#uRol").value, p_activo:null});
     aviso("Usuario " + $("#uUser").value + " guardado"); $("#fUsr").reset(); pintarUsuarios();
+    if (r && r.activacion) mostrarActivacion(r.usuario, r.nombre, r.activacion, `Entrega este código a ${r.nombre || r.usuario}: en la APK toca "Activar este teléfono" y escanea el QR (o pega el texto). Después entra con el usuario "${r.usuario}" y el código que acabas de escribir. Si le cambias el código, entrégale el código de activación nuevo.`);
   } catch(err){ $("#eUsr").textContent = mensaje(err); }
 });
+
+/* Crear usuarios desde el Excel de credenciales (NOMBRE, CEDULA, CARGO, USUARIO, CONTRASEÑA).
+   Las contraseñas solo se usan aquí, en el navegador, para cifrar el código de activación de cada persona.
+   Jefe y coordinador quedan como administradores; jefe, coordinador y analistas pueden entregar actas. */
+const ES_ADMIN = c => /JEFE|COORDINADOR/.test(norm(c).toUpperCase());
+const ENTREGA_ACTAS = c => /JEFE|COORDINADOR|ANALISTA/.test(norm(c).toUpperCase());
+$("#bUsrExcel").onclick = () => { $("#fileU").value = ""; $("#fileU").click(); };
+$("#fileU").addEventListener("change", async () => {
+  const f = $("#fileU").files[0]; if (!f) return;
+  $("#eUsr").textContent = "";
+  try {
+    const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+    const filas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:"", raw:false});
+    let h = -1, col = {};
+    for (let i = 0; i < Math.min(filas.length, 10) && h < 0; i++){
+      const enc = filas[i].map(x => norm(x).trim());
+      const k = re => enc.findIndex(x => re.test(x));
+      col = {nombre:k(/nombre/), cedula:k(/cedula|documento/), cargo:k(/cargo|labor/), usuario:k(/usuario/), codigo:k(/contrasena|clave|password|codigo/)};
+      if (col.usuario >= 0 && col.codigo >= 0) h = i;
+    }
+    if (h < 0) throw new Error("No encontré las columnas USUARIO y CONTRASEÑA en el archivo.");
+    const lista = filas.slice(h + 1).map(r => ({
+      usuario:String(r[col.usuario] || "").trim().toLowerCase(), codigo:String(r[col.codigo] || "").trim(),
+      nombre:String(r[col.nombre] || "").trim().replace(/\s+/g, " ").toUpperCase(), cedula:ced(r[col.cedula]), cargo:String(r[col.cargo] || "").trim().toUpperCase()
+    })).filter(u => u.usuario);
+    const malos = lista.filter(u => !/^[a-z0-9_-]{3,30}$/.test(u.usuario) || u.codigo.length < 6).map(u => u.usuario);
+    if (malos.length) throw new Error("Revisa estos usuarios (usuario inválido o contraseña de menos de 6 caracteres): " + malos.join(", "));
+    if (!confirm(`Se crearán o actualizarán ${lista.length} usuarios:\n\n${lista.map(u => `• ${u.usuario} – ${u.nombre} (${u.cargo || "sin cargo"})${ES_ADMIN(u.cargo) ? " · administrador" : ""}${ENTREGA_ACTAS(u.cargo) ? " · entrega actas" : ""}`).join("\n")}\n\n¿Continuar?`)) return;
+    const hechos = [];
+    for (const u of lista){
+      $("#eUsr").textContent = `Creando ${hechos.length + 1} de ${lista.length}: ${u.usuario}…`;
+      const r = await api("guardar_usuario", {p_username:u.usuario, p_nombre:u.nombre || null, p_codigo:u.codigo, p_rol:ES_ADMIN(u.cargo) ? "admin" : "usuario", p_activo:true, p_cargo:u.cargo, p_cedula:u.cedula, p_entrega:ENTREGA_ACTAS(u.cargo)});
+      hechos.push({...u, codigo:undefined, activacion:r.activacion});
+      if (u.usuario === S.sesion.username) guardarAcceso(Datos.Acceso.leer(r.activacion));   // tu navegador pasa a usar tu contraseña del Excel
+    }
+    $("#eUsr").textContent = ""; aviso(`${hechos.length} usuarios listos`); pintarUsuarios();
+    hojaActivacion(hechos);
+  } catch(err){ $("#eUsr").textContent = mensaje(err); }
+});
+// Hoja imprimible con el QR de activación de cada usuario (sin contraseñas)
+function hojaActivacion(lista){
+  const tarjetas = lista.map(u => {
+    const d = document.createElement("div"); new QRCode(d, {text:u.activacion, width:220, height:220, correctLevel:QRCode.CorrectLevel.M});
+    const img = d.querySelector("canvas").toDataURL("image/png");
+    return `<div class="t"><img src="${img}" alt="QR de activación"><div><b>${esc(u.nombre || u.usuario)}</b><br>${esc(u.cargo || "")}<br>Usuario: <b>${esc(u.usuario)}</b><p>1. Instala la APK CapturaIMEI.<br>2. Toca <b>Activar este teléfono</b> y escanea este QR.<br>3. Entra con tu usuario y tu contraseña.</p><small>También sirve para la web: <i>Tengo un código de activación</i> → pegar:</small><code>${esc(u.activacion)}</code></div></div>`;
+  }).join("");
+  const v = window.open("", "_blank");
+  if (!v){ aviso("El navegador bloqueó la ventana. Permite ventanas emergentes y vuelve a subir el Excel."); return; }
+  v.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Activación CapturaIMEI</title><style>
+    body{font:14px/1.4 "Segoe UI",Roboto,sans-serif;margin:24px;color:#17241C} h1{font-size:20px;margin:0 0 4px} .aviso{color:#9A3F0F;margin:0 0 16px}
+    .t{display:flex;gap:16px;border:1px solid #D8E0D6;border-radius:12px;padding:14px;margin-bottom:14px;break-inside:avoid;page-break-inside:avoid}
+    .t img{width:180px;height:180px;flex:none} code{display:block;word-break:break-all;font-size:9px;color:#5B6B61;margin-top:4px} p{margin:8px 0}
+    button{padding:10px 18px;border-radius:10px;border:0;background:#0F5B36;color:#fff;font-weight:600;margin-bottom:16px} @media print{button{display:none}}
+  </style></head><body><h1>Códigos de activación · CapturaIMEI</h1><p class="aviso">Entrega a cada persona solo su tarjeta. Quien tenga el QR y la contraseña puede entrar: guarda esta hoja con cuidado.</p><button onclick="print()">Imprimir</button>${tarjetas}</body></html>`);
+  v.document.close();
+}
 
 /* ---------------- Utilidades ---------------- */
 function aviso(t){ document.querySelectorAll(".aviso").forEach(x => x.remove()); const d = document.createElement("div"); d.className = "aviso"; d.setAttribute("role","status"); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3200); }

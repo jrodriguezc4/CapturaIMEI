@@ -20,10 +20,25 @@ if (!m.includes("com.google.mlkit.vision.DEPENDENCIES")) {
 }
 fs.writeFileSync(manifest, m);
 
+// Lector de etiquetas propio (texto + códigos de barras por recortes), ver apk/native/
+const java = path.join(raiz, "src/main/java/co/com/palmastumaco/dispositivos");
+fs.mkdirSync(java, { recursive: true });
+for (const f of ["MainActivity.java", "LectorEtiquetaPlugin.java"]) {
+  fs.copyFileSync(path.join(__dirname, "..", "native", f), path.join(java, f));
+}
+
 const gradle = path.join(raiz, "build.gradle");
 let g = fs.readFileSync(gradle, "utf8");
 if (!g.includes("dataBinding")) {
   g = g.replace(/android\s*\{/, "android {\n    buildFeatures {\n        dataBinding true\n    }");
+}
+// Librerías de Google para el lector (incluidas en la APK: funcionan sin internet y sin Firebase)
+if (!g.includes("com.google.mlkit:text-recognition")) {
+  g = g.replace(/\ndependencies\s*\{/, "\ndependencies {\n" +
+    "    implementation 'com.google.mlkit:text-recognition:16.0.1'\n" +
+    "    implementation 'com.google.mlkit:barcode-scanning:17.2.0'\n" +
+    "    implementation 'androidx.exifinterface:exifinterface:1.3.7'");
+  if (!g.includes("com.google.mlkit:text-recognition")) throw new Error("No se encontró el bloque dependencies en app/build.gradle");
 }
 // Número de versión: GitHub Actions lo pasa en APP_VERSION_CODE (1, 2, 3...) y APP_VERSION_NAME (1.0.N).
 // La APK lo usa para saber si hay una versión más nueva publicada.

@@ -6,6 +6,8 @@
 <title>CapturaIMEI</title>
 <script src="config.js"></script>
 <script src="lib/jspdf.umd.min.js"></script>
+<script src="datos.js"></script>
+<script src="valores.js"></script>
 <style>
 :root{
   --palma:#0F5B36; --fronda:#2E7D4F; --fruto:#D9692A; --pacifico:#2479B8;
@@ -25,7 +27,7 @@ button,input,select{font:inherit;color:inherit}
 .oculto{display:none!important}
 h2{font-size:15px;font-weight:600;margin:0 0 6px;color:var(--suave)}
 label{display:block;font-size:13px;font-weight:600;color:var(--suave);margin:12px 0 5px}
-input,select{width:100%;padding:12px 13px;border:1px solid var(--linea);border-radius:10px;background:var(--superficie);font-size:17px}
+input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--linea);border-radius:10px;background:var(--superficie);font-size:17px}
 input:focus{outline:none;border-color:var(--palma);box-shadow:0 0 0 3px color-mix(in srgb,var(--palma) 25%,transparent)}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:12px;border:1px solid var(--linea);background:var(--superficie);font-weight:600;font-size:16px;margin-top:10px}
 .btn:active{transform:scale(.99)}
@@ -177,7 +179,6 @@ main{padding:14px 14px 40px}
   <img class="logo" src="data:image/jpeg;base64,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" alt="Palmas de Tumaco">
   <h1>Escáner de equipos</h1>
   <p>Ingresa con tu usuario y tu código</p>
-  <p class="oculto" id="avisoDemo" style="color:var(--fruto);font-size:14px">Modo demo: usuario mperez, código 4521</p>
   <form id="fIngreso">
     <label for="iUsuario">Usuario</label>
     <input id="iUsuario" autocapitalize="none" autocomplete="username" required>
@@ -186,6 +187,15 @@ main{padding:14px 14px 40px}
     <button class="btn primario" type="submit" id="bIngresar">Ingresar</button>
     <div class="error" id="eIngreso" role="alert"></div>
   </form>
+  <button class="btn" type="button" id="bMostrarAct">Activar este teléfono</button>
+  <div id="activar" class="oculto">
+    <p class="ayuda">La primera vez, cada usuario activa el teléfono con el código de activación que le da el administrador (código QR o texto).</p>
+    <button class="btn primario" type="button" id="bEscanearAct">📷 Escanear QR de activación</button>
+    <label for="tAct">O pega el código de activación</label>
+    <textarea id="tAct" rows="3" placeholder="CIMEI1...." autocapitalize="none" spellcheck="false"></textarea>
+    <button class="btn" type="button" id="bActivar">Activar</button>
+    <div class="error" id="eAct" role="alert"></div>
+  </div>
   <p class="version" id="verIngreso"></p>
 </section>
 
@@ -214,7 +224,7 @@ main{padding:14px 14px 40px}
     <!-- 1. Escanear -->
     <section class="tarjeta" id="tEscaneo">
       <h2>1. Escanear equipo</h2>
-      <button class="btn primario" id="bFoto" type="button">Foto de la etiqueta (lee todos los códigos)</button>
+      <button class="btn primario" id="bFoto" type="button">Foto de la etiqueta (lee IMEI 1, IMEI 2 y SN)</button>
       <p class="ayuda">O escanea cada código con el botón de cámara, o escríbelo.</p>
       <label for="cImei1">IMEI 1</label>
       <div class="campo-scan"><input id="cImei1" inputmode="numeric" maxlength="15" placeholder="15 dígitos"><button type="button" data-scan="cImei1" aria-label="Escanear IMEI 1">📷</button></div>
@@ -224,6 +234,7 @@ main{padding:14px 14px 40px}
       <div class="campo-scan"><input id="cSerial" autocapitalize="characters" placeholder="Opcional"><button type="button" data-scan="cSerial" aria-label="Escanear SN">📷</button></div>
       <div class="otros oculto" id="otros"></div>
       <div class="dos">
+        <div style="grid-column:1/-1"><label for="cEquipo">Equipo (tabla de valores)</label><select id="cEquipo"></select></div>
         <div><label for="cMarca">Marca</label><input id="cMarca" list="dlMarcas" autocapitalize="characters"><datalist id="dlMarcas"></datalist></div>
         <div><label for="cModelo">Modelo</label><input id="cModelo"></div>
       </div>
@@ -294,8 +305,13 @@ main{padding:14px 14px 40px}
   <div class="labores" id="labores"></div>
   <label>Adicionales que recibe</label>
   <div id="adicionales"></div>
-  <label>Firma del trabajador (para el acta)</label>
-  <div class="firma"><canvas id="cFirma" aria-label="Espacio para firmar con el dedo"></canvas><button type="button" class="borrar" id="bBorrarFirma">Borrar</button><small id="firmaAyuda">Firma aquí con el dedo</small></div>
+  <label for="selEntrega">Responsable que entrega el acta y el dispositivo</label>
+  <select id="selEntrega"></select>
+  <p class="ayuda" id="entregaAyuda">Solo jefe, coordinador y analistas pueden entregar actas.</p>
+  <label>Firma del trabajador (recibe)</label>
+  <div class="firma"><canvas id="cFirma" aria-label="Espacio para que firme el trabajador"></canvas><button type="button" class="borrar" id="bBorrarFirma">Borrar</button><small id="firmaAyuda">El trabajador firma aquí con el dedo</small></div>
+  <label>Firma de quien entrega (opcional)</label>
+  <div class="firma"><canvas id="cFirmaE" aria-label="Espacio para que firme el responsable"></canvas><button type="button" class="borrar" id="bBorrarFirmaE">Borrar</button><small id="firmaAyudaE">El responsable firma aquí</small></div>
   <div class="error" id="ePersona" role="alert"></div>
   <button class="btn primario" id="bGuardarAsig" type="button">Guardar asignación</button>
   <button class="btn" data-cerrar type="button">Cancelar</button>
@@ -336,18 +352,18 @@ main{padding:14px 14px 40px}
 <script>
 "use strict";
 const CFG = window.APP_CONFIG || {};
-const FBC = CFG.FIREBASE || {};
-const DEMO = !FBC.databaseURL || FBC.databaseURL.includes("TU_PROYECTO");
 const LABORES = ["Aplicador","Sanidad","Mantenimiento","Cosecha","Fertilización","Reubicado","Supervisor","Administrativo"];
 const MOVS = {ASIGNACION:"Asignación",REASIGNACION:"Asignado a otro",EDICION:"Edición",CAMBIO_LABOR:"Cambio de labor",DEVOLUCION:"Devolución",DANO:"Daño reportado",PERDIDA:"Pérdida"};
 const ESTADOS = {"Devuelto":"DEVOLUCION","Dañado":"DANO","Perdido":"PERDIDA"};
 const LIBERA = t => t === "DEVOLUCION" || t === "PERDIDA";        // después de estos, el equipo queda sin trabajador
-// Datos del acta (los mismos de la web; se pueden cambiar en apk/www/config.js)
+// Datos del acta: valores de valores.js; quien entrega sale de los usuarios (jefe, coordinador, analistas)
+const VAL = window.VALORES || {EQUIPOS:[], ADICIONALES:[], VALOR_POR_DEFECTO:1000000, buscar:() => null};
 const ACTA = {
-  ENTREGA: CFG.ENTREGA || {nombre:"JHON MARCO RODRIGUEZ CORREA", cargo:"Analista de ingenieria de datos"},
-  VALOR: CFG.VALOR_EQUIPO || 1000000,
-  ADICIONALES: CFG.ADICIONALES || [["Forro Carcaza",5000],["Vidrio templado",2000],["Estuche antilluvia",10000]]
+  ENTREGA: CFG.ENTREGA || {nombre:"", cargo:""},
+  ADICIONALES: VAL.ADICIONALES
 };
+const valorDe = imei => { const d = E.disp[imei] || {}, f = VAL.buscar(d.marca, d.modelo); return f ? f[2] : VAL.VALOR_POR_DEFECTO; };
+const entregadores = () => Object.entries(E.usuarios || {}).filter(([,u]) => u.entrega && u.activo !== false).map(([usuario, u]) => ({usuario, ...u})).sort((a,b) => String(a.nombre).localeCompare(String(b.nombre)));
 const MARCAS = ["CUBOT","SAMSUNG","MOTOROLA","XIAOMI","OPPO","HUAWEI","HONOR","TECNO","INFINIX","VIVO","REALME","NOKIA","ZTE","ALCATEL","DOOGEE","ULEFONE","OUKITEL","BLACKVIEW","APPLE"];
 const NAT = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
 const Pl = (window.Capacitor && window.Capacitor.Plugins) || {};
@@ -358,24 +374,33 @@ const ced = v => String(v ?? "").replace(/[^0-9A-Za-z]/g,"").toUpperCase();
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)));
 const fFecha = d => new Date(d).toLocaleString("es-CO",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false});
 $("#dlMarcas").innerHTML = MARCAS.map(m => `<option value="${m}">`).join("");
+// Lista de equipos de la tabla de valores: al elegir uno se llenan marca y modelo
+$("#cEquipo").innerHTML = '<option value="">— Elige el equipo —</option>' + VAL.EQUIPOS.map(([ma, mo, v], k) => `<option value="${k}">${ma} ${mo} · $${Number(v).toLocaleString("es-CO")}</option>`).join("") + '<option value="otro">Otro (escribir marca y modelo)</option>';
+$("#cEquipo").addEventListener("change", () => { const k = $("#cEquipo").value; if (k === "" || k === "otro") return; const [ma, mo] = VAL.EQUIPOS[+k]; $("#cMarca").value = ma; $("#cModelo").value = mo; });
+function elegirEquipoPorNombre(){ const f = VAL.buscar($("#cMarca").value, $("#cModelo").value); $("#cEquipo").value = f ? String(VAL.EQUIPOS.indexOf(f)) : ($("#cMarca").value || $("#cModelo").value ? "otro" : ""); }
+["#cMarca","#cModelo"].forEach(s => $(s).addEventListener("change", elegirEquipoPorNombre));
 
 /* ---------- Estado guardado en el teléfono ---------- */
-const CLAVE = "pt_escaner_v2";
+const CLAVE = "pt_escaner_v3";         // v3: datos en GitHub (empieza de cero, sin datos de demostración)
 const E = {
+  accesos:{},                      // códigos de activación por usuario (el token va cifrado con su código)
   cuentas:{}, usuario:null,        // sesiones por usuario (permite entrar sin internet)
   cola:[],                         // cambios pendientes de enviar
   personal:{}, disp:{}, vig:{},    // copias locales: personal, equipos y asignación vigente por IMEI
-  marcas:{}, historial:[], ultimaSync:null,
+  gh:{etag:null, shas:{}},         // qué archivos del repositorio ya se leyeron
+  historial:[], ultimaSync:null,
   hist:{},                         // últimos movimientos de cada equipo (para la línea de tiempo)
   lote:[]                          // IMEI del lote en curso
 };
 async function leer(){
   try { const v = NAT && Pl.Preferences ? (await Pl.Preferences.get({key:CLAVE})).value : localStorage.getItem(CLAVE); if (v) Object.assign(E, JSON.parse(v)); } catch(_){}
-  // Una sola vez: volver a descargar las asignaciones para armar el historial de cada equipo
-  if (!E.histV){ E.histV = 1; if (E.marcas) E.marcas.asignaciones = 0; }
 }
-async function guardar(){ const v = JSON.stringify(E); try { if (NAT && Pl.Preferences) await Pl.Preferences.set({key:CLAVE, value:v}); else localStorage.setItem(CLAVE, v); } catch(_){} }
-async function sha(t){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("palmas-tumaco:" + String(t).trim())); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""); }
+async function guardar(){
+  // Cada cambio pendiente queda marcado con su id, fecha y usuario (así no se duplica ni se confunde de dueño)
+  for (const o of E.cola){ if (!o.id) o.id = uuid(); if (!o.fecha) o.fecha = new Date().toISOString(); if (!o.usuario) o.usuario = E.usuario; }
+  const v = JSON.stringify(E);
+  try { if (NAT && Pl.Preferences) await Pl.Preferences.set({key:CLAVE, value:v}); else localStorage.setItem(CLAVE, v); } catch(_){}
+}
 const cuenta = () => E.cuentas[E.usuario];
 
 /* ---------- Red ---------- */
@@ -389,72 +414,57 @@ async function iniciarRed(){
     addEventListener("offline", () => { enLinea = false; pintarSync(); });
   }
   if (NAT && Pl.App) Pl.App.addListener("appStateChange", s => { if (s.isActive) { sincronizar(); buscarVersion(); } });
-  setInterval(() => { if (enLinea) sincronizar(); }, 60000);
+  setInterval(() => { if (enLinea) sincronizar(); }, 120000);
 }
 
-/* ---------- Firebase Realtime Database (JSON) por REST ---------- */
-const SV = {".sv":"timestamp"};
 const limpio = o => Object.fromEntries(Object.entries(o).filter(([,v]) => v !== null && v !== undefined && v !== ""));
-async function pedir(url, op){ const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 25000); try { return await fetch(url, {...op, signal:ctl.signal}); } finally { clearTimeout(to); } }
-const FB = {
-  async anonimo(){
-    const r = await pedir("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + FBC.apiKey, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({returnSecureToken:true})});
-    const j = await r.json(); if (!r.ok) throw new Error("Firebase Auth: " + ((j.error && j.error.message) || r.status));
-    return {uid:j.localId, idToken:j.idToken, refreshToken:j.refreshToken, expira:Date.now() + (+j.expiresIn - 120) * 1000};
-  },
-  async token(s){
-    if (Date.now() < s.expira) return s.idToken;
-    const r = await pedir("https://securetoken.googleapis.com/v1/token?key=" + FBC.apiKey, {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:"grant_type=refresh_token&refresh_token=" + encodeURIComponent(s.refreshToken)});
-    const j = await r.json(); if (!r.ok) throw new Error("SESION_INVALIDA");
-    s.idToken = j.id_token; s.refreshToken = j.refresh_token; s.expira = Date.now() + (+j.expires_in - 120) * 1000;
-    await guardar(); return s.idToken;
-  },
-  async db(s, metodo, ruta, cuerpo, query){
-    const t = await FB.token(s);
-    const r = await pedir(FBC.databaseURL.replace(/\/$/,"") + "/" + ruta + ".json?auth=" + t + (query || ""), {method:metodo, body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo)});
-    const txt = await r.text(); const j = txt ? JSON.parse(txt) : null;
-    if (!r.ok) throw new Error(r.status === 401 || /permission/i.test(j && j.error) ? "PERMISO" : "Error " + r.status + (j && j.error ? ": " + j.error : ""));
-    return j;
-  }
+
+/* ---------- Activación del teléfono ----------
+   El administrador crea el usuario en la web y le entrega un código de activación (QR o texto).
+   Ese código lleva el acceso al repositorio de datos, cifrado con el código de ingreso del usuario. */
+$("#bMostrarAct").onclick = () => { $("#activar").classList.toggle("oculto"); $("#eAct").textContent = ""; };
+async function activar(texto){
+  $("#eAct").textContent = "";
+  try {
+    const p = Datos.Acceso.leer(texto);
+    E.accesos[p.u] = p; await guardar();
+    $("#iUsuario").value = p.u; $("#tAct").value = ""; $("#activar").classList.add("oculto");
+    $("#eIngreso").textContent = ""; aviso(`Teléfono activado para ${p.n || p.u}. Escribe tu código para entrar.`);
+    $("#iCodigo").focus();
+  } catch(err){ $("#eAct").textContent = Datos.mensaje(err); }
+}
+$("#bActivar").onclick = () => activar($("#tAct").value);
+$("#bEscanearAct").onclick = async () => {
+  $("#eAct").textContent = "";
+  try {
+    if (!NAT) throw new Error("Aquí pega el código de activación en el cuadro de texto.");
+    const { available } = await Pl.BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+    if (!available){ await Pl.BarcodeScanner.installGoogleBarcodeScannerModule(); throw new Error("Instalando el lector de códigos (necesita internet una sola vez). Intenta de nuevo en un minuto."); }
+    const { barcodes } = await Pl.BarcodeScanner.scan();
+    const v = barcodes[0] && (barcodes[0].rawValue || barcodes[0].displayValue);
+    if (v) await activar(v);
+  } catch(err){ if (!/cancel/i.test(err.message)) $("#eAct").textContent = err.message; }
 };
 
-/* ---------- Datos de demostración ---------- */
-const DEMO_PERSONAL = [["EDISON ANDRES DELGADO","1087007537","Reubicado"],["MARIA FERNANDA QUIÑONES","1087123456","Sanidad"],["LUIS ALBERTO CAICEDO","12993811","Cosecha"],["YURI CAMPAZ ANGULO","1087554210","Aplicador"],["JHON JAIRO RIASCOS","98400321","Mantenimiento"],["ANA LUCIA CORTES","1086999102","Fertilización"],["JOSE ELIAS MONTAÑO","1087900011","Cosecha"]];
-
-/* ---------- Ingreso ---------- */
+/* ---------- Ingreso (funciona sin internet: el código se comprueba en el teléfono) ---------- */
 $("#fIngreso").addEventListener("submit", async e => {
   e.preventDefault();
   const u = $("#iUsuario").value.trim().toLowerCase(), cod = $("#iCodigo").value.trim();
   $("#eIngreso").textContent = ""; $("#bIngresar").disabled = true;
   try {
-    const h = await sha(cod);
-    if (DEMO){
-      if (!((u === "mperez" && cod === "4521") || (u === "jrodriguezc" && cod === "Palmas2026"))) throw new Error("Usuario o código incorrecto.");
-      E.cuentas[u] = {hash:h, nombre: u === "mperez" ? "MARIA PEREZ" : "JHON MARCO RODRIGUEZ CORREA", rol: u === "mperez" ? "usuario" : "admin", uid:"demo", valida:true};
-      E.usuario = u; await guardar(); entrar(); sincronizar(); return;
-    }
-    if (enLinea){
-      try {
-        const n = await FB.anonimo();
-        try { await FB.db(n, "PUT", "sesiones/" + n.uid, {hash:h, username:u, creada:SV}); }
-        catch(err){ if (err.message === "PERMISO") throw new Error("CREDENCIALES"); throw err; }
-        const c = await FB.db(n, "GET", "codigos/" + h);
-        E.cuentas[u] = {...n, hash:h, nombre:c.nombre || u, rol:c.rol, valida:true};
-        E.usuario = u; await guardar(); entrar(); sincronizar(); return;
-      } catch(err){
-        if (err.message === "CREDENCIALES") throw new Error("Usuario o código incorrecto, o usuario desactivado.");
-        // sin respuesta del servidor: se intenta el ingreso sin conexión
-      }
-    }
-    const c = E.cuentas[u];
-    if (c && c.hash === h && c.uid){ E.usuario = u; await guardar(); entrar(); return; }
-    throw new Error(c ? "Sin conexión: el código no coincide con el último usado en este teléfono." : "La primera vez que un usuario entra en este teléfono necesita internet.");
-  } catch(err){ $("#eIngreso").textContent = err.message; }
+    const p = E.accesos[u];
+    if (!p){ $("#activar").classList.remove("oculto"); throw new Error("Este teléfono aún no está activado para " + u + ". Escanea o pega tu código de activación."); }
+    const acc = await Datos.Acceso.abrir(p, cod);
+    const {inactivo, error, ...previa} = E.cuentas[u] || {};
+    E.cuentas[u] = {...previa, nombre:previa.nombre || p.n || u, rol:previa.rol || p.r, repo:acc.repo, token:acc.token, valida:true};
+    E.usuario = u; await guardar(); entrar(); sincronizar();
+  } catch(err){ $("#eIngreso").textContent = Datos.mensaje(err); }
   finally { $("#bIngresar").disabled = false; }
 });
 $("#bSalir").onclick = async () => {
   const msg = E.cola.length ? `Hay ${E.cola.length} cambios sin enviar. Quedan guardados y se envían cuando alguien vuelva a ingresar con internet. ¿Salir?` : "¿Cerrar sesión?";
   if (!confirm(msg)) return;
+  const c = cuenta(); if (c) delete c.token;      // el acceso se vuelve a abrir con el código en el próximo ingreso
   E.usuario = null; await guardar();
   $("#iCodigo").value = ""; $("#vPrincipal").classList.add("oculto"); $("#vIngreso").classList.remove("oculto");
 };
@@ -491,65 +501,86 @@ function pintarSync(){
   if (n) t += `. ${n} ${n === 1 ? "cambio pendiente" : "cambios pendientes"}`;
   else if (E.ultimaSync) t += `. Actualizado ${fFecha(E.ultimaSync)}`;
   t += ` · ${Object.keys(E.personal).filter(k => E.personal[k].activo !== false).length} personas`;
-  if (c && c.valida === false) t = "Tu código ya no es válido. Sal e ingresa de nuevo.";
+  if (c && c.valida === false) t = c.inactivo ? "Tu usuario fue desactivado. Habla con el administrador." : "El acceso a los datos ya no sirve: " + (c.error || "pide un código de activación nuevo.");
   $("#syncTxt").textContent = t;
   $("#bSync").disabled = !enLinea || sincronizando;
 }
 async function sincronizar(manual){
   const s = cuenta();
-  if (sincronizando || !s) return;
+  if (sincronizando || !s || !s.token) return;
   if (!enLinea){ if (manual) aviso("Sin conexión. Los cambios quedan guardados en el teléfono."); return; }
   sincronizando = true; pintarSync();
   try {
-    if (DEMO){
-      if (!Object.keys(E.personal).length) DEMO_PERSONAL.forEach(([nombre,cedula,labor]) => E.personal[cedula] = {nombre, cedula, labor, activo:true});
-      E.historial.forEach(h => h.sync = true); E.cola = [];
-    } else {
-      // 1. Enviar lo pendiente, en orden
-      while (E.cola.length){
-        await enviar(s, E.cola[0]);
-        const op = E.cola.shift();
-        if (op.k === "asig"){ const h = E.historial.find(x => x.id === op.id); if (h) h.sync = true; }
-        await guardar();
-      }
-      // 2. Traer lo nuevo del servidor (solo lo que cambió desde la última vez)
-      await traer(s, "personal", "actualizado_en", (k,v) => { E.personal[k] = v; });
-      await traer(s, "dispositivos", "actualizado_en", (k,v) => { E.disp[k] = v; });
-      await traer(s, "asignaciones", "registrado_en", (k,v) => aplicarVigente({...v, id:k}));
+    const repo = new Datos.Repo(s.repo, s.token);
+    await guardar();                                  // asegura id, fecha y dueño de cada cambio pendiente
+    // 1. Enviar los registros pendientes, agrupados por usuario (un archivo por usuario y mes)
+    const esRegistro = o => o.k === "asig" || o.k === "disp" || o.k === "pers";
+    const porUsuario = {};
+    E.cola.filter(esRegistro).forEach(o => (porUsuario[o.usuario] = porUsuario[o.usuario] || []).push(aEvento(o)));
+    for (const [u, evs] of Object.entries(porUsuario)){
+      await Datos.enviarEventos(repo, u, evs);
+      const ids = new Set(evs.map(e => e.id));
+      E.cola = E.cola.filter(o => !(esRegistro(o) && ids.has(o.id)));      // las firmas comparten id con su asignación: no se quitan aquí
+      E.historial.forEach(h => { if (ids.has(h.id)) h.sync = true; });
+      await guardar();
     }
-    E.ultimaSync = new Date().toISOString(); s.valida = true; await guardar();
+    // 2. Subir firmas y fotos de evidencia
+    for (const o of E.cola.filter(o => o.k === "firma" || o.k === "evid")){
+      const ruta = o.k === "firma" ? `firmas/${o.id}.png` : `evidencias/${o.id}.jpg`;
+      await repo.subirBinario(ruta, o.imagen.split(",")[1], `${o.usuario}: ${o.k === "firma" ? "firma" : "foto de evidencia"}`);
+      E.cola = E.cola.filter(x => x !== o); await guardar();
+    }
+    // 3. Traer lo nuevo (solo los archivos que cambiaron desde la última vez)
+    await Datos.traerCambios(repo, E.gh, async (ruta, datos) => {
+      if (ruta === "usuarios.json"){
+        E.usuarios = {};    // nombre, cargo y si entrega actas (sin contraseñas)
+        for (const [k, v] of Object.entries((datos && datos.usuarios) || {})) E.usuarios[k] = {nombre:v.nombre, cargo:v.cargo, entrega:!!v.entrega, activo:v.activo !== false};
+        const u = datos && datos.usuarios && datos.usuarios[E.usuario];
+        if (!u || u.activo === false){ const e = new Error("USUARIO_INACTIVO"); e.inactivo = true; throw e; }
+        s.nombre = u.nombre || s.nombre; s.rol = u.rol || s.rol;
+        $("#nomUsuario").textContent = s.nombre || E.usuario;
+        return;
+      }
+      (Array.isArray(datos) ? datos : []).forEach(aplicarEvento);
+    });
+    E.ultimaSync = new Date().toISOString(); s.valida = true; delete s.error; await guardar();
     if (manual) aviso("Sincronizado");
   } catch(err){
-    if (/PERMISO|SESION_INVALIDA/.test(err.message)){ s.valida = false; await guardar(); }
-    else if (manual) aviso("No se pudo sincronizar: " + err.message);
+    if (err.inactivo){ s.valida = false; s.inactivo = true; delete s.token; delete E.accesos[E.usuario]; await guardar(); }
+    else if (/TOKEN_INVALIDO|REPO_SIN_ACCESO|TOKEN_SIN_ESCRITURA/.test(err.message)){ s.valida = false; s.error = Datos.mensaje(err); await guardar(); }
+    else if (manual) aviso("No se pudo sincronizar: " + Datos.mensaje(err));
   } finally { sincronizando = false; pintarSync(); pintarHistorial(); pintarResumen(); pintarLote(); if (eqActual) pintarEquipo(); }
 }
-async function enviar(s, op){
-  if (op.k === "disp") return FB.db(s, "PATCH", "dispositivos/" + op.imei, {...op.datos, actualizado_en:SV, actualizado_por:E.usuario});
-  if (op.k === "pers") return FB.db(s, "PUT", "personal/" + op.datos.cedula, {...op.datos, activo:true, actualizado_en:SV, actualizado_por:E.usuario});
-  if (op.k === "asig") return unaVez(s, "asignaciones/" + op.id, limpio({...op.datos, usuario:E.usuario, origen:"apk", registrado_en:SV}));
-  if (op.k === "firma") return unaVez(s, "firmas/" + op.id, {imagen:op.imagen, usuario:E.usuario, registrado_en:SV});
-  if (op.k === "evid") return unaVez(s, "evidencias/" + op.id, {imagen:op.imagen, usuario:E.usuario, registrado_en:SV});
+// Cambio pendiente → registro que se guarda en GitHub
+function aEvento(o){
+  const base = {id:o.id, usuario:o.usuario, origen:"apk"};
+  if (o.k === "asig") return {k:"asig", ...base, ...o.datos};
+  if (o.k === "disp") return {k:"disp", ...base, imei:o.imei, ...o.datos, fecha:o.fecha};
+  return {k:"pers", ...base, ...o.datos, activo:o.datos.activo !== false, fecha:o.fecha};
 }
-// Registros que no se pueden sobrescribir: si ya habían llegado antes, se dan por enviados
-async function unaVez(s, ruta, cuerpo){
-  try { await FB.db(s, "PUT", ruta, cuerpo); }
-  catch(err){ if (err.message !== "PERMISO" || !(await FB.db(s, "GET", ruta, undefined, "&shallow=true"))) throw err; }
-}
-async function traer(s, ruta, campo, fn){
-  const desde = E.marcas[ruta];
-  const q = "&orderBy=" + encodeURIComponent('"' + campo + '"') + (desde ? "&startAt=" + desde : "");
-  const datos = await FB.db(s, "GET", ruta, undefined, q) || {};
-  let max = desde || 0;
-  for (const [k,v] of Object.entries(datos)){ fn(k, v); if (v[campo] > max) max = v[campo]; }
-  E.marcas[ruta] = max;
+// Registro leído de GitHub → copias locales del teléfono (se puede aplicar dos veces sin problema)
+function aplicarEvento(e){
+  if (!e || !e.k) return;
+  if (e.k === "asig") return aplicarVigente(e);
+  if (e.k === "disp"){
+    const d = E.disp[e.imei] || {}, nuevo = !d._f || e.fecha >= d._f;
+    const campos = limpio({imei2:e.imei2, serial:e.serial, marca:e.marca, modelo:e.modelo});
+    E.disp[e.imei] = nuevo ? {...d, ...campos, _f:e.fecha} : {...campos, ...d};
+    return;
+  }
+  if (e.k === "pers"){
+    const p = E.personal[e.cedula];
+    if (!p || !p.actualizado_en || e.fecha >= p.actualizado_en)
+      E.personal[e.cedula] = {nombre:e.nombre, cedula:e.cedula, labor:e.labor || null, activo:e.activo !== false, actualizado_en:e.fecha, actualizado_por:e.usuario};
+  }
 }
 function aplicarVigente(r){
   agregarHist(r);
-  const c = E.vig[r.imei], t = x => new Date(x.fecha_ingreso).getTime(), reg = x => x.registrado_en || Date.now();
+  const c = E.vig[r.imei], t = x => new Date(x.fecha_ingreso).getTime(), reg = x => x.registrado_en ? new Date(x.registrado_en).getTime() : Date.now();
   if (!c || t(r) > t(c) || (t(r) === t(c) && reg(r) >= reg(c)))
     E.vig[r.imei] = limpio({id:r.id, nombre:r.nombre, cedula:r.cedula, labor:r.labor || null, fecha_ingreso:r.fecha_ingreso, registrado_en:r.registrado_en, tipo:r.tipo, usuario:r.usuario,
-                            estado:r.estado, libre:LIBERA(r.tipo) || null, adicionales:r.adicionales, firma:r.firma});
+                            estado:r.estado, libre:LIBERA(r.tipo) || null, adicionales:r.adicionales, firma:r.firma,
+                            entrega_por:r.entrega_por, firma_entrega:r.firma_entrega, valor_equipo:r.valor_equipo});
 }
 function agregarHist(r){
   const l = E.hist[r.imei] || [];
@@ -577,10 +608,94 @@ function clasificar(valores){
                    || otros.find(o => /^\d{8,20}$/.test(o) && o.length !== 12 && o.length !== 13);
   return {imei1:imeis[0], imei2:imeis[1], serial:candidatoSN, otros};
 }
+/* ---------- Lector de etiquetas: decide cuál es IMEI 1, IMEI 2 y SN ----------
+   Recibe del lector nativo el texto de la foto y los códigos de barras, cada uno con su posición.
+   1) Busca las palabras de la etiqueta ("IMEI1", "IMEI 2", "S/N", "Serial"...).
+   2) A cada palabra le asigna el número de la misma línea, o el más cercano a la derecha o debajo.
+   3) Si la etiqueta no tiene palabras, ordena los IMEI de arriba hacia abajo (el primero es IMEI 1).
+   Los IMEI siempre se validan con el dígito de control (Luhn), así que un número mal leído se descarta. */
+const RX_I1 = /IMEI\s*[\(\[]?\s*(1|I)(?![\dA-Z])/, RX_I2 = /IMEI\s*[\(\[]?\s*2(?!\d)/, RX_IMEI = /IMEI/;
+const RX_SN = /(^|[^A-Z])(S\s*\/\s*N|SN|S\.N\.?|SERIAL(\s*(NO\.?|NUMBER|N[°º]))?|N[°º]?\s*(DE\s*)?SERIE)([^A-Z]|$)/;
+const RX_MODELO = /MODEL(O)?\s*(NO\.?|NAME|N[°º])?\s*[:.]?\s*(.+)/;
+function imeisEnTexto(t){
+  const s = String(t || "").replace(/[Oo]/g, "0"), out = [];
+  for (const m of s.matchAll(/\d[\d \-]{13,22}\d/g)){
+    const d = m[0].replace(/\D/g, "");
+    for (let i = 0; i + 15 <= d.length; i++){ const c = d.slice(i, i + 15); if (esImei(c) && !out.includes(c)) { out.push(c); i += 14; } }
+  }
+  return out;
+}
+function clasificarEtiqueta(res){
+  const centro = o => ({...o, cx:(o.x || 0) + (o.w || 0) / 2, cy:(o.y || 0) + (o.h || 0) / 2, h:o.h || 20});
+  const lineas = (res.lineas || []).map(l => centro({...l, T:String(l.texto || "").toUpperCase()}));
+  const codigos = (res.codigos || []).map(centro);
+  // Candidatos de IMEI (de códigos de barras y del texto), con su posición
+  const cands = [];
+  codigos.forEach(c => imeisEnTexto(c.valor).forEach(v => cands.push({v, cx:c.cx, cy:c.cy, h:c.h, fuente:"codigo"})));
+  lineas.forEach(l => imeisEnTexto(l.texto).forEach(v => cands.push({v, cx:l.cx, cy:l.cy, h:l.h, fuente:"texto", linea:l})));
+  const unicos = [...new Set(cands.map(c => c.v))];
+  // El más cercano a una etiqueta: misma línea a la derecha, o debajo (poco a los lados)
+  const distancia = (et, c) => {
+    const dx = c.cx - et.cx, dy = c.cy - et.cy, h = Math.max(et.h, 12);
+    if (dy < -h * 0.8) return Infinity;                       // muy arriba
+    if (Math.abs(dy) <= h * 0.8) return dx >= -h ? Math.abs(dx) * 0.5 : Infinity;   // misma fila
+    if (dy > h * 7) return Infinity;
+    return dy + Math.abs(dx) * 0.7;
+  };
+  const elegir = (et, lista, usados) => {
+    const propios = lista.filter(c => c.linea === et && !usados.has(c.v));
+    if (propios.length) return propios[0].v;                 // número escrito en la misma línea
+    let mejor = null, d = Infinity;
+    for (const c of lista){ if (usados.has(c.v)) continue; const x = distancia(et, c); if (x < d){ d = x; mejor = c; } }
+    return mejor ? mejor.v : null;
+  };
+  const r = {imei1:null, imei2:null, serial:null, marca:null, modelo:null, otros:[], fuente:""};
+  const usados = new Set();
+  const etI1 = lineas.find(l => RX_I1.test(l.T)), etI2 = lineas.find(l => RX_I2.test(l.T));
+  const etIMEI = etI1 || lineas.find(l => RX_IMEI.test(l.T) && !RX_I2.test(l.T));
+  if (etIMEI){ r.imei1 = elegir(etIMEI, cands, usados); if (r.imei1) usados.add(r.imei1); }
+  if (etI2){ r.imei2 = elegir(etI2, cands, usados); if (r.imei2) usados.add(r.imei2); }
+  r.fuente = etIMEI || etI2 ? "texto" : "posición";
+  // Sin palabras (o falta alguno): los IMEI que queden, de arriba hacia abajo
+  const restantes = unicos.filter(v => !usados.has(v)).map(v => cands.filter(c => c.v === v).sort((a,b) => a.cy - b.cy)[0]).sort((a,b) => a.cy - b.cy || a.cx - b.cx);
+  if (!r.imei1 && restantes.length) { r.imei1 = restantes.shift().v; }
+  if (!r.imei2 && restantes.length) { r.imei2 = restantes.shift().v; }
+  // Número de serie
+  const etSN = lineas.find(l => RX_SN.test(l.T) && !RX_IMEI.test(l.T));
+  const pareceSN = v => /^[A-Z0-9\-]{6,25}$/i.test(v) && /[A-Z]/i.test(v) && /\d/.test(v) && !/IMEI|MODEL|MADE|CHINA/i.test(v);
+  const snCands = [];
+  codigos.forEach(c => { const v = String(c.valor).replace(/^(S\/?N|SN|SERIAL)[:\s]*/i, "").trim().toUpperCase();
+    if (!imeisEnTexto(v).length && (pareceSN(v) || (/^\d{8,20}$/.test(v) && v.length !== 12 && v.length !== 13 && v.length !== 15))) snCands.push({v, cx:c.cx, cy:c.cy, h:c.h}); });
+  if (etSN){
+    const m = etSN.T.replace(RX_SN, " ").match(/[A-Z0-9\-]{6,25}/g) || [];
+    const enLinea = m.find(x => pareceSN(x) || /^\d{8,20}$/.test(x));
+    if (enLinea) r.serial = enLinea;
+    else {
+      lineas.forEach(l => (l.T.match(/[A-Z0-9\-]{6,25}/g) || []).filter(pareceSN).forEach(v => snCands.push({v, cx:l.cx, cy:l.cy, h:l.h})));
+      r.serial = elegir(etSN, snCands, usados);
+    }
+  }
+  if (!r.serial){ const alfa = snCands.filter(c => /[A-Z]/.test(c.v)); r.serial = (alfa[0] || snCands[0] || {}).v || null; }
+  // Marca y modelo (si están escritos en la etiqueta)
+  const todo = lineas.map(l => l.T).join(" \n ");
+  r.marca = MARCAS.find(m => new RegExp("(^|[^A-Z])" + m + "([^A-Z]|$)").test(todo)) || null;
+  const lm = lineas.find(l => RX_MODELO.test(l.T));
+  if (lm){ const v = lm.T.match(RX_MODELO)[3].trim(); if (v.length >= 2 && v.length <= 30) r.modelo = v; }
+  r.otros = codigos.map(c => String(c.valor).trim()).filter(v => !imeisEnTexto(v).some(i => i === r.imei1 || i === r.imei2) && v.toUpperCase() !== r.serial);
+  return r;
+}
+// Códigos del lector de respaldo (readBarcodesFromImage) con su caja, para ordenarlos por posición
+function cajaDeCodigo(b){
+  const p = b.cornerPoints || [], xs = p.map(q => q[0]), ys = p.map(q => q[1]);
+  return {valor:b.rawValue || b.displayValue, formato:b.format, x:xs.length ? Math.min(...xs) : 0, y:ys.length ? Math.min(...ys) : 0, w:xs.length ? Math.max(...xs) - Math.min(...xs) : 0, h:ys.length ? Math.max(...ys) - Math.min(...ys) : 0};
+}
 function aplicarLectura(r){
   if (r.imei1) $("#cImei1").value = r.imei1;
   if (r.imei2) $("#cImei2").value = r.imei2;
   if (r.serial) $("#cSerial").value = r.serial.toUpperCase();
+  if (r.marca && !$("#cMarca").value) $("#cMarca").value = r.marca;
+  if (r.modelo && !$("#cModelo").value) $("#cModelo").value = r.modelo;
+  elegirEquipoPorNombre();
   const o = (r.otros || []).filter(x => x.toUpperCase() !== $("#cSerial").value);
   $("#otros").classList.toggle("oculto", !o.length);
   $("#otros").innerHTML = o.length ? '<span class="ayuda" style="width:100%">Otros códigos leídos (toca uno para usarlo como SN):</span>' + o.map(x => `<button type="button">${esc(x)}</button>`).join("") : "";
@@ -590,13 +705,21 @@ $("#bFoto").onclick = async () => {
   $("#eEscaneo").textContent = "";
   try {
     if (!NAT) throw new Error("La lectura con cámara funciona en la APK instalada. Aquí escribe los códigos.");
-    const foto = await Pl.Camera.getPhoto({source:"PROMPT", resultType:"uri", quality:90, promptLabelHeader:"Etiqueta del equipo", promptLabelPhoto:"Elegir de la galería", promptLabelPicture:"Tomar foto", promptLabelCancel:"Cancelar"});
-    const { barcodes } = await Pl.BarcodeScanner.readBarcodesFromImage({path:foto.path});
-    const r = clasificar(barcodes.map(b => b.rawValue || b.displayValue));
-    if (!r.imei1 && !r.serial && !r.otros.length) throw new Error("No se encontraron códigos de barras. Acerca más la cámara o usa el botón 📷 de cada campo.");
+    const foto = await Pl.Camera.getPhoto({source:"PROMPT", resultType:"uri", quality:95, correctOrientation:true, promptLabelHeader:"Etiqueta del equipo", promptLabelPhoto:"Elegir de la galería", promptLabelPicture:"Tomar foto", promptLabelCancel:"Cancelar"});
+    $("#bFoto").disabled = true; $("#bFoto").textContent = "Leyendo la etiqueta…";
+    let res = null;
+    if (Pl.LectorEtiqueta){ try { res = await Pl.LectorEtiqueta.analizar({ruta:foto.path}); } catch(_){ res = null; } }
+    if (!res){   // respaldo: solo códigos de barras de la foto completa
+      const { barcodes } = await Pl.BarcodeScanner.readBarcodesFromImage({path:foto.path});
+      res = {lineas:[], codigos:barcodes.map(cajaDeCodigo)};
+    }
+    const r = clasificarEtiqueta(res);
+    if (!r.imei1 && !r.serial && !r.otros.length) throw new Error("No se encontraron IMEI ni SN. Toma la foto más cerca, con buena luz y la etiqueta derecha, o usa el botón 📷 de cada campo.");
     aplicarLectura(r);
-    aviso(`Leídos: ${[r.imei1 && "IMEI 1", r.imei2 && "IMEI 2", r.serial && "SN"].filter(Boolean).join(", ") || "otros códigos"}`);
+    const faltan = [!r.imei1 && "IMEI 1", !r.imei2 && "IMEI 2", !r.serial && "SN"].filter(Boolean);
+    aviso(`Leídos: ${[r.imei1 && "IMEI 1", r.imei2 && "IMEI 2", r.serial && "SN"].filter(Boolean).join(", ") || "otros códigos"}` + (faltan.length ? `. Revisa: ${faltan.join(", ")}` : ". Revisa que coincidan con la etiqueta."));
   } catch(err){ if (!/cancel/i.test(err.message)) $("#eEscaneo").textContent = err.message; }
+  finally { $("#bFoto").disabled = false; $("#bFoto").textContent = "Foto de la etiqueta (lee IMEI 1, IMEI 2 y SN)"; }
 };
 document.querySelectorAll("[data-scan]").forEach(b => b.onclick = async () => {
   $("#eEscaneo").textContent = "";
@@ -616,7 +739,7 @@ document.querySelectorAll("[data-scan]").forEach(b => b.onclick = async () => {
 /* ---------- Equipo ---------- */
 let eqActual = null;
 function limpiarEscaneo(){
-  ["cImei1","cImei2","cSerial","cMarca","cModelo"].forEach(id => $("#" + id).value = "");
+  ["cImei1","cImei2","cSerial","cMarca","cModelo","cEquipo"].forEach(id => $("#" + id).value = "");
   $("#otros").classList.add("oculto"); $("#eEscaneo").textContent = "";
   eqActual = null;
   ["#tEquipo","#tEqHist"].forEach(s => $(s).classList.add("oculto"));
@@ -629,6 +752,7 @@ $("#cImei1").addEventListener("change", () => {   // si el equipo ya existe, com
   if (!$("#cSerial").value && d.serial) $("#cSerial").value = d.serial;
   if (!$("#cMarca").value && d.marca) $("#cMarca").value = d.marca;
   if (!$("#cModelo").value && d.modelo) $("#cModelo").value = d.modelo;
+  elegirEquipoPorNombre();
 });
 // Valida los campos del formulario y guarda el equipo. Devuelve el IMEI 1 o null si hay un error.
 async function equipoDelFormulario(){
@@ -792,7 +916,7 @@ function abrirPersona(tipo){
   cambiarModo(Object.keys(E.personal).length ? "buscar" : "manual");
   pintarLabores("#labores", null); buscarPersona();
   $("#hPersona").classList.remove("oculto");
-  prepararFirma();
+  firmaT.preparar(); firmaE.preparar(); pintarEntregadores();
 }
 // Avisa (sin bloquear) si el trabajador ya tiene otro equipo asignado
 function revisarOtroEquipo(cedula){
@@ -803,26 +927,37 @@ function revisarOtroEquipo(cedula){
 }
 $("#mCedula").addEventListener("input", () => revisarOtroEquipo(ced($("#mCedula").value)));
 
-/* Firma con el dedo */
-let firmaHecha = false;
-const lienzo = $("#cFirma"), pincel = lienzo.getContext("2d");
-function prepararFirma(){
-  const r = lienzo.getBoundingClientRect(), k = window.devicePixelRatio || 1;
-  lienzo.width = Math.round(r.width * k); lienzo.height = Math.round(r.height * k);
-  pincel.setTransform(k, 0, 0, k, 0, 0); pincel.lineWidth = 2.6; pincel.lineCap = "round"; pincel.lineJoin = "round"; pincel.strokeStyle = "#17241C";
-  pincel.clearRect(0, 0, lienzo.width, lienzo.height); firmaHecha = false; $("#firmaAyuda").classList.remove("oculto");
+/* Firmas con el dedo: la del trabajador (recibe) y la del responsable (entrega) */
+function crearFirma(selLienzo, selAyuda, selBorrar){
+  const lienzo = $(selLienzo), pincel = lienzo.getContext("2d");
+  let hecha = false, trazando = false;
+  const preparar = () => {
+    const r = lienzo.getBoundingClientRect(), k = window.devicePixelRatio || 1;
+    lienzo.width = Math.round(r.width * k); lienzo.height = Math.round(r.height * k);
+    pincel.setTransform(k, 0, 0, k, 0, 0); pincel.lineWidth = 2.6; pincel.lineCap = "round"; pincel.lineJoin = "round"; pincel.strokeStyle = "#17241C";
+    pincel.clearRect(0, 0, lienzo.width, lienzo.height); hecha = false; $(selAyuda).classList.remove("oculto");
+  };
+  const punto = e => { const r = lienzo.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  lienzo.addEventListener("pointerdown", e => { trazando = true; lienzo.setPointerCapture(e.pointerId); const [x,y] = punto(e); pincel.beginPath(); pincel.moveTo(x, y); e.preventDefault(); });
+  lienzo.addEventListener("pointermove", e => { if (!trazando) return; const [x,y] = punto(e); pincel.lineTo(x, y); pincel.stroke(); if (!hecha){ hecha = true; $(selAyuda).classList.add("oculto"); } e.preventDefault(); });
+  ["pointerup","pointercancel","pointerleave"].forEach(t => lienzo.addEventListener(t, () => { trazando = false; }));
+  $(selBorrar).onclick = preparar;
+  // Firma en blanco y negro, liviana para enviar
+  const png = () => {
+    const c = document.createElement("canvas"); c.width = 600; c.height = Math.round(600 * lienzo.height / lienzo.width);
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(lienzo, 0, 0, c.width, c.height);
+    return c.toDataURL("image/png");
+  };
+  return {preparar, png, hecha:() => hecha};
 }
-let trazando = false;
-const punto = e => { const r = lienzo.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-lienzo.addEventListener("pointerdown", e => { trazando = true; lienzo.setPointerCapture(e.pointerId); const [x,y] = punto(e); pincel.beginPath(); pincel.moveTo(x, y); e.preventDefault(); });
-lienzo.addEventListener("pointermove", e => { if (!trazando) return; const [x,y] = punto(e); pincel.lineTo(x, y); pincel.stroke(); if (!firmaHecha){ firmaHecha = true; $("#firmaAyuda").classList.add("oculto"); } e.preventDefault(); });
-["pointerup","pointercancel","pointerleave"].forEach(t => lienzo.addEventListener(t, () => { trazando = false; }));
-$("#bBorrarFirma").onclick = prepararFirma;
-// Firma recortada en blanco y negro, liviana para enviar
-function firmaPNG(){
-  const c = document.createElement("canvas"); c.width = 600; c.height = Math.round(600 * lienzo.height / lienzo.width);
-  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(lienzo, 0, 0, c.width, c.height);
-  return c.toDataURL("image/png");
+const firmaT = crearFirma("#cFirma", "#firmaAyuda", "#bBorrarFirma");       // trabajador
+const firmaE = crearFirma("#cFirmaE", "#firmaAyudaE", "#bBorrarFirmaE");    // quien entrega
+function pintarEntregadores(){
+  const lista = entregadores();
+  $("#selEntrega").innerHTML = lista.length ? '<option value="">— Elige quién entrega —</option>' + lista.map(u => `<option value="${esc(u.usuario)}">${esc(u.nombre)} · ${esc(u.cargo || "")}</option>`).join("")
+                                            : '<option value="">(Sincroniza con internet para cargar los responsables)</option>';
+  if (lista.some(u => u.usuario === E.usuario)) $("#selEntrega").value = E.usuario;
+  else if (E.ultimoEntrega && lista.some(u => u.usuario === E.ultimoEntrega)) $("#selEntrega").value = E.ultimoEntrega;
 }
 const firmasMem = {};   // firmas de esta sesión (para volver a generar el acta sin internet)
 function cambiarModo(m){
@@ -868,31 +1003,36 @@ $("#bGuardarAsig").onclick = async () => {
   const ds = destinos().filter(i => { const a = asignado(i); return !(a && a.cedula === p.cedula); });
   if (!ds.length) { $("#ePersona").textContent = tipoAsig === "LOTE" ? "Ese trabajador ya tiene todos los equipos del lote." : "Ese trabajador ya tiene este equipo."; return; }
   if (!laborSel) { $("#ePersona").textContent = "Elige la labor."; return; }
+  const entregaPor = $("#selEntrega").value;
+  if (entregadores().length && !entregaPor) { $("#ePersona").textContent = "Elige quién entrega el acta y el dispositivo."; return; }
   const adic = [...document.querySelectorAll("[data-adic]")].filter(x => x.checked).map(x => ACTA.ADICIONALES[+x.dataset.adic][0]);
-  const firma = firmaHecha ? firmaPNG() : null;
+  const firma = firmaT.hecha() ? firmaT.png() : null, firmaEnt = firmaE.hecha() ? firmaE.png() : null;
+  if (entregaPor) E.ultimoEntrega = entregaPor;
   $("#hPersona").classList.add("oculto");
   const regs = [];
   for (const i of ds){
     const tipo = asignado(i) ? "REASIGNACION" : "ASIGNACION";
-    const datos = {...p, labor:laborSel, adicionales:adic.join(", ") || null};
+    const datos = {...p, labor:laborSel, adicionales:adic.join(", ") || null, entrega_por:entregaPor || null, valor_equipo:valorDe(i)};
     const id = await registrar(tipo, datos, i, true);
     regs.push({...datos, id, imei:i, tipo, fecha_ingreso:new Date().toISOString(), usuario:E.usuario, adic});
   }
-  if (firma){
-    const clave = regs[0].id;                       // en un lote, todas las actas comparten la misma firma
-    firmasMem[clave] = firma;
-    E.cola.push({k:"firma", id:clave, imagen:firma});
-    for (const r of regs){ r.firma = clave; marcarFirma(r.id, clave); }
-  }
+  // En un lote, todas las actas comparten las mismas firmas
+  const guardarFirma = (img, campo, clave) => {
+    firmasMem[clave] = img;
+    E.cola.push({k:"firma", id:clave, imagen:img});
+    for (const r of regs){ r[campo] = clave; marcarFirma(r.id, clave, campo); }
+  };
+  if (firma) guardarFirma(firma, "firma", regs[0].id);
+  if (firmaEnt) guardarFirma(firmaEnt, "firma_entrega", regs[0].id + "-entrega");
   if (tipoAsig === "LOTE"){ E.lote = []; }
   await guardar(); pintarSync(); pintarLote(); pintarResumen(); if (eqActual) pintarEquipo(); sincronizar();
   aviso(ds.length === 1 ? "Equipo asignado a " + p.nombre : `${ds.length} equipos asignados a ${p.nombre}`);
   if (firma) mostrarActa(regs);
 };
 // Anota en el registro pendiente (y en la asignación vigente) cuál es la firma
-function marcarFirma(id, clave){
-  const op = E.cola.find(o => o.k === "asig" && o.id === id); if (op) op.datos.firma = clave;
-  const v = Object.values(E.vig).find(x => x.id === id); if (v) v.firma = clave;
+function marcarFirma(id, clave, campo = "firma"){
+  const op = E.cola.find(o => o.k === "asig" && o.id === id); if (op) op.datos[campo] = clave;
+  const v = Object.values(E.vig).find(x => x.id === id); if (v) v[campo] = clave;
 }
 
 /* ---------- Cambiar labor ---------- */
@@ -915,7 +1055,8 @@ $("#bGuardarLabor").onclick = async () => {
 async function registrar(tipo, p, imei = eqActual, sinSync = false){
   const id = uuid();
   const datos = limpio({imei, tipo, fecha_ingreso:new Date().toISOString(), nombre:p.nombre, cedula:p.cedula, labor:p.labor || null,
-                        estado:p.estado, observacion:p.observacion, adicionales:p.adicionales, con_foto:p.con_foto});
+                        estado:p.estado, observacion:p.observacion, adicionales:p.adicionales, con_foto:p.con_foto,
+                        entrega_por:p.entrega_por, valor_equipo:p.valor_equipo});
   E.cola.push({k:"asig", id, datos});
   E.historial.unshift({id, ...datos, usuario:E.usuario, sync:false}); E.historial = E.historial.slice(0, 200);
   aplicarVigente({...datos, id, usuario:E.usuario, registrado_en:null});
@@ -963,12 +1104,15 @@ function generarActa(regs){
     doc.text(`ACTA DE ENTREGA${r.labor ? " - " + r.labor.toUpperCase() : ""}`, W/2, y, {align:"center"});
     y += 10;
     const nombre = (r.nombre||"").toUpperCase(), equipo = [d.marca,d.modelo].filter(Boolean).join(" ").toUpperCase() || "—";
-    const adic = r.adic ? ACTA.ADICIONALES.filter(([n]) => r.adic.includes(n)) : ACTA.ADICIONALES, totalAdic = adic.reduce((s,[,v]) => s+v, 0);
+    const recibidos = r.adic ? r.adic.map(norm) : null;
+    const adic = recibidos ? ACTA.ADICIONALES.filter(([n]) => recibidos.includes(norm(n))) : ACTA.ADICIONALES, totalAdic = adic.reduce((s,[,v]) => s+v, 0);
+    const ent = (r.entrega_por && E.usuarios && E.usuarios[r.entrega_por]) || ACTA.ENTREGA;
+    const valor = r.valor_equipo || valorDe(r.imei);
     const P = [
       [["Con la presente Palmas de Tumaco S.A.S hace entrega al sr(a) "],[nombre,1],[", identificado con cédula de ciudadanía No "],[r.cedula,1],[", del celular marca "],[equipo,1],...(d.serial ? [[" serial número "],[d.serial,1],[" e IMEI "],[r.imei,1]] : [[" con IMEI "],[r.imei,1]]),[", y con forro y en buen estado de conservación y funcionamiento. Por su parte el sr(a) "],[nombre,1],[" declara recibido el mencionado equipo a total y entera satisfacción."]],
       [["Los bienes que acaban de ser entregados por la empresa y recibidos por el trabajador, es un medio e instrumento de trabajo y será utilizado única y exclusivamente para tal fin, quedándole expresamente prohibido al trabajador su utilización para fines u objetos diferentes a aquellos para los cuales se le entrega. Haciéndose responsable de su custodia, conservación, cuidado y aseo, además de cualquier daño, pérdida o avería que sufra el celular."]],
       [["En cualquier momento Palmas de Tumaco S.A.S podrá solicitar la devolución del celular, caso en el cual será devuelta en el mismo estado que fue recibido, salvo el deterioro normal por el paso del tiempo y por su uso racional. Su no devolución, a solicitud de la empresa, se considera falta grave. De la misma manera, será devuelto a la terminación del contrato laboral existente entre las partes."]],
-      [["El bien está avaluado en la suma de "],[pesos(ACTA.VALOR),1],[" y los adicionales la suma de "],[pesos(totalAdic),1],...(adic.length ? [[" ("], ...adic.flatMap(([n,v],i) => [[n+": "],[pesos(v),1],[i<adic.length-1?", ":""]]), [")"]] : []),
+      [["El bien está avaluado en la suma de "],[pesos(valor),1],[" y los adicionales la suma de "],[pesos(totalAdic),1],...(adic.length ? [[" ("], ...adic.flatMap(([n,v],i) => [[n+": "],[pesos(v),1],[i<adic.length-1?", ":""]]), [")"]] : []),
         [" y en caso de pérdida, hurto y/o extravío, daño o avería, el trabajador autoriza expresamente a Palmas de Tumaco S.A.S, el descuento del costo del arreglo o del valor del avalúo, de su salario, prestaciones sociales, vacaciones y demás acreencias laborales. En caso de retiro, el trabajador autoriza expresamente a la misma empresa para que descuente el mencionado valor, de los salarios y de las prestaciones sociales, tales como cesantías, intereses a las mismas, primas legales, compensación de vacaciones, bonificaciones, indemnizaciones, pagos por mera liberalidad y lo aplique a la cancelación del arreglo o a la reposición del equipo."]],
       [["Se hace la entrega del equipo el "],[new Date(r.fecha_ingreso).toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"}) + "."]]
     ];
@@ -976,15 +1120,17 @@ function generarActa(regs){
     for (const p of P){ y = parrafo(doc, p, M, y, ancho, 5.2) + 4.5; }
     y = Math.max(y + 22, 222);
     const col = ancho/2, cx = [M + col/2, M + col + col/2];
-    const img = r.firma && firmasMem[r.firma];
-    if (img){ const pr = doc.getImageProperties(img), alto = Math.min(20, 64 * pr.height / pr.width); doc.addImage(img, "PNG", cx[1] - (alto * pr.width / pr.height) / 2, y - alto - 1, alto * pr.width / pr.height, alto); }
+    const img = r.firma && firmasMem[r.firma], imgE = r.firma_entrega && firmasMem[r.firma_entrega];
+    const ponerFirma = (im, x) => { const pr = doc.getImageProperties(im), alto = Math.min(20, 64 * pr.height / pr.width), an = alto * pr.width / pr.height; doc.addImage(im, "PNG", x - an / 2, y - alto - 1, an, alto); };
+    if (imgE) ponerFirma(imgE, cx[0]);
+    if (img) ponerFirma(img, cx[1]);
     doc.setFont("helvetica","bold"); doc.setFontSize(10);
     doc.text("QUIEN ENTREGA", cx[0], y-24, {align:"center"}); doc.text("QUIEN RECIBE", cx[1], y-24, {align:"center"});
     doc.setDrawColor(40); doc.setLineWidth(.3); cx.forEach(c => doc.line(c-34, y, c+34, y));
-    doc.text(ACTA.ENTREGA.nombre || "", cx[0], y+5, {align:"center"});
+    doc.text(ent.nombre || "", cx[0], y+5, {align:"center", maxWidth:col-6});
     doc.text(nombre, cx[1], y+5, {align:"center", maxWidth:col-6});
     doc.setFont("helvetica","normal");
-    doc.text(ACTA.ENTREGA.cargo || "", cx[0], y+10, {align:"center"});
+    doc.text(ent.cargo || "", cx[0], y+10, {align:"center", maxWidth:col-6});
     doc.text("C.C. " + (r.cedula||""), cx[1], y+10, {align:"center"});
     doc.setFontSize(7.5); doc.setTextColor(120);
     doc.text(`Ref. ${r.id ? r.id.slice(0,8).toUpperCase() : "—"} · ${MOVS[r.tipo]||r.tipo||""} · registrado por ${r.usuario||E.usuario} (APK)${img ? " · firmada en el celular" : ""}`, M, 268);
@@ -1053,7 +1199,6 @@ async function buscarVersion(){
 }
 
 (async function(){
-  if (DEMO) $("#avisoDemo").classList.remove("oculto");
   await leerVersion();
   await leer(); await iniciarRed();
   buscarVersion();

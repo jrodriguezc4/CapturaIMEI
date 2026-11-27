@@ -1,8 +1,6 @@
-// Configuración de la APK: los mismos datos de Firebase que usa la web.
-// Mientras diga TU_PROYECTO, la APK funciona en MODO DEMO (sin servidor; código de ingreso: 4521).
+// Configuración de la APK. Los datos se guardan en un repositorio PRIVADO de GitHub (ver datos.js).
+// Aquí NO va ningún token: cada teléfono se activa con el código de activación que entrega el administrador.
+// Opcional: ENTREGA, VALOR_EQUIPO y ADICIONALES (los mismos de ../../config.js) para el acta PDF del celular.
 window.APP_CONFIG = {
-  FIREBASE: {
-    apiKey: "TU_API_KEY",
-    databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com"
-  }
+  DATOS: { repo: "jrodriguezc4/CapturaIMEI-datos" }
 };

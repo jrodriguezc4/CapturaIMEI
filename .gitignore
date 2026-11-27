@@ -1,3 +1,8 @@
 node_modules/
 apk/android/
 .claude/
+
+# Datos personales y contraseñas: NUNCA subir al repositorio público
+*.xlsx
+*.xls
+*.csv

@@ -3,26 +3,29 @@
 Responde siempre en español. El usuario no es programador: explica en lenguaje sencillo qué cambiaste.
 
 ## Qué es
-Registro de qué celular de la empresa tiene cada trabajador de campo.
-- `apk/` → APK Android (Capacitor 6, HTML + JS sin bundler, plugins por `window.Capacitor.Plugins`). Toda la interfaz está en `apk/www/index.html`. Es un **escáner** que usa el grupo de trabajo de jrodriguezc (usuario + código): lee IMEI 1, IMEI 2 y SN de los equipos (foto de la etiqueta con ML Kit `readBarcodesFromImage`, o `scan()` por campo) y los asigna a un trabajador (búsqueda en la base de personal o registro manual) con su labor.
-- `index.html` y `config.js` (raíz) → Dashboard web en GitHub Pages: pestaña Asignaciones (tabla tipo Excel, filtros por labor, búsqueda, acta PDF con jsPDF, exportar Excel con SheetJS) y pestaña Personal de campo (agregar, editar, quitar, subir/descargar Excel).
-- `firebase/` → Reglas de Firebase Realtime Database (JSON). Acceso por REST + sesión anónima validada con el código (sha256 de "palmas-tumaco:" + código, nodo `codigos/{hash}`).
-- Nodos: `usuarios`, `codigos`, `sesiones`, `dispositivos/{imei}` (imei2, serial, marca, modelo), `asignaciones/{uuid}` (historial, nunca se sobrescribe; campos extra: estado, adicionales, firma, con_foto), `personal/{cedula}` (nombre, cedula, labor, activo), `firmas/{id}` y `evidencias/{id}` (imagen en base64, escritura única; la APK no las descarga).
-- Tipos de movimiento: ASIGNACION, REASIGNACION, EDICION, CAMBIO_LABOR, DEVOLUCION, DANO, PERDIDA. DEVOLUCION y PERDIDA dejan el equipo libre (APK: `vig.libre`; web: `r.libre`). Cambiar la lista en los dos HTML y en `firebase/reglas.json`.
-- APK: acta PDF con `apk/www/lib/jspdf.umd.min.js` (local, funciona sin internet) y se comparte con los plugins Filesystem + Share. El texto del acta está duplicado en `index.html` (web) y `apk/www/index.html`: si cambia uno, cambiar el otro.
-- `.github/workflows/build-apk.yml` → GitHub Actions construye el APK cuando cambia `apk/` y lo publica como Release `v1.0.<run_number>` con el archivo `CapturaIMEI.apk` (versionCode = run_number, lo pone `apk/scripts/patch-android.js`). Firma fija con el secreto `ANDROID_DEBUG_KEYSTORE`.
-- La APK (`buscarVersion()` en `apk/www/index.html`) consulta `releases/latest` de GitHub y muestra la franja "Versión nueva disponible" si el número es mayor. No debe bloquear el modo sin internet.
-- `descargar.html` (raíz, GitHub Pages) y `docs/qr-descarga.png` → QR al enlace fijo `releases/latest/download/CapturaIMEI.apk`. `docs/mejoras-futuras.html/.png` → diseños propuestos.
-- Git en este equipo: `%LOCALAPPDATA%\Programs\MinGit\cmd\git.exe`; GitHub CLI: `%LOCALAPPDATA%\Programs\gh\bin\gh.exe` (no están en el PATH).
+Registro de qué celular de la empresa tiene cada trabajador de campo. Sin Firebase: los datos viven en el repositorio PRIVADO `jrodriguezc4/CapturaIMEI-datos`.
+- `apk/` → APK Android (Capacitor 6, HTML + JS sin bundler, plugins por `window.Capacitor.Plugins`). Interfaz en `apk/www/index.html`.
+- `apk/www/datos.js` → acceso a GitHub (REST, `Repo`, `enviarEventos`, `traerCambios`, `Acceso` = códigos de activación AES-GCM/PBKDF2). Lo cargan la APK y la web (`index.html` incluye `apk/www/datos.js`).
+- `apk/www/valores.js` → tabla de valores de equipos y adicionales (`VALORES.buscar(marca, modelo)`); también la usa la web.
+- `apk/native/` → `LectorEtiquetaPlugin.java` (ML Kit texto + códigos por recortes, incluido en la APK) y `MainActivity.java` que lo registra; `apk/scripts/patch-android.js` los copia y agrega las dependencias. `clasificarEtiqueta()` en la APK decide IMEI1/IMEI2/SN por etiquetas y posición.
+- `index.html` y `config.js` (raíz) → web en GitHub Pages: Asignaciones, Personal de campo, Usuarios (crear desde Excel → hoja de QR de activación), Configuración inicial.
+
+## Datos en el repositorio privado
+- `usuarios.json` → `{usuarios:{usuario:{nombre, cedula, cargo, rol, entrega, activo, ...}}}` (sin contraseñas).
+- `registros/AAAA-MM/<usuario>.json` → lista de eventos, nunca se borra: `k:"asig"` (asignaciones: tipo, fecha_ingreso, nombre, cedula, labor, entrega_por, valor_equipo, adicionales, firma, firma_entrega, estado, con_foto...), `k:"disp"` (imei2, serial, marca, modelo), `k:"pers"` (personal). `registros/2026-11/carga-inicial.json` = personal inicial.
+- `firmas/<id>.png`, `evidencias/<id>.jpg`.
+- Tipos: ASIGNACION, REASIGNACION, EDICION, CAMBIO_LABOR, DEVOLUCION, DANO, PERDIDA (DEVOLUCION y PERDIDA dejan el equipo libre).
+- Acceso: el token fine-grained (solo ese repo, Contents RW) va cifrado con la contraseña de cada usuario en su código de activación (QR). Nunca poner un token en el código ni en `config.js`.
 
 ## Reglas importantes
-- Funciona sin internet: la APK guarda una cola local (`E.cola`) y copias de personal, dispositivos y asignación vigente; sincroniza de forma incremental (orderBy actualizado_en / registrado_en). No romper eso.
-- Labores válidas: Aplicador, Sanidad, Mantenimiento, Cosecha, Fertilización, Reubicado, Supervisor, Administrativo. Si se agrega una, cambiarla en `index.html`, `apk/www/index.html` y `firebase/reglas.json`.
-- Si un cambio toca `firebase/reglas.json`, recordar al usuario que debe pegarlas en la consola de Firebase (no se aplican solas).
-- Nunca sobrescribir `config.js` ni `apk/www/config.js`: tienen las claves reales de Firebase.
-- Mantener el modo demo (cuando `config.js` contiene TU_PROYECTO).
+- NUNCA subir Excel ni datos personales a este repositorio (es público). `*.xlsx` está en `.gitignore`. Nunca mostrar contraseñas en la conversación.
+- Funciona sin internet: cola local `E.cola` (cada op con id, fecha y usuario), copias locales; sincronización incremental por sha de archivos. No romper eso.
+- Labores válidas: Aplicador, Sanidad, Mantenimiento, Cosecha, Fertilización, Reubicado, Supervisor, Administrativo (cambiar en los dos HTML).
+- Solo jefe, coordinador y analistas entregan actas (`entrega:true` en usuarios.json). El texto del acta está en `index.html` y en `apk/www/index.html`: cambiar los dos.
+- `.github/workflows/build-apk.yml` publica Release `v1.0.<run_number>` con `CapturaIMEI.apk`; firma fija con el secreto `ANDROID_DEBUG_KEYSTORE`. La APK avisa versiones nuevas (`buscarVersion()`).
+- Git: `%LOCALAPPDATA%\Programs\MinGit\cmd\git.exe`; GitHub CLI: `%LOCALAPPDATA%\Programs\gh\bin\gh.exe` (no están en el PATH).
 
 ## Al terminar un cambio
-1. Probar lo posible (abrir el HTML en el navegador en modo demo).
+1. Probar lo posible en el navegador (simulando GitHub si hace falta).
 2. Commit con mensaje claro en español y `git push` a main.
-3. Decirle al usuario: en unos 8 minutos el APK nuevo queda publicado en Releases (el QR ya apunta a él) y los celulares verán el aviso de versión nueva; la web se actualiza sola.
+3. Decirle al usuario: en unos 8 minutos la APK nueva queda publicada (el QR ya apunta a ella) y los celulares verán el aviso; la web se actualiza sola.
